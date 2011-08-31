@@ -1,4 +1,15 @@
 mvStore documentation
 
-Please follow this [link](./intro.md) or visit the wiki.
+The documentation is written in markdown format.
 
+It can be read in pure text. That experience is not ideal for beginners,
+because the documentation is designed to accelerate learning,
+by providing a lot of context via links.
+
+The documentation can also be read in a rendered form, directly from the source
+in github (just click on intro.md or any other file in this project).
+Note that github only follows links to the destination document,
+not to a specific section.
+
+Finally, a html rendering is provided (to read in a browser).
+This option should provide the best reading experience.
