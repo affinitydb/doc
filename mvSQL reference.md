@@ -90,8 +90,9 @@ Some cases are extensions specific to mvSQL:
 
 1. The dollar sign ($), followed by digits, is used to represent a positional [_property_](./terminology.md#property) in the body of a statement or class definition. Other uses are ${statement} and $(expression), to indicate a statement/expression variable. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.   
 2. The colon (:), followed by digits, is used to represent a positional [_parameter_](./terminology.md#parameter) in the body of a statement or class definition. The colon is also used in [QNames](#qnames).   
-3. The period (.) can be used to separate store, class, and property names. It can also be part of numerical constants.   
+3. The period (.) can be used to separate store, class, property names, and path expression. It can also be part of numerical constants.   
 4. Brackets ({}) are used to select the elements of a collection.    
+5. At sign (@), followed by digits, is used to represent a [PIN ID](./terminology.md#pin-id-pid). At some places it doesnot followed by digits(e.g. in UPDATE statement and path expression), it means the PIN ID which is processing.
 
 Other cases are standard:
 
@@ -99,6 +100,32 @@ Other cases are standard:
 2. Commas (,) are used in some syntactical constructs, to separate the elements of a list.   
 3. The semicolon (;) terminates an SQL command. It cannot appear anywhere within a command, except within a string constant or quoted identifier.   
 4. The asterisk (\*) is used in some contexts to denote all values of a property or all properties of a PIN or composite value. It also has a special meaning when used as the argument of an aggregate function, namely that the aggregate does not require any explicit parameter.   
+
+### Path Expressions
+Path expressions are extensions which is not found in SQL, they are introduced into mvSQL for serveral reasons:
+
+First, path expressions define navigation paths through the relationships in the abstract schema. These path definitions affect both the scope and the results of a query. 
+Path expression in mvSQL can support several navigation ways:
+
+1. Property of a CLASS, e.g. PINs in class "cls1" has property "prop1", then we can fetch the value of "prop1" for each PINs in this class as: "cls1.prop1".
+2. Sub-struct, e.g. The PIN "pin1" has a property name called "employee", and the property "employee" has a sub-property called "name", then we can fetch the value of the sub-property "name" of that PIN as: "pin1.employ.name"
+3. Deference, e.g. The "pin1" has a property name called "emp_ref", and it value is a PIN reference to "pin2" which has a property named "name", then we can fetch the value of the "pin2.name" as: "pin1.emp_ref.name"
+
+These ways nagivations can be combined in any places. 
+
+Second, in order to support more complex graph query, mvStore can support regular expression for property description. There are serveral formats:
+
+Format			Description
+---------		-----------
+{value}			Navigate property for "value" times. E.g. prop1[3] means "prop1.prop1.prop1".
+{min, max}		The navigate orpperty times is from minimum "min" ti naximun "max".
+{*} 			Equal to {0, infinity}
+{?}				{0, 1}
+{+}				{1, infinity}
+
+Third, predicate (i.e. WHERE clause in SQL) can be embedded into path expression directly. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)] is to navigate to emp_ref if  emp_ref.name='Jack' and emp_ref.age IS NOT NULL. At sign (@) can be used here to denote the PIN ID which is processing.
+
+Path expressions are important constructs in the syntax of the query language, they can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY). 
 
 ### Value Expressions
 Value expressions are expressions which can be executed and return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).   
@@ -108,7 +135,7 @@ Because value expressions evaluate to a value, they can be used in place of valu
 A value expression is one of the following:  
 
 1. A constant or literal value  
-2. A property reference or a positional property reference  
+2. A property reference or a positional property reference or a path expression
 3. A positional parameter reference  
 4. An operator invocation   
 5. A function call   
@@ -664,7 +691,8 @@ Sample: [collection_operators.sql](../../test4mvsql/test/collection_operators.sq
 
 Operator                         Description
 --------                         -----------
-DISTINCT list                    return the list of values after eliminating the duplicate values
+DISTINCT list                    return the list of values after eliminating the duplicate values. If the list is pins, eliminating the same PINs( PINs are equal means they are the same PINs, because equal operator not only compare values of PIN, but also PID.).
+DISTINCT VALUES pins             return the list of values after eliminating the duplicate values of PINs, without comparing PIDs.
 ALL list                         return the list of value without eliminating the duplicate.
 
 There some 3 usage for these qualifier:
@@ -879,7 +907,7 @@ where *actions* can be:
 
 and *pin_reference* can be:
   
-  - a pin reference with format: @PID. E.g. @D001.
+  - a pin reference with format: @PID. E.g. @D001. Note when this UPDATE statement is a value of QUERY type property, then AT sign (@) can be used to denote the PIN ID which is processing.
   - a collection of pin references with format: { @PID[, ...] }. E.g. {@D001, @D002}.
 
 and *expression_as_param* can be any [expression](#value-expressions).  

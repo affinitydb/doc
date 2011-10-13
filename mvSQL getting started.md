@@ -55,7 +55,7 @@ How to classify data
 All data are inserted in global scope, but applications can freely define specialized access paths for their data
 (before or after the data is inserted), by creating what we call [classes](./terminology.md#class).  Here's an example:
 
-		CREATE CLASS class1 AS select * where property1 is not null;
+		CREATE CLASS class1 AS SELECT * WHERE property1 IS NOT NULL;
 
 How to query 
 ------------
@@ -86,7 +86,7 @@ How to use join
 mvStore returns immutable PIN collections as query results.  Presently, the join results are somewhat limited
 (they only contain PINs from the left-hand class).  Here's an example:
 
-		SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
+		SELECT * FROM class1 AS c1 JOIN class2 AS c2 ON (c1.prop1 = c2.prop2);
 
 mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.
 
