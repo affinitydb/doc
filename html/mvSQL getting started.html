@@ -79,7 +79,7 @@
       >. Here's an example:</p
     ><pre
     ><code
-      >    CREATE CLASS class1 AS select * where property1 is not null;
+      >    CREATE CLASS class1 AS SELECT * WHERE property1 IS NOT NULL;
 </code
       ></pre
     ></div
@@ -115,7 +115,7 @@
     >mvStore returns immutable PIN collections as query results. Presently, the join results are somewhat limited (they only contain PINs from the left-hand class). Here's an example:</p
     ><pre
     ><code
-      >    SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
+      >    SELECT * FROM class1 AS c1 JOIN class2 AS c2 ON (c1.prop1 = c2.prop2);
 </code
       ></pre
     ><p

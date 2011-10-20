@@ -207,10 +207,15 @@
 	    >.<br
 	     /></li
 	  ><li
-	  >The period (.) can be used to separate store, class, and property names. It can also be part of numerical constants.<br
+	  >The period (.) can be used to separate store, class, property names, and path expression. It can also be part of numerical constants.<br
 	     /></li
 	  ><li
-	  >Brackets ({}) are used to select the elements of a collection.</li
+	  >Brackets ({}) are used to select the elements of a collection.<br
+	     /></li
+	  ><li
+	  >At sign (@), followed by digits, is used to represent a <a href="./terminology.html#pin-id-pid"
+	    >PIN ID</a
+	    >. At some places it doesnot followed by digits(e.g. in UPDATE statement and path expression), it means the PIN ID which is processing.</li
 	  ></ol
 	><p
 	>Other cases are standard:</p
@@ -229,6 +234,72 @@
 	  ></ol
 	></div
       ></div
+    ><div id="path-expressions"
+    ><h3
+      >Path Expressions</h3
+      ><p
+      >Path expressions are extensions which is not found in SQL, they are introduced into mvSQL for serveral reasons:</p
+      ><p
+      >First, path expressions define navigation paths through the relationships in the abstract schema. These path definitions affect both the scope and the results of a query. Path expression in mvSQL can support several navigation ways:</p
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>Property of a CLASS, e.g. PINs in class &quot;cls1&quot; has property &quot;prop1&quot;, then we can fetch the value of &quot;prop1&quot; for each PINs in this class as: &quot;cls1.prop1&quot;.</li
+	><li
+	>Sub-struct, e.g. The PIN &quot;pin1&quot; has a property name called &quot;employee&quot;, and the property &quot;employee&quot; has a sub-property called &quot;name&quot;, then we can fetch the value of the sub-property &quot;name&quot; of that PIN as: &quot;pin1.employ.name&quot;</li
+	><li
+	>Deference, e.g. The &quot;pin1&quot; has a property name called &quot;emp_ref&quot;, and it value is a PIN reference to &quot;pin2&quot; which has a property named &quot;name&quot;, then we can fetch the value of the &quot;pin2.name&quot; as: &quot;pin1.emp_ref.name&quot;</li
+	></ol
+      ><p
+      >These ways nagivations can be combined in any places.</p
+      ><p
+      >Second, in order to support more complex graph query, mvStore can support regular expression for property description. There are serveral formats:</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Format</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >{value}</td
+	    ><td align="left"
+	    >Navigate property for &quot;value&quot; times. E.g. prop1[3] means &quot;prop1.prop1.prop1&quot;.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >{min, max}</td
+	    ><td align="left"
+	    >The navigate orpperty times is from minimum &quot;min&quot; ti naximun &quot;max&quot;.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >{*}</td
+	    ><td align="left"
+	    >Equal to {0, infinity}</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >{?}</td
+	    ><td align="left"
+	    >{0, 1}</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >{+}</td
+	    ><td align="left"
+	    >{1, infinity}</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >Third, predicate (i.e. WHERE clause in SQL) can be embedded into path expression directly. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)] is to navigate to emp_ref if emp_ref.name='Jack' and emp_ref.age IS NOT NULL. At sign (@) can be used here to denote the PIN ID which is processing.</p
+      ><p
+      >Path expressions are important constructs in the syntax of the query language, they can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY).</p
+      ></div
     ><div id="value-expressions"
     ><h3
       >Value Expressions</h3
@@ -243,8 +314,7 @@
 	>A constant or literal value<br
 	   /></li
 	><li
-	>A property reference or a positional property reference<br
-	   /></li
+	>A property reference or a positional property reference or a path expression</li
 	><li
 	>A positional parameter reference<br
 	   /></li
@@ -1974,9 +2044,15 @@
 	  ><td align="left"
 	    >DISTINCT list</td
 	    ><td align="left"
-	    >return the list of values after eliminating the duplicate values</td
+	    >return the list of values after eliminating the duplicate values. If the list is pins, eliminating the same PINs( PINs are equal means they are the same PINs, because equal operator not only compare values of PIN, but also PID.).</td
 	    ></tr
 	  ><tr class="even"
+	  ><td align="left"
+	    >DISTINCT VALUES pins</td
+	    ><td align="left"
+	    >return the list of values after eliminating the duplicate values of PINs, without comparing PIDs.</td
+	    ></tr
+	  ><tr class="odd"
 	  ><td align="left"
 	    >ALL list</td
 	    ><td align="left"
@@ -2543,7 +2619,7 @@
 	  > can be:</p
 	><ul
 	><li
-	  >a pin reference with format: @PID. E.g. @D001.</li
+	  >a pin reference with format: @PID. E.g. @D001. Note when this UPDATE statement is a value of QUERY type property, then AT sign (@) can be used to denote the PIN ID which is processing.</li
 	  ><li
 	  >a collection of pin references with format: { @PID[, ...] }. E.g. {@D001, @D002}.</li
 	  ></ul
