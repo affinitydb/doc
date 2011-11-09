@@ -7,6 +7,9 @@ is a list of mvStore's features:
 
  * small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)
  * [mvSQL](./terminology.md#mvsql) interface, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)
+ * path expressions for advanced (yet compact) graph queries
+ * ability to mix SQL and graph queries
+ * nested DML for compact graph inserts and updates
  * ACID transactions (with support for JOIN spanning multiple objects)
  * [snapshot isolation](./terminology.md#snapshot-isolation) for read-only transactions
  * nested transactions
@@ -34,16 +37,13 @@ is a list of mvStore's features:
  * [soft deletion](./terminology.md#soft-deletion-vs-purge) of objects
  * page-level storage control at the granularity of properties of objects
  * external sort (implicit) for very large result sets
+ * basic replication framework
 
 ###The following features are expected soon:
 
  * extensive support for data transformations in query results
- * path expressions for advanced (yet compact) graph queries
- * ability to mix SQL and graph queries
- * nested DML for compact graph inserts and updates
  * fine-grained sub-structure inside objects (similar to what's available in document databases), for efficiency and expressiveness
  * DSNS (Data Stream Management System) with data windowing and triggers, for ESP (Event Stream Processing) and EDA (Event Driven Architectures)
- * basic replication framework
  * object and schema versioning, with support for concurrent schema versions at run-time
 
 ###The following features are expected later:
