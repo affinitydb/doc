@@ -8,8 +8,10 @@ by providing a lot of context via links.
 
 The documentation can also be read in a rendered form, directly from the source
 in github (just click on intro.md or any other file in this project).
-Note that github only follows links to the destination document,
+Note that github's rendering only follows links to the destination document,
 not to a specific section.
 
-Finally, a html rendering is provided (to read in a browser).
+Finally, a html rendering is provided in the server sub-project.
+It can be read directly in a browser, or via the online console,
+where code snippets can be run in context.
 This option should provide the best reading experience.

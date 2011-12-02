@@ -7,6 +7,9 @@ is a list of mvStore's features:
 
  * small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)
  * [mvSQL](./terminology.md#mvsql) interface, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)
+ * path expressions for advanced (yet compact) graph queries
+ * ability to mix SQL and graph queries
+ * nested DML for compact graph inserts and updates
  * ACID transactions (with support for JOIN spanning multiple objects)
  * [snapshot isolation](./terminology.md#snapshot-isolation) for read-only transactions
  * nested transactions
@@ -18,9 +21,10 @@ is a list of mvStore's features:
  * highly optimized B-link tree indexing engine, used for all indexes
  * transactional, dynamic, automatic and continuous multi-classification of objects, stored in indexes
  * multi-segment indexing
- * asynchronous query processing, for highly concurrent servers
+ * asynchronous query processing option, for highly concurrent servers
  * transactional full-text indexing
  * ability to use full-text search in combination with regular structured queries
+ * extensive support for data transformations in query results
  * [notifications](./terminology.md#notifications) for object-level changes as well as for classification changes
  * authenticated sessions
  * page-level AES [encryption](./terminology.md#encryption) and log encryption
@@ -34,21 +38,14 @@ is a list of mvStore's features:
  * [soft deletion](./terminology.md#soft-deletion-vs-purge) of objects
  * page-level storage control at the granularity of properties of objects
  * external sort (implicit) for very large result sets
+ * basic replication framework
 
-###The following features are expected soon:
+###The following features are planned for the future:
 
- * extensive support for data transformations in query results
- * path expressions for advanced (yet compact) graph queries
- * ability to mix SQL and graph queries
- * nested DML for compact graph inserts and updates
  * fine-grained sub-structure inside objects (similar to what's available in document databases), for efficiency and expressiveness
  * DSNS (Data Stream Management System) with data windowing and triggers, for ESP (Event Stream Processing) and EDA (Event Driven Architectures)
- * basic replication framework
  * object and schema versioning, with support for concurrent schema versions at run-time
-
-###The following features are expected later:
-
- * path indexing for path queries or transitive closure
- * automatic data partitioning for scalability, and distributed querying
+ * multi-node scalability with full ACID on few nodes and relaxed ACID on infinite nodes
+ * path indexing (for improved efficiency of path expression evaluation)
  * reasoning, inductive inferences, data mining
- * XQuery interface
+ * XQuery and other interfaces

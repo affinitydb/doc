@@ -7,10 +7,7 @@ elements of the [syntax](#mvsql-syntax), the [data types](#data-types) and the [
 It also provides a formal [BNF description](#statements-bnf) of the [DDL](#ddl) and [DML](#dml).
 For a quick practical overview, please visit the ["getting started"](./mvSQL getting started.md) section.
 
-It's easy to test any of these commands in the [mvcommand](./terminology.md#mvcommand) console.  
-
-_Note: The console itself offers a few additional keywords that are not part of mvSQL (see [mvcommand.doc](../../mvcommand/doc/README.txt))._  
-_Note: The SQL used to talk to [mvEngine](./terminology.md#mvengine) in MySQL is unrelated with mvSQL._
+It's easy to test any of these commands in the online console. Direct links to the console are provided in the documentation.
 
 mvSQL Syntax
 ------------
@@ -92,7 +89,7 @@ Some cases are extensions specific to mvSQL:
 2. The colon (:), followed by digits, is used to represent a positional [_parameter_](./terminology.md#parameter) in the body of a statement or class definition. The colon is also used in [QNames](#qnames).   
 3. The period (.) can be used to separate store, class, property names, and path expression. It can also be part of numerical constants.   
 4. Brackets ({}) are used to select the elements of a collection.    
-5. At sign (@), followed by digits, is used to represent a [PIN ID](./terminology.md#pin-id-pid). At some places it doesnot followed by digits(e.g. in UPDATE statement and path expression), it means the PIN ID which is processing.
+5. The at sign (@), followed by digits, is used to represent a [PIN ID](./terminology.md#pin-id-pid). In some instances, @ may stand alone and represent the currently processed PIN (e.g. in UPDATE statements and path expressions).  
 
 Other cases are standard:
 
@@ -102,63 +99,56 @@ Other cases are standard:
 4. The asterisk (\*) is used in some contexts to denote all values of a property or all properties of a PIN or composite value. It also has a special meaning when used as the argument of an aggregate function, namely that the aggregate does not require any explicit parameter.   
 
 ### Path Expressions
-Path expressions are extensions which is not found in SQL, they are introduced into mvSQL for serveral reasons:
+Path expressions are an extension which is not found in SQL.
 
-First, path expressions define navigation paths through the relationships in the abstract schema. These path definitions affect both the scope and the results of a query. 
-Path expression in mvSQL can support several navigation ways:
+Path expressions define navigation paths through the relationships of the abstract schema. They specify both the scope and the results of a query. 
+Path expressions support several navigation mechanisms, applicable to each segment of a path:
 
-1. Property of a CLASS, e.g. PINs in class "cls1" has property "prop1", then we can fetch the value of "prop1" for each PINs in this class as: "cls1.prop1".
-2. Sub-struct, e.g. The PIN "pin1" has a property name called "employee", and the property "employee" has a sub-property called "name", then we can fetch the value of the sub-property "name" of that PIN as: "pin1.employ.name"
-3. Deference, e.g. The "pin1" has a property name called "emp_ref", and it value is a PIN reference to "pin2" which has a property named "name", then we can fetch the value of the "pin2.name" as: "pin1.emp_ref.name"
+1. Property of a CLASS, e.g. if PINs in class "cls1" have property "prop1", then we can fetch the value of "prop1" for each PIN in this class with: `cls1.prop1`  
+2. Dereference, e.g. if "pin1" has a property "emp_ref", of which the value is a PIN reference to "pin2" with property "name", then we can fetch the value of "pin2.name" with: `pin1.emp_ref.name`  
+3. (future) Sub-structure, e.g. if the PIN "pin1" has a property "employee", and the property "employee" has a sub-property "name", then we can fetch the value of this sub-property with: `pin1.employ.name`  
 
-These ways nagivations can be combined in any places. 
-
-Second, in order to support more complex graph query, mvStore can support regular expression for property description. There are serveral formats:
+In order to support more complex graph queries, mvStore provides regular expressions for each segment (or property) of the path. There are several options:
 
 Format			Description
 ---------		-----------
-{value}			Navigate property for "value" times. E.g. prop1[3] means "prop1.prop1.prop1".
-{min, max}		The navigate orpperty times is from minimum "min" ti naximun "max".
-{*} 			Equal to {0, infinity}
-{?}				{0, 1}
-{+}				{1, infinity}
+{value}			Navigate along this segment for a number of "value" times (e.g. prop1{3} means "prop1.prop1.prop1").
+{min, max}		Navigate along this segment, starting at the "min"-th instance and up to the "max"-th instance.
+{*} 			Same as {0, infinity}.
+{?}				Same as {0, 1}.
+{+}				Same as {1, infinity}.
 
-Third, predicate (i.e. WHERE clause in SQL) can be embedded into path expression directly. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)] is to navigate to emp_ref if  emp_ref.name='Jack' and emp_ref.age IS NOT NULL. At sign (@) can be used here to denote the PIN ID which is processing.
+A predicate (i.e. WHERE clause in SQL) can be attached to each segment of a path expression. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)]. The at sign (@) can be used here to denote the PIN ID which is being processed.  
 
-Path expressions are important constructs in the syntax of the query language, they can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY). 
+Path expressions are an important construct in the syntax of the query language. They can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY).  
 
 ### Value Expressions
-Value expressions are expressions which can be executed and return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).   
+Value expressions are expressions which can be executed and will return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).  
 
-Because value expressions evaluate to a value, they can be used in place of values, like when passing a parameter to a function, or when specifying the value of a property with INSERT or UPDATE, or in search conditions. 
+Because value expressions evaluate to a value, they can be used in place of values, like when passing a parameter to a function, or when specifying the value of a property with INSERT or UPDATE, or in search conditions.  
 
 A value expression is one of the following:  
 
-1. A constant or literal value  
-2. A property reference or a positional property reference or a path expression
-3. A positional parameter reference  
-4. An operator invocation   
-5. A function call   
+1. A constant or literal value.  
+2. A property reference, or a positional property reference, or a path expression.  
+3. A positional parameter reference.  
+4. An operator invocation.  
+5. A function call.  
 
 Most of them are similar to standard SQL or C/C++.
-
-<p style="color:red">
-TODO (maxw): special expressions should be pointed out here
-</p>
 
 #### Positional Properties
 Format: $digit  
 
-A dollar sign ($) followed by digits is used to represent a positional parameter in the body of a statement or class (family) definition or a prepared statement. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.   
+A dollar sign ($) followed by digits is used to represent a positional property in the body of a statement or class (family) definition. 
+In other contexts, the dollar sign can be part of an identifier (or a dollar-quoted string constant).   
 
-  mvcommand> PREPARE STATEMENT stmt1 WITH PROPERTIES (prop1, prop2) AS  
-     SELECT * WHERE (CONTAINS($0,'pin') AND EXISTS($1));
+This feature is not self-contained in mvSQL. It implies a special invocation of the underlying kernel functions 
+(e.g. `IStmt::createStmt` or `IStmt::execute`), allowing to provide the property names separately.
+Currently, the mvserver doesn't provide any entry point for this feature.
+This could be used to enhance efficiency, or to prevent SQL injection attacks.
 
-This statement is supported in mvcommand (not in mvSQL). mvcommand will pass 'prop1' to mvSQL (replacing the positional property $0).  
-
-There is no significant benefit in using positional properties, except to relieve the store from parsing property names, when one already knows a property ID (this applies mostly to C++ clients).
-
-#### PARAM: Positional Parameters
+#### Positional Parameters
 Format:  
 
 1. :digit  
@@ -166,20 +156,16 @@ Format:
 
 The colon (:) followed by digits is used to represent a positional parameter in the body of a statement or class definition. E.g.
 
-  mvcommand> INSERT (PROP_I, PROP_S) VALUES (23.1, 'str');    
-  Committed one PIN successfully.   
-    
-  mvcommand> PREPARE STATEMENT stmt1 AS  
-     SELECT * WHERE PROP_I=:0(INT);   
-  Prepared statement "stmt1" successfully.  
-      
-  mvcommand> EXECUTE STATEMENT stmt1 WITH PARAMS(2);  
-  PIN@327683(2):(<prop1|VT_STRING>:pin1	<prop2|VT_INT>:2)  
-  1 PINs SELECTED.  
+  <code class='mvsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code>  
+  <code class='mvsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code>  
 
-These statements are supported in mvcommand (not in mvSQL). mvcommand will pass parameter '2' to mvSQL (replacing the positional parameter :0).  
+Here, :0 designates the first parameter defining class `hasPropI`'s index. This parameter could be specified at query time as follows:
 
-The benefit of positional parameters is obvious when executing a statement several times with different parameter values.
+  <code class='mvsql_snippet'>SELECT * FROM hasPropI(23);</code>  
+
+Or like this, provided we used `IN` in the class definition:
+
+  <code class='mvsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code>  
 
 #### REFID
 [PIN reference](./terminology.md#pin-reference)  
@@ -227,10 +213,6 @@ mvStore supports the UTF-8 encoding exclusively. All string data should be conve
 ### BSTR(Binary String)
 mvSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f),
 and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).  
-
-<p style="color:red">
-REVIEW (maxw): ?? why even number of digits ?? what if it's missing ??
-</p>
 
 ### URL
 Format: U'url_addr'  
@@ -341,7 +323,7 @@ However properties with type EXPR are evaluated automatically when they’re use
 Here prop2 is stored directly with the value of that expression executed at UPDATE execution time, while prop3 is stored in type EXPR, 
 which is evaluated when query.  
 
-It’s also possible to invoke such a property with parameters (up to 254). E.g.
+It's also possible to invoke such a property with parameters (up to 254). E.g.
 
   mvcommand>
   INSERT prop1=3, prop2=$(prop1-:0);
@@ -761,7 +743,8 @@ any function,$()      right               any built-in function, expression
 &                     left                bitwise and
 ^                     left                bitwise xor (exclusive or)
 |                     left                bitwise or (inclusive or)
-IS, IS NOT            left                IS TRUE, IS FALSE, IS UNKNOWN, IS NULL, IS A
+IS A, IS NOT A        left                class membership check, e.g. mv:pinID IS A class_name
+IS, IS NOT            left                IS TRUE, IS FALSE, IS UNKNOWN, IS NULL, 
 IN                    left                collection membership
 BETWEEN...AND...      left                range containment                        
 <,<=,>, >=            left                less than, less than or equal to, greater than, greater than or equal to
@@ -813,8 +796,7 @@ b) for CREATE STORE only:
         - MAXSIZE=number
         - LOGSEGSIZE=number
         - PCTFREE=floating or double number
-Options can be specified in any order.
-
+Options can be specified in any order.  
 
 
 ### DDL
@@ -832,6 +814,11 @@ where the query_statement is a [SELECT QUERY](#query). Here's a description of t
 4. SOFT_DELETE: Not only create a index for normal pins, but also create another index for those pins which is marked in deleted status(Deleted PINs are not permanently deleted except that delete with option MODE_DELETED in C++ API or PURGE), and can be restored using mvSQL "UNDELETE". ).
 
 Examples: [class.sql](../../test4mvsql/test/class.sql).   
+
+There is a operator "IS A" can be used to check whether the pin is classified as a class member or not. E.g. below 2 statements are equal.
+ 
+  SELECT * WHERE mv:pinID IS A class1;
+  SELECT * FROM class1;
 
 #### Create [class family](./terminology.md#family)  
 
@@ -873,7 +860,7 @@ The available options are:
 3. NULLS FIRST: Order the null value(i.e. there is no such a property) before any non-null value.  
 4. NULLS LAST: Order the null value(i.e. there is no such a property) after any non-null value.  
 
-		CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
+	CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
 
 ### DML
 Here is a description of mvSQL's Data Manipulation Language.
@@ -915,9 +902,21 @@ and *expression_as_param* can be any [expression](#value-expressions).
 Examples: [update.sql](../../test4mvsql/test/update.sql).  
 
 Notes:  
+
 1. UPDATE {SET|ADD} a non-existing property: add a property   
 2. UPDATE SET an existing property: change the value of that property (if the property is a collection, overwrite the whole collection)   
 3. UPDATE ADD an existing property: append a new value to that property (if the property only has one value, then change the type to collection, and append the new value)  
+
+Also mvSQL support C styple operation 'op=', where op is one of +,-,*,/,%,&,|,^,<<,>>,>>>,min,max,||. E.g.
+	
+	UPDATE * SET prop+=1;
+
+Any reference to a not existing proerty will lead the query return directly without any result set, in order to skip those PINs which does not exists that property, you can use 
+'!' modifiers in UPDATE, in addition, we can only process those PINs which includes that property using '?' modifiers, E.g.
+	
+	UPDATE * SET prop!=0, prop?+=1;
+
+This statement will update all PINs: for PINs without "prop" property, add this property; for PINs already has "prop" property, increase this property by 1.
 
 #### DELETE/UNDELETE/PURGE   
 Synopsis:  
@@ -1008,7 +1007,7 @@ Examples: [join.sql](../../test4mvsql/test/join.sql).
 A sub-SELECT can appear in the FROM clause. This acts as though its output were created as a temporary table for the duration of this single SELECT command. 
 Note that the sub-SELECT must be surrounded by parentheses, and an alias must be provided for it. 
 
-### Inheritence
+### Inheritance
 Being different from relational DB, mvStore support a PIN which can be belongs to multiple classes, in this way user can implement some inheritant data.
 
 Examples: [inheritance.sql](../../test4mvsql/test/inheritance.sql). 
@@ -1066,15 +1065,10 @@ Synopsis:
 If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    
 
 <p style="color:red">
-REVIEW (maxw): distinguish the mvcommand keywords visually, somehow  
-REVIEW (maxw): I don't see anything about class inheritance (/pin[pin is ... and ...) - ah yes, there is test/inheritance.sql... must refer to it  - fixed  
-REVIEW (maxw): why isn't JOIN part of the BNF for SELECT? - fixed  
-REVIEW (maxw): I don't see any formal description of AS in cases like SELECT * FROM class2 as c2 WHERE 534 in c2.prop3;   - fixed  
-REVIEW (maxw): no mention of DISTINCT keyword limitations, and actual model for distinct stuff, listValues etc. (n.b. incomplete right now)  - partial fixed.  
-REVIEW (maxw): no mention of COUNT, LIMIT/OFFSET philosophy; also, mention @1234.prop syntax for counting collections  
+REVIEW (maxw): expand necessary samples in-place, using new mvsql_snippet class; keep the references to the *.sql files, but don't resolve them  
+REVIEW (maxw): clarify the whole COUNT, LIMIT/OFFSET philosophy; also, mention @1234.prop syntax for counting collections  
 REVIEW (maxw): actually, have a section just on counting things  
 REVIEW (maxw): a section on path expressions for declarative traversal of collections (by query)  
-REVIEW (maxw): clarify the meaning of {} in SELECT * FROM {@1234}; (vs absence of {} in SELECT * FROM @1234.users) - fixed  
 REVIEW (maxw): clarify all the possible elisions/tricks when using families (e.g. with range var), vs possible parameters and meanings  
 REVIEW (maxw): idioms (broader disc with J)  
 </p>
