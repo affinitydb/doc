@@ -8,10 +8,12 @@ The interface is divided in three parts: [connection creation](#connection-creat
 ##Connection Creation
 To establish a new connection, a client simply needs to do the following:
 
+<pre>
   var lib_mvstore = require('mvstore-client');
   var lMvStore = lib_mvstore.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
   ...
   lMvStore.terminate();
+</pre>
 
 This example is assuming that mvServer runs on `localhost` and listens to port `4560`, and that
 the `mvstore-client` module for node.js is properly installed. If a `user` is specified,
@@ -41,10 +43,12 @@ The connection must be terminated by calling `terminate`.
 This access path is self-sufficient and will feel most natural to people with SQL experience.
 Simply emit statements such as:
 
+<pre>
   var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
   lMvStore.mvsql("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
   /* ... */
   lMvStore.mvsql("SELECT * WHERE EXISTS(name);", lOnResult);
+</pre>
 
 `pResult` is a parsed JSON response produced by mvStore.
 
@@ -78,6 +82,7 @@ and the developer is not expected to _subclass_ `PIN`, but rather to _use_
 
 Here are some examples:
 
+<pre>
   var lOnResult = function(pError, pResult) { /* ... */ };
   lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
   /* ... */
@@ -89,6 +94,7 @@ Here are some examples:
       pR[0].set("profession", "Lawyer");
       lMvStore.commitTx(lOnResult);
     });
+</pre>
 
 ####PIN Interface
 The `createPINs` and `mvsqlProto` methods return PIN objects. These objects implement

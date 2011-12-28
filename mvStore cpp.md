@@ -158,6 +158,7 @@ will be published in a future release).
 
 Here's an example building a multi-segment class index:
 
+<pre>
   IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
   Value lV[2];
   lV[0].setVarRef(0, 1, &mProps[0]);
@@ -186,6 +187,7 @@ Here's an example building a multi-segment class index:
     lClass->destroy();
     ...
   }
+</pre>
 
 ###ISession::startTransaction
 Transactions are bound to sessions. For a good discussion on all available options,
@@ -266,6 +268,7 @@ Via `VT_EXPRTREE`, a [Value](#value) can hold an `IExprTree`, and thus `ISession
 can be used not only to build leaf nodes but also complete trees (in combination with logical
 operators such as `OP_AND, OP_OR etc.`). Here's an example:
 
+<pre>
   CmvautoPtr<IStmt> lQ(mSession->createStmt());  
   unsigned const char lVar = lQ->addVariable();  
   Value lV[2];  
@@ -278,6 +281,7 @@ operators such as `OP_AND, OP_OR etc.`). Here's an example:
   lV[1].set(lET2);  
   CmvautoPtr<IExprTree> lET(mSession->expr(OP_LAND, 2, lV));  
   TVERIFYRC(lQ->addCondition(lVar,lET));  
+</pre>
 
 Usually, the root node of an expression is passed to `IStmt::addCondition`. Internally,
 mvStore compiles the expression into a representation optimized for execution (`IExpr`).
@@ -294,13 +298,16 @@ ordering, projections and PIN transformations, query plan analysis etc.
 
 To use an existing class as a condition of a query:
 
+<pre>
   ClassSpec lCS1;  
   lCS1.classID = lTheCLSID1;  
   lCS1.nParams = 0; lCS1.params = NULL;  
   lQ->addVariable(&lCS1, 1);  
+</pre>
 
 To merge two classes:
 
+<pre>
   ClassSpec lCS1, lCS2;  
   lCS1.classID = lTheCLSID1;  
   lCS2.classID = lTheCLSID2;  
@@ -310,14 +317,18 @@ To merge two classes:
   lVars[0] = lQ->addVariable(&lCS1, 1);  
   lVars[1] = lQ->addVariable(&lCS2, 1);  
   lQ->setOp(lVars, 2, QRY_INTERSECT);
+</pre>
 
 To do a join:
 
+<pre>
   // same thing as merge, except replace setOp with:
   lQ->join(lVars[0], lVars[1], NULL, QRY_JOIN);
+</pre>
 
 To use a family instead:
 
+<pre>
   Value lVParam;
   lVParam.set(...); lVParam.setPropID(...);
   ClassSpec lCS1;
@@ -325,12 +336,15 @@ To use a family instead:
   lCS1.params = &lVParam;
   lCS1.nParams = 1;
   lQ->addVariable(&lCS1, 1);
+</pre>
 
 To use a full-text condition with ordered results:
 
+<pre>
   TVERIFYRC(lQ->addConditionFT(lQ->addVariable(), "whatever", 0, &mProps[0], 1));
   OrderSeg const lOrder = {NULL, mProps[0], ORD_NCASE};
   TVERIFYRC(lQ->setOrder(&lOrder, 1));
+</pre>
 
 _Note: In the present release, output transformations are not yet considered ready._
 
@@ -357,13 +371,13 @@ becomes large; this also implies that seeks and certain queries are fast).
 
 Because the point at which a small collection becomes large (and vice versa) is not controlled
 explicitly by the client, it is recommended to always use code that handles both cases, such as
-the `CollectionIterator` defined at line 249 in [serialization.h](../tests/src/serialization.h).
+the `CollectionIterator` defined at line 249 in serialization.h.
 
 #IStream
 This interface is used both to push [BLOBs](./terminology.md#blob) into the store (by implementing
 a client IStream-derived class), and to read BLOBs from the store. Via `IStream::dataType`,
 BLOBs can be marked as text-only (ascii or unicode), or binary. Note that BLOBs, like strings, can
-be modified via `OP_EDIT`, described in detail in [mvstore.proto's StrEdit](../kernel/src/mvstore.proto)
+be modified via `OP_EDIT`, described in detail in [mvstore.proto's StrEdit](./sources/mvstore_proto.html)
 (but in the current state of the implementation, this is not fully optimized for blobs). 
 Note also that text BLOBs can participate to full-text indexes, just like any text property. 
 It is possible to build [collections](./terminology.md#collection) of BLOBs.

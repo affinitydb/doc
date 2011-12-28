@@ -20,6 +20,7 @@ Here are two typical examples.
 
 A client _writes_ to mvStore:
 
+<pre>
   the client has a javascript object to be stored in mvStore
   -> the client serializes it to protobuf, as a new object to be inserted (OP_INSERT)
   -> the client sends the serialized stream to mvStore
@@ -28,13 +29,16 @@ A client _writes_ to mvStore:
   -> mvStore produces a response (including new PID, new eids etc.)
   -> mvStore serializes the response to protobuf
   -> the client deserializes the response
+</pre>
 
 A client _reads_ from mvStore:
 
+<pre>
   the client wants to query PIN @50001 and interact with it as an object
   -> the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface
   -> mvStore executes the query and serializes the response to protobuf
   -> the client deserializes the response into a javascript object
+</pre>
 
 The internal structure of the protobuf messages that can be understood by mvStore is defined in
 [mvstore.proto](./sources/mvstore_proto.html). It allows to express PIN inserts, updates and deletes,
@@ -117,13 +121,13 @@ whole PIN in memory, then you probably can't interact with that object as a nati
 on the other hand, not all protobuf libraries expose this kind of access.
 
 In their present implementation, the [node.js](./sources/mvstore-client_js.html) and
-[python](../python/mvstore.py) client libraries only support the first strategy, but may expose a
+[python](./sources/mvstore_py.html) client libraries only support the first strategy, but may expose a
 specialized interface using the second strategy in a near future.
 
 ###More Information
 For more information on mvStore's usage of protobuf, please refer to the comments in [mvstore.proto](./sources/mvstore_proto.html).
 Another important source of information is the implementation of the [node.js](./sources/mvstore-client_js.html) and
-[python](../python/mvstore.py) access layers, which can be used as examples to implement new access layers.
+[python](./sources/mvstore_py.html) access layers, which can be used as examples to implement new access layers.
 
 For more information about Google's protobuf, please refer to the project's [homepage](http://code.google.com/p/protobuf),
 its [developer guide](http://code.google.com/apis/protocolbuffers/docs/overview.html) and its
