@@ -1,6 +1,6 @@
 #mvStore C++ Interface
 Please read the brief [introduction](./terminology.md#c-interface). The
-bulk of the interface is defined in [mvstore.h](../kernel/include/mvstore.h).
+bulk of the interface is defined in [mvstore.h](./sources/mvstore_h.html).
 
 The main purpose of mvStore's C++ interface is to provide a means of
 integrating the mvStore database kernel into an embedding application, such as a
@@ -18,7 +18,7 @@ should be avoided unless necessary (being in C++, and being inseparable
 from the kernel itself, they'd make the client code inseparable from the kernel,
 which is undesirable for normal database client code).
 Even an embedding process such as [mvserver](./terminology.md#mvserver) only uses a tiny portion 
-of the C++ interface (all in [storecmd.cpp](../server/src/storecmd.cpp)).
+of the C++ interface (all in storecmd.cpp).
 A justification for using more of the C++ interface could be, for example,
 to implement additional query languages for mvStore.
 
@@ -29,13 +29,13 @@ presents enough information to use it successfully. The following interfaces and
 Please refer to the SDK, samples and source code for a complement of information.
 
 #rc.h
-[rc.h](../kernel/include/rc.h) defines (and documents summarily) the basic
+[rc.h](./sources/rc_h.html) defines (and documents summarily) the basic
 error codes returned by most of the functions and methods of the C++ interface.
 In some cases, these error codes may be accompanied with more explicit messages
 sent to stderr or syslog. `RC_OK` is the success code used throughout the interface.
 
 #startup.h
-[startup.h](../kernel/include/startup.h) defines the initial entry point to mvStore.
+[startup.h](./sources/startup_h.html) defines the initial entry point to mvStore.
 It provides functions to create, open and shutdown one or more instances of databases.
 `openStore` and `createStore` produce an opaque `MVStoreCtx` token, 
 used to initiate [sessions](#isession).
@@ -222,7 +222,7 @@ To obtain the most recent stamp, it is still necessary to load (or `refresh`) th
 so this is not a panacea for reducing disk io, but it can be useful.
 
 #Value
-The `Value` structure defined at line 507 in [mvstore.h](../kernel/include/mvstore.h) can represent any of the
+The `Value` structure defined in [mvstore.h](./sources/mvstore_h.html) can represent any of the
 [data types](./mvSQL reference.md#data-types) supported by mvStore. `Value` is used both as
 an input value (to create or modify PINs) and as an output value (to read the contents of PINs).
 
@@ -234,22 +234,22 @@ chosen `set` method. The `flags` field is for internal use only and should
 not be interpreted or modified.
 
 The `property` field determines the [property](./terminology.md#property) to which this value
-belongs. It can be one of the `PROP\_SPEC\_*` values (documented in detail in [mvstore.proto](../kernel/src/mvstore.proto)).
+belongs. It can be one of the `PROP\_SPEC\_*` values (documented in detail in [mvstore.proto](./sources/mvstore_proto.html)).
 Or it can be a property ID obtained via [mapURIs](#isession::mapuris), described earlier.
 
 The `op` field defines how the value is intended to be used. For a relatively thorough
-description of possibilities, please refer to line 198 in [mvstore.proto](../kernel/src/mvstore.proto).
+description of possibilities, please refer to line 198 in [mvstore.proto](./sources/mvstore_proto.html).
 
 The `eid` field is used depending on the context. For new elements of a [collection](./terminology.md#collection),
 it defines their logical position (either by using `STORE_LAST_ELEMENT, STORE_FIRST_ELEMENT etc.`,
 or by specifying the eid of an already existing element [see the comments about `OP_ADD` and `OP_ADD_BEFORE` in 
-[mvstore.proto](../kernel/src/mvstore.proto)]). For existing elements, `eid` can be used in conjunction with
+[mvstore.proto](./sources/mvstore_proto.html)]). For existing elements, `eid` can be used in conjunction with
 `OP_MOVE` and `OP_MOVE_BEFORE`. For all other `op`, the `eid`
 simply designates the element being modified.
 
 The `meta` field allows fine-grained (per-property) control of things such as indexing,
 [SSV](./terminology.md#ssv) etc. The `META\_PROP\_*` flags are documented in
-[mvstore.h](../kernel/include/mvstore.h).
+[mvstore.h](./sources/mvstore_h.html).
 
 ###As Output (read)
 Most of the fields have the same meaning as in the input case. However, `op` and `meta`

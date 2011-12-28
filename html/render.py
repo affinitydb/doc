@@ -53,7 +53,7 @@ def convertMdToHtml():
                 _lN = RE_SIMPLE_MD.sub("", _iFN)
                 lInsertedHeader.append("    <option value='%s'%s>%s</option>\n" % (_lN, ("", " SELECTED")[_iFN == iFN], _lN))
             lInsertedHeader.append("  </select>\n")
-            lInsertedHeader.append("</div\n")
+            lInsertedHeader.append("</div>\n")
             lOutputF.writelines(lInsertedHeader)
             
             def replaceMdref(mo):

@@ -1,5 +1,5 @@
 #mvStore Javascript Interface for node.js
-The [mvstore-client.js](../nodejs/mvstore-client/lib/mvstore-client.js) module defines a simple interface
+The [mvstore-client.js](./sources/mvstore-client_js.html) module defines a simple interface
 between node.js and mvStore (via HTTP and the the [mvServer](./terminology.md#mvserver)).
 The interface is divided in three parts: [connection creation](#connection-creation),
 [mvSQL access with JSON response](#mvsql-access-with-json-response), and

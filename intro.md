@@ -25,6 +25,6 @@ It also contains references:
 3. [low-level C++ interface](./mvStore cpp.md)  
 4. [low-level protobuf interface](./mvStore protobuf.md)  
 
-Some pages point directly to examples in the source-code, e.g. [mvstore.proto](../kernel/src/mvstore.proto).
+Some pages point directly to examples in the source-code, e.g. [mvstore.proto](./sources/mvstore_proto.html).
 
 Enjoy!

@@ -271,7 +271,7 @@ Note that [indexes](#index) are homogeneous and therefore may imply data coercio
 ###Notification
 Notifications are similar to triggers, and allow to track changes
 on specific [PINs](#pin) or [classes](#class). The notification functionality
-is exposed in a low-level way in the kernel ([startup.h](../kernel/include/startup.h)),
+is exposed in a low-level way in the kernel ([startup.h](./sources/startup_h.html)),
 and is also available via the [comet](http://en.wikipedia.org/wiki/Comet_%28programming%29)
 pattern in [mvServer](#mvserver). In the future a highly scalable messaging infrastructure
 may be added. By comparison with triggers and stored procedures, mvStore's notifications
@@ -305,9 +305,9 @@ streaming interface, both of which are better suited as client interfaces for re
 a server such as [mvServer](#mvserver)). [Client-side libraries](#client-side-libraries) are also in development.
 
 ###C++ interface
-[mvstore.h](../kernel/include/mvstore.h) (along with a few extensions
-in [rc.h](../kernel/include/rc.h), [startup.h](../kernel/include/startup.h) and
-[units.h](../kernel/include/units.h)) defines a self-contained, low-level interface directly
+[mvstore.h](./sources/mvstore_h.html) (along with a few extensions
+in [rc.h](./sources/rc_h.html), [startup.h](./sources/startup_h.html) and
+[units.h](./sources/units_h.html)) defines a self-contained, low-level interface directly
 connected to the mvStore kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), 
 plus a few constants and structures. The ISession interface represents a logical connection to 
 a database instance, and provides an entry point for every possible interaction. 
@@ -328,7 +328,7 @@ Here's a [link](./mvSQL getting started.md) to more information.
 
 ###Protocol-Buffer
 mvStore provides a streaming interface based on Google's protocol-buffers:
-[mvstore.proto](../kernel/src/mvstore.proto).
+[mvstore.proto](./sources/mvstore_proto.html).
 This is one of the interfaces exposed by the [mvServer](#mvserver).
 Here's a [link](./mvStore protobuf.md) to more information.
 
@@ -338,8 +338,8 @@ this traditional approach still implies an object-relational mapping to translat
 structured objects on the client side into DML statements. The [protocol-buffer](#protocol-buffer) interface
 provides a more direct means of expressing those structures to mvStore. The client-side libraries
 further facilitate the use of both interfaces, in the context of their specific programming language.
-The first release emphasizes [javascript](../nodejs/mvstore-client/lib/mvstore-client.js) for node.js.
-Libraries for [python](../python/mvstore.py), ruby and java are also under development.
+The first release emphasizes [javascript](./sources/mvstore-client_js.html) for node.js.
+Libraries for [python](./sources/mvstore_py.html), ruby and java are also under development.
 
 #Software Components
 The mvStore package contains the following components: the [mvStore](#mvstore) kernel library,

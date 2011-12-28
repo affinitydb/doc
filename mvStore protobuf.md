@@ -37,7 +37,7 @@ A client _reads_ from mvStore:
   -> the client deserializes the response into a javascript object
 
 The internal structure of the protobuf messages that can be understood by mvStore is defined in
-[mvstore.proto](../kernel/src/mvstore.proto). It allows to express PIN inserts, updates and deletes,
+[mvstore.proto](./sources/mvstore_proto.html). It allows to express PIN inserts, updates and deletes,
 as well as generic queries, transactions, long-running transactions etc. It also provides extensive support for
 fine-grained updates, such as modifying the order of elements in a collection (e.g. `OP_MOVE_BEFORE`),
 performing server-side read-modify-write on specific properties (e.g. `OP_PLUS`), etc.
@@ -49,12 +49,12 @@ serialization purposes, and may not be sufficiently usable as a client object mo
 stores all property names as indexes, alongside a local translation table (for space efficiency).
 Typically, most languages will prefer to expose objects in a more natural form, where properties
 are standard named entities. This kind of translation is usually implemented in the
-client access library (e.g. [mvstore-client.js](../nodejs/mvstore-client/lib/mvstore-client.js) or
-[mvstore.py](../python/mvstore.py))._
+client access library (e.g. [mvstore-client.js](./sources/mvstore-client_js.html) or
+[mvstore.py](./sources/mvstore_py.html))._
 
 ###A Closer Look at mvstore.proto
 All the components of a protobuf stream sent to or received from mvStore are defined in
-[mvstore.proto](../kernel/src/mvstore.proto). The main elements of the structure are:
+[mvstore.proto](./sources/mvstore_proto.html). The main elements of the structure are:
 
  * Value
  * PID
@@ -71,7 +71,7 @@ often in the form of an array of `MVStream.PIN` objects).
 
 `MVStream` defines the possible contents of any of the contiguous segments of data in the
 actual physical stream. In other words, it should be possible to dissect any physical stream 
-compliant with [mvstore.proto](../kernel/src/mvstore.proto) and find a series of `MVStream` instances.
+compliant with [mvstore.proto](./sources/mvstore_proto.html) and find a series of `MVStream` instances.
 
 For example, the physical input and output streams involved in fetching a PIN, testing some conditions
 and then modifying the PIN in a single transaction could look like this (where each column is
@@ -92,10 +92,10 @@ _Note: Here comes the client-side logic to decide what to do with the PIN._
 Note: This sequence is typically implemented as a single HTTP connection.
 </sub>
 
-[mvstore.proto](../kernel/src/mvstore.proto) contains more structures and fields than described here.
+[mvstore.proto](./sources/mvstore_proto.html) contains more structures and fields than described here.
 It also contains a large number of `enums`, some of which are sometimes used as constants _(n.b.:
 some protobuf libraries don't support this strategy, in which case the values in mvstore.proto must
-be repeated as literals in the client code)_. Please refer to the comments in [mvstore.proto](../kernel/src/mvstore.proto)
+be repeated as literals in the client code)_. Please refer to the comments in [mvstore.proto](./sources/mvstore_proto.html)
 for more information.
 
 ###About Streaming and Pagination
@@ -116,15 +116,15 @@ on one hand, it usually implies a completely different programming model (if you
 whole PIN in memory, then you probably can't interact with that object as a native object either);
 on the other hand, not all protobuf libraries expose this kind of access.
 
-In their present implementation, the [node.js](../nodejs/mvstore-client/lib/mvstore-client.js) and
+In their present implementation, the [node.js](./sources/mvstore-client_js.html) and
 [python](../python/mvstore.py) client libraries only support the first strategy, but may expose a
 specialized interface using the second strategy in a near future.
 
 ###More Information
-For more information on mvStore's usage of protobuf, please refer to the comments in [mvstore.proto](../kernel/src/mvstore.proto).
-Another important source of information is the implementation of the [node.js](../nodejs/mvstore-client/lib/mvstore-client.js) and
+For more information on mvStore's usage of protobuf, please refer to the comments in [mvstore.proto](./sources/mvstore_proto.html).
+Another important source of information is the implementation of the [node.js](./sources/mvstore-client_js.html) and
 [python](../python/mvstore.py) access layers, which can be used as examples to implement new access layers.
 
 For more information about Google's protobuf, please refer to the project's [homepage](http://code.google.com/p/protobuf),
-its [deleloper guide](http://code.google.com/apis/protocolbuffers/docs/overview.html) and its
+its [developer guide](http://code.google.com/apis/protocolbuffers/docs/overview.html) and its
 [format helper](http://code.google.com/apis/protocolbuffers/docs/proto.html).
