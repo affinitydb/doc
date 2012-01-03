@@ -381,8 +381,3 @@ be modified via `OP_EDIT`, described in detail in [mvstore.proto's StrEdit](./so
 (but in the current state of the implementation, this is not fully optimized for blobs). 
 Note also that text BLOBs can participate to full-text indexes, just like any text property. 
 It is possible to build [collections](./terminology.md#collection) of BLOBs.
-
-<p style="color:red">
-TODO: expand on join  
-TODO: add a section about FT  
-</p>

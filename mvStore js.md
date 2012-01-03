@@ -159,8 +159,3 @@ a topmost transaction. That allows the client library to use transactions withou
 `keepalive`. Within the protobuf context, transaction control is specified
 via the connection's methods: `startTx`, `commitTx`, `rollbackTx`. In the future,
 the two methods (pure mvSQL vs protobuf) may be further harmonized.
-
-<p style="color:red">
-REVIEW (maxw): expand, link to sample material etc.  
-REVIEW (maxw): more on streaming  
-</p>

@@ -130,10 +130,6 @@ To leverage this information while querying, mvStore offers the following syntax
   <code class='mvsql_snippet'>SELECT * WHERE COUNT(propRef.prop1) > 1;</code>  
   <code class='mvsql_snippet'>SELECT * FROM myclass WHERE propRef.prop2 IN (1, 2, 3);</code>  
 
-<p style="color:red">
-REVIEW (maxw): add more stuff here.
-</p>
-
 How to use [collections](./terminology.md#collection)
 ----------------------
 ### 1. Add elements to a [collection](./terminology.md#collection)

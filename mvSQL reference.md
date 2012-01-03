@@ -405,15 +405,7 @@ You can see the format of all there reference types is here: [Reference and Dere
 
 ### CURRENT
 
-<p style="color:red">
-TODO (maxw): TBD
-</p>
-
 ### STREAM
-
-<p style="color:red">
-TODO (maxw): TBD
-</p>
 
 Unit of Measurement
 --------------------
@@ -691,10 +683,6 @@ There some 3 usage for these qualifier:
   
   
 ISLOCAL
-
-<p style="color:red">
-REVIEW (maxw): obscure...
-</p>
 
 ### Collection Functions and Operators
 
@@ -993,12 +981,6 @@ Duplicates are identified based on [PIN ID](./terminology.md#pin-id-pid) instead
 
 The keyword DISTINCT/ALL can be used to specify the result should eliminate duplicates or not.
 
-<p style="color:red">
-<Ming> I think it is better to implement as below logic:  
-distinct(property list)  -- will eliminate duplicate which is basing on the property list, not the PID. 
-Moreover distinct(mv:pinID) can works as previous implemtation.
-</p>
-
 #### Join
 mvStore returns immutable PIN collections as query results.  Presently, the join results are somewhat limited
 (they only contain PINs from the left-hand class).
@@ -1069,11 +1051,3 @@ Synopsis:
     
 If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    
 
-<p style="color:red">
-REVIEW (maxw): expand necessary samples in-place, using new mvsql_snippet class; keep the references to the *.sql files, but don't resolve them  
-REVIEW (maxw): clarify the whole COUNT, LIMIT/OFFSET philosophy; also, mention @1234.prop syntax for counting collections  
-REVIEW (maxw): actually, have a section just on counting things  
-REVIEW (maxw): a section on path expressions for declarative traversal of collections (by query)  
-REVIEW (maxw): clarify all the possible elisions/tricks when using families (e.g. with range var), vs possible parameters and meanings  
-REVIEW (maxw): idioms (broader disc with J)  
-</p>
