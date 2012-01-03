@@ -38,7 +38,7 @@ _Note: To include a double quote, write two double quotes._
 
 _Note: A string which is enclosed in single quotes (') is a string constant, not an identifier._
 
-Sample: [identifier.sql](../../test4mvsql/test/identifier.sql)
+Sample: [identifier.sql](./sources/mvsql/identifier.html)
 
 #### QNames
 QName stands for "qualified name", and follows the standard conventions defined in XML, RDF etc.
@@ -199,7 +199,7 @@ although it does allow to attach a [unit of measurement](#unit-of-measurement) t
 The type names listed here use the mvSQL convention. In the [C++](./terminology.md#c-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
 these names are prefixed with "VT_" (e.g. VT_INT).
 
-Sample: [types.sql](../../test4mvsql/test/types.sql).  
+Sample: [types.sql](./sources/mvsql/types.html).  
 
 ### STRING
 A string constant in SQL is an arbitrary sequence of characters bounded by single quotes ('): 'This is a string'.   
@@ -300,6 +300,7 @@ An EXPR can be stored as a [value](./terminology.md#value), but it is not evalua
 (the value of that property will always be the EXPR itself, never its evaluation).
 However properties with type EXPR are evaluated automatically when they’re used in expressions. E.g.
 
+<pre>
   mvcommand>INSERT prop1=3;
   PIN@0000000000050001(1):(<prop1|VT_INT>:3)
   1 PINs INSERTED.
@@ -319,12 +320,14 @@ However properties with type EXPR are evaluated automatically when they’re use
   mvcommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
   PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
   1 PINs INSERTED.
+</pre>
 
 Here prop2 is stored directly with the value of that expression executed at UPDATE execution time, while prop3 is stored in type EXPR, 
 which is evaluated when query.  
 
 It's also possible to invoke such a property with parameters (up to 254). E.g.
 
+<pre>
   mvcommand>
   INSERT prop1=3, prop2=$(prop1-:0);
   PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
@@ -334,6 +337,7 @@ It's also possible to invoke such a property with parameters (up to 254). E.g.
   SELECT * WHERE prop2(1) = 2;
   PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
   1 PINs SELECTED.
+</pre>
 
 Note that now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the expression, 
 because there is no parameter description when define the expression value.
@@ -354,6 +358,7 @@ Format:
 
 Please refer to the [definition of 'collection'](./terminology.md#collection).  
 
+<pre>
   mvcommand> insert (prop2,prop3) values(123 ,{123, 'test', 120, 534});   
   PIN@327684(2):(<prop2|VT_INT>:123	<prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
   1 PINs INSERTED. 
@@ -363,6 +368,7 @@ Please refer to the [definition of 'collection'](./terminology.md#collection).
   WHERE prop4 [ 3] = 534  
   PIN@327684(2):(<prop2|VT_INT>:123	<prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
   1 PINs found.  
+</pre>
   
 Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY).
 Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections
@@ -381,7 +387,7 @@ Format: [number1, number2]
 it can be used with keywork IN. The meaning is the same as BETWEEN number1 AND number2.  
 *Note*: * is used here to denote the infinity number.
 
-Examples: [between.sql](../../test4mvsql/test/between.sql). 
+Examples: [between_in.sql](./sources/mvsql/between_in.html). 
 
 ### Reference types
 
@@ -423,7 +429,7 @@ can not be stored as a integer.
 The syntax simply requires to append the chosen suffix to a literal value (wherever a value is legal). Note that suffixes
 are case-sensitive, and unit suffixes can not be used together with [type-suffix](#typesuffix). 
 
-Sample: [units.sql](../../test4mvsql/test/units.sql)
+Sample: [units.sql](./sources/mvsql/units.html)
 
 Here is a table of all units supported by mvStore.  
 
@@ -515,7 +521,7 @@ mvStore supports many common functions and operators available in relational dat
 
 Internally mvStore regards all functions as operators, so here we discuss them together. 
  
-Sample: [functions.sql](../../test4mvsql/test/functions.sql) and [operator.sql](../../test4mvsql/test/parse_operator.sql).
+Sample: [functions.sql](./sources/mvsql/functions.html).
 
 ### Logical Operators  
 
@@ -628,7 +634,7 @@ REGEX                                                                           
 CONCAT(str1,str2,...)                                                                  return the string that results from concatenating the arguments.
 MATCH [(property list)] AGAINST(string)                                                full-text search for string in specified properties of PINs. If no property list is specified, then search all properties.
 
-Sample: [full_text_search.sql](../../test4mvsql/test/full_text_search.sql).  
+Sample: [full_text_search.sql](./sources/mvsql/full_text_search.html).  
 
 ### EXTRACT(unit FROM date) 
 Extract the unit part of the date/time/timestamp.  
@@ -656,10 +662,10 @@ Operator                    Description
 EXISTS(property)            return "property IS NOT NULL".
 EXISTS(list)                return "COUNT(list)>0". The List can be a collection, or a list of values returned by sub-query.
 
-Sample: [exists.sql](../../test4mvsql/test/exists.sql)
+Sample: [exists.sql](./sources/mvsql/exists.html)
 
 ### ANY/SOME/ALL qualifier
-These qualifiers can only be used as right operant of the binary comparison operators. E.g.
+These qualifiers can only be used as right operands of the binary comparison operators. E.g.
 
 Sample                   Description    
 ------                   -----------
@@ -667,7 +673,7 @@ val < ANY (list)         return true if val< any element of the list, otherwise 
 val < SOME(list)         some as "val < ANY (list)"
 val < ALL (list)         return true if val< all element of the list, otherwise return false.
 
-Sample: [collection_operators.sql](../../test4mvsql/test/collection_operators.sql)
+Sample: [collection_operators.sql](./sources/mvsql/collection_operators.html)
 
 ### DISTINCT/ALL qualifier
 
@@ -720,7 +726,7 @@ Expression                            Meanning
 @XXXXXXXXXXXXXXXX.prop[0]             Return the element value of the prop in pin @XXXXXXXXXXXXXXXX.  
 &@XXXXXXXXXXXXXXXX.prop[0]            Return the element reference of the prop in pin @XXXXXXXXXXXXXXXX.  
 
-Additional examples: [reference.sql](../../test4mvsql/test/reference.sql).  
+Additional examples: [reference.sql](./sources/mvsql/reference.html).  
 
   
 ### Precedence of Operators and Functions (in decreasing order)
@@ -813,7 +819,7 @@ where the query_statement is a [SELECT QUERY](#query). Here's a description of t
 3. CLUSTERED: Using clustered index to maintain all [PIDs](./terminology.md#pin-id-pid), for increased performance. Not yet supported.  
 4. SOFT_DELETE: Not only create a index for normal pins, but also create another index for those pins which is marked in deleted status(Deleted PINs are not permanently deleted except that delete with option MODE_DELETED in C++ API or PURGE), and can be restored using mvSQL "UNDELETE". ).
 
-Examples: [class.sql](../../test4mvsql/test/class.sql).   
+Examples: [class.sql](./sources/mvsql/class.html).   
 
 There is a operator "IS A" can be used to check whether the pin is classified as a class member or not. E.g. below 2 statements are equal.
  
@@ -872,7 +878,7 @@ Synopsis:
   - INSERT property = expression [, ...]  
   - INSERT SELECT ...  
 
-Examples: [insert.sql](../../test4mvsql/test/insert.sql).
+Examples: [insert.sql](./sources/mvsql/insert.html).
 
 Notes:  
 1. mvSQL does not yet support the insertion of graphs of inter-connected pins.  
@@ -899,7 +905,7 @@ and *pin_reference* can be:
 
 and *expression_as_param* can be any [expression](#value-expressions).  
 
-Examples: [update.sql](../../test4mvsql/test/update.sql).  
+Examples: [update.sql](./sources/mvsql/update.html).  
 
 Notes:  
 
@@ -929,7 +935,7 @@ DELETE:    Mark PINs in deleted status(soft delete).
 UNDELETE:  Change from deleted status to normal active status.
 PURGE:     Remove(permanently delete) PINs from the physical disk. It can not remove the PINs in deleted status.
  
-Examples: [delete.sql](../../test4mvsql/test/delete.sql).  
+Examples: [delete.sql](./sources/mvsql/delete.html).  
 
 ### QUERY
 
@@ -965,7 +971,7 @@ A substitute name for the FROM item containing the alias. An alias is used for b
 When an alias is provided, it completely hides the actual name of the class or family; for example given FROM foo AS f, the remainder of the SELECT must refer to this FROM item as f not foo.
 
 #### Order by
-Examples: [orderBy.sql](../../test4mvsql/test/orderBy.sql).   
+Examples: [orderBy.sql](./sources/mvsql/orderBy.html).   
 
 ORDER BY must appear after ALL the unions.  
 ORDER BY is considered to apply to the whole UNION result (it's effectively got lower binding priority than the UNION).  
@@ -976,10 +982,10 @@ To order a subquery result, use parentheses around the subquery.
 2. The default behavior is order by ASC without NULL value PINs.
 
 #### Group by
-Examples: [groupBy.sql](../../test4mvsql/test/groupBy.sql).   
+Examples: [groupBy.sql](./sources/mvsql/groupBy.html).   
 
 #### Set operator: UNION | INTERSECT | EXCEPT
-Examples: [set_operator.sql](../../test4mvsql/test/set_operator.sql).   
+Examples: [set_operator.sql](./sources/mvsql/set_operator.html).   
 
 The functionality of all these set operators is similar to standard SQL, 
 except that mvStore does not require that all operands have same property number or type. 
@@ -1001,7 +1007,7 @@ mvStore returns immutable PIN collections as query results.  Presently, the join
 
 mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.
 
-Examples: [join.sql](../../test4mvsql/test/join.sql).   
+Examples: [join.sql](./sources/mvsql/join.html).   
 
 #### Sub query in FROM clause
 A sub-SELECT can appear in the FROM clause. This acts as though its output were created as a temporary table for the duration of this single SELECT command. 
@@ -1010,7 +1016,7 @@ Note that the sub-SELECT must be surrounded by parentheses, and an alias must be
 ### Inheritance
 Being different from relational DB, mvStore support a PIN which can be belongs to multiple classes, in this way user can implement some inheritant data.
 
-Examples: [inheritance.sql](../../test4mvsql/test/inheritance.sql). 
+Examples: [inheritance.sql](./sources/mvsql/inheritance.html). 
 
 #### How to query a PIN which belongs to 2 classes
 
@@ -1025,7 +1031,7 @@ mvStore not only supports basic transactions, but also sub-transactions.
 The session holds a transaction stack.  Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction).
 Changes are committed to the database only when the outermost transaction in the stack is committed.  
 
-Examples: [transaction_basic.sql](../../test4mvsql/test/transaction_basic.sql).  
+Examples: [transaction_basic.sql](./sources/mvsql/transaction_basic.html).  
 
 #### Start a Transaction
 START TRANSACTION is used to start a transaction/sub-transaction block.
@@ -1040,9 +1046,8 @@ where transaction_mode is one of:
   - READ ONLY |READ WRITE  
 
 Examples:  
-[transaction_isolation.sql](../../test4mvsql/test/transaction_isolation.sql),     
-[transaction_readonly.sql](../../test4mvsql/test/transaction_readonly.sql),
-[transaction_sub.sql](../../test4mvsql/test/transaction_sub.sql).   
+[transaction_readonly.sql](./sources/mvsql/transaction_readonly.html),
+[transaction_sub.sql](./sources/mvsql/transaction_sub.html).   
 
 Note:     
 1. mvStore doesn't support isolation level READ UNCOMMITTED.  
