@@ -18,23 +18,25 @@ will involve the following steps (on linux):
 This will install the kernel, server, nodejs, doc and other components of the release,
 and start the database server.
 
+<p style="color:red">
 _Note: When mvStore becomes open-source, the procedure will be further simplified:
 steps 3-5 will be replaced with a single step involving a publicly accessible setup script._  
-_Note: Similar setup procedures for Windows and OSX are planned but not yet available._  
-_Note: A higher-level flavor involving cloudfoundry is also planned._  
+_Note: A similar setup procedure for Windows is planned but not yet available._  
+</p>
 
 ##Simple Access
-The database [server](./terminology.md#mvserver) process is called `mvstored`
+The database [server](./terminology.md#server) process is called `mvstored`
 and listens to HTTP requests on port `4560` by default. For more details on how to run
 and parametrize `mvstored`, please refer to the [server](./mvStore server.md) page,
 or run `mvstored -h`.
 
 The server exposes a javascript online console at the root (e.g. `http://localhost:4560/`), 
-which allows to navigate the contents of the store and modify data. Just open that URL
-in a browser. The console can also facilitate learning mvSQL.
+which allows to navigate the contents of the store and modify data (same as what you find
+[online](http://mvStore.cloudfoundry.com)). Just open that URL
+in a browser. The console can also facilitate learning pathSQL.
 
-##Quick mvSQL Guide
-Please find a quick guide [here](./mvSQL getting started.md).
+##Quick pathSQL Guide
+Please find a quick guide [here](./pathSQL getting started.md).
 
 ##Binary Components
 For an overview of the software components involved, please read this [page](./terminology.md#software-components).
@@ -43,7 +45,7 @@ Here's a short table summarizing the parts involved.
 File                             Description
 ---------------------------      -----------
 mvstore.dll / libmvstore.so      The [mvStore kernel library](./terminology.md#mvstore)
-mvstored[.exe]                   The database server, also known as [mvserver](./terminology.md#mvserver)
+mvstored[.exe]                   The database [server](./terminology.md#server)
 server/src/www                   The server's online console
 mvstore-client.js                The client library for [node.js](./mvStore js.md)
 mvcommand[.exe]                  (optional) A [command-line app](./terminology.md#mvcommand) to interact with the db

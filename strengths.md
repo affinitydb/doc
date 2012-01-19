@@ -1,7 +1,8 @@
 #Strengths
 As a whole, the set of [features](./features.md) proposed by mvStore aims at bringing together
-the best from existing database technologies, including relational, object-oriented,
-graph-oriented, document-based and RDF systems. The intent is to provide a unified and powerful
+the best from existing database technologies (including relational, object-oriented,
+graph-oriented, document-based and RDF systems). The intent is to give more options
+to application developers, by providing a unified and powerful
 database solution that facilitates integration, and reduces the long-term impacts of choosing
 any one specialized technology.
 
@@ -11,10 +12,10 @@ in mvStore, in a nutshell:
 
 Capability                                                                                        Relational DB   Object DB       Graph DB        Document DB     mvStore    
 ------------------------------------------------------------------------------------------------  --------------  --------------  --------------  --------------  ------------
-1. [Automatic, continuous, agile categorization of objects](#agile-categorization)                uncommon (1)    nk (2)          nk              some (3)        YES
-2. [References and easy graph navigation](#references-and-easy-graph-navigation)                  nk (4)          YES             YES             nk (5)          YES
-3. [Path expressions](#path-expressions-for-compact-set-navigation)                               uncommon        nk              YES             nk              YES
-4. [SQL-friendliness](#sql-friendliness)                                                          YES             some            nk              uncommon        YES
+1. [SQL for non-relational data](#sql-for-non-relational-data)                                    nk              some            nk              some            YES
+2. [Path expressions](#path-expressions-for-compact-set-navigation)                               uncommon        nk              YES             nk              YES
+3. [References and easy graph navigation](#references-and-easy-graph-navigation)                  nk (1)          YES             YES             nk (2)          YES
+4. [Automatic, continuous, agile categorization of objects](#agile-categorization)                uncommon (3)    nk (4)          nk              some (5)        YES
 5. [Rich queries with joins](#rich-queries-with-joins)                                            YES             some            some            no              YES
 6. [Super-types as first-class citizens](#super-types-as-first-class-citizens)                    nk              YES             nk              nk              YES
 7. [Ordered collections](#ordered-collections-to-retain-sequential-information)                   nk              YES             nk              YES             YES
@@ -25,11 +26,11 @@ Capability                                                                      
 12. Easy scalability, both in terms of replication and partitioning                               hard            nk              nk              YES             no (6)
 
 <sub>
-1- some of the more powerful relational db offer synchronously-updated materialized views that can select from multiple tables
-2- nk stands for "Not to our Knowledge"
-3- we know of one document db that offers a similar feature
-4- while it seems possible to emulate a graph db efficiently with a relational db, the notion of reference is less direct, and graph db are usually considered a better fit for that use case
-5- to our knowledge it's practically impossible to emulate a graph db within a document db, without making major compromises
+1- while it seems possible to emulate a graph db efficiently with a relational db, it's not trivial, and graph db are usually considered a better fit for that use case
+2- to our knowledge it's practically impossible to emulate a graph db within a document db, without major compromises
+3- some of the more powerful relational db offer synchronously-updated materialized views that can select from multiple tables
+4- nk stands for "Not to our Knowledge"
+5- we know of one document db that offers a similar feature
 6- replication is part of our short-term plans, and partitioning is in our mid-term plans
 </sub>
 
@@ -44,13 +45,13 @@ A transaction can involve any number of PINs.
 ##Discoverability, information re-use, and information sharing
 While objects can evolve freely in mvStore, it remains possible to discover and track them
 at any moment. mvStore provides several mechanisms: [classification](./terminology.md#class),
-full-scan queries (not recommended for finished applications but convenient during development),
+full-scan queries (not recommended for deployed applications but convenient during development),
 and [notifications](./terminology.md#notification).
 
 The ability to query the store is essential for mutli-user collaboration and for inter-application 
 interoperability. Objects created or modified by one agent can be discovered by other agents 
 without explicit transmission of data between agents. The agents simply monitor 
-(or wait for notifications from) the database which serves as a common intermediary similar 
+(or wait for notifications from) the database, which serves as a common intermediary, similar 
 to "publish and subscribe" messaging systems. 
 
 Information re-use is the idea that the information in a persisted object should not be locked up by 
@@ -66,7 +67,7 @@ Objects in mvStore are naturally serializable as dictionaries that fully describ
 Therefore, it's trivial to export or transport objects.
 
 ##Data before structure (a two-step modeling process)
-mvStore makes it possible for data to exist before structures are defined (or refined or modified).
+mvStore makes it possible for data to exist before structures (or schema) are defined, refined or modified.
 This capability rests in part on the definition (by applications) of a globally meaningful,
 consistent and stable vocabulary of [property names](./terminology.md#property).
 The selection (or creation) of such a vocabulary represents 
@@ -101,7 +102,7 @@ and the type hierarchy is free to evolve independently from instances.
 Super-types can pre-exist sub-types, and when sub-types are declared they don't modify, invalidate or
 hide super-types, or force any manual reorganization of the data. Types can be specialized and combined.
 Objects can match multiple types (aka [classes](./terminology.md#class) or categories). Use-cases
-that imply a proliferation of sub-types are not an issue for mvStore. Software components are free to
+that imply a proliferation of sub-types are not a problem for mvStore. Software components are free to
 interact with super-types or sub-types, at their convenience.
 
 ##No need to model attributes as entities
@@ -131,8 +132,8 @@ represent a significant performance advantage (in terms of indexing and
 locking, for example). mvStore does not require any special (in-advance)
 modeling or planning.
 
-##Exclusivity arcs in-place
-In relational modeling, exclusivity arcs model mutually exclusive relationships between
+##Exclusivity-arcs in-place
+In relational modeling, exclusivity-arcs model mutually exclusive relationships between
 entities (e.g. an inventory item can only be at one place at one time). In the object-oriented
 realm, this can be represented with a pointer to a base-class, and sub-classes. With mvStore,
 another option is to implement this in-place, with a single [PIN](./terminology.md#pin)
@@ -142,59 +143,64 @@ that just evolves over time.
 The relational model implies a complex decision process for each table: the selection of a primary key.
 Object databases in general, and mvStore in particular simplify this process by attributing a globally unique surrogate 
 key ([PID](./terminology.md#pin-id-pid)) to every object ([PIN](./terminology.md#pin)). 
-This key enables random access to the instance, without the cost of an additional index. 
+This key enables random access to the instance, without the cost of an additional index lookup. 
 Combined with [references](./terminology.md#pin-reference), it simplifies 
 the modeling of relationships, and the traversal of graphs. In the context of super-types and sub-types, 
 the globally unique PID eliminates issues such as contention for the next (shared)
 unique id across multiple tables, or partially-null primary keys. In the context of data warehousing,
 the PID removes the problem of accounting for each new dimension table in the compound primary key of the
-fact table. More generally, these characteristics reduce significantly the causes of debate around primary
-(and surrogate) keys encountered in relational modeling.
+fact table. More generally, these characteristics reduce significantly the justification for debates around primary
+(and surrogate) keys encountered with relational systems.
 
 ##References and easy graph navigation
 By avoiding joins for traversals on specific instances, mvStore provides similar advantages as object and graph databases,
 in comparison with relational systems. mvStore also allows set operations on references, and [collections](./terminology.md#collection)
 of [references](./terminology.md#pin-reference), providing the best of both worlds _(note: path indexing 
-is not yet available, but planned for a future release; joins are used in the meantime)_.
+is not yet available, but planned for a future release; when relevant, joins are used in the meantime)_.
 References are simpler to model than foreign keys, and further reduce the burden in terms of selecting keys upfront
 (and in an immutable way).
 
 ##Path expressions for compact set navigation
 The following relational queries
 
-  select * from emp e
-  where e.deptno in(select d.deptno from dept d
-  where e.deptno = d.deptno);
+        select * from emp e
+        where e.deptno in(select d.deptno from dept d
+        where e.deptno = d.deptno);
 
-  select * from emp e
-  where exists (select d.deptno from dept d
-  where e.deptno = d.deptno);
+        select * from emp e
+        where exists (select d.deptno from dept d
+        where e.deptno = d.deptno);
 
 Can be written in a more compact form with mvStore, in a model using [references](./terminology.md#pin-reference):
 
-  select * from emp where exists(dept);
+        select * from emp where exists(dept);
 
 Similarly,
 
-  select P.upc from Productlist as P
-  where P.upc in
-    ((select W.upc from Warehouse as W where W.upc = P.upc),
-    (select T.upc from TruckCenter as T where T.upc = P.upc),
-    (select G.upc from Garbage as G where G.upc = P.upc)) and P.makerid in
-    (select M.id from Maker as M where M.country = 'Belgium');
+        select P.upc from Productlist as P
+        where P.upc in
+          ((select W.upc from Warehouse as W where W.upc = P.upc),
+          (select T.upc from TruckCenter as T where T.upc = P.upc),
+          (select G.upc from Garbage as G where G.upc = P.upc)) and P.makerid in
+          (select M.id from Maker as M where M.country = 'Belgium');
 
 becomes:
 
-  select upc from Inventory where maker.country = 'Belgium';
+        select upc from Inventory where maker.country = 'Belgium';
+
+The difference is even more striking when arbitrarily deep recursion is involved.
+Just imagine how to translate the following statement with traditional SQL:
+
+        SELECT * FROM qn1:orgid(3).qn2:friendof[CONTAINS(qn2:occupation, 'ist')]{5}.qn2:friendof[BEGINS(qn2:lastname, 'M')];
 
 ##Ordered collections to retain sequential information
 When normalizing a relational model, there is sometimes a risk of missing or losing
-sequential information (such as the order of repeating column groups, that could
-have implicitly represented the sequence according to which drugs should be administered, for example).
-mvStore's [collections](./terminology.md#collection) allow to easily model this information, 
-without falling back on weaker representations such as repeating column groups or sequence columns.
+sequential information (e.g. the order of repeating column groups, that could
+have implicitly represented a sequence). mvStore's [collections](./terminology.md#collection)
+allow to easily model this information, without any need to fall back on weaker representations 
+such as repeating column groups or sequence columns.
 
-##More with less (entities)
+##Simpler modeling with less entities
 In many cases, mvStore reduces the number of entities or columns required to model data.
 For example, [references](./terminology.md#pin-reference) simplify the representation of many-to-many 
 relationships. [Collections](./terminology.md#collection) can spare additional tables, 
@@ -202,9 +208,9 @@ repeating groups or sequence columns. [Units of measurement](./terminology.md#un
 save an extra column. URIs (and eventually enumerations) can spare a category table.
 
 ##Transactional, automatic full-text indexing
-mvStore automatically indexes text properties, without any additional work required by the client
-(no 'tsvector' or 'VIRTUAL TABLE' or 'FULLTEXT' index), while allowing to easily exclude undesired properties
-and PINs. Values of collections are indexed as well. Indexing happens synchronously alongside all 
+mvStore automatically indexes text properties, without any additional work required by the client,
+while allowing to easily exclude undesired properties and PINs. Values of collections are 
+indexed as well. Indexing happens synchronously alongside all 
 other transaction operations, and queries can combine text searching with other conditions, 
 with the same ACID expectations as for any other index.
 
@@ -213,18 +219,19 @@ mvStore allows to easily attach semantic value to floating point values, using [
 This simplifies modeling, enhances the semantic value of data, and enables automatic conversions in the evaluation of 
 expressions involving those values.
 
-##SQL-friendliness
+##SQL for non-relational data
 Even though the mvStore [data model](./terminology.md#essential-concepts-data-model) is quite different from relational databases,
-[mvSQL](./terminology.md#mvsql) is designed to be as close to SQL as possible (especially
-the [DML](./mvSQL reference.md#keywords)).
+[pathSQL](./terminology.md#pathsql) is designed to be as close to SQL as possible (especially
+the [DML](./pathSQL reference.md#keywords)). mvStore and pathSQL can handle relational modeling as well as
+modeling by references.
 
 ##XML-friendliness
 [Collections](./terminology.md#collection) and [references](./terminology.md#pin-reference) allow to easily represent 
 the XML structure. [Namespaces](./terminology.md#namespace) and [property names](./terminology.md#property) (as URIs) 
 further facilitate the mapping. It is possible to map the whole 
 database to a single virtual XML document, in which XPath can navigate efficiently
-and comprehensively. _Note: mvStore doesn't currently provide a XQuery or XPath interface, 
-but may in the future._
+and comprehensively. _Note: mvStore doesn't currently provide a XQuery or XPath interface, but
+did in the past and may in the future._
 
 ##RDF-friendliness
 The "subject-predicate-object" model can be easily represented in mvStore with the PIN as subject,
@@ -245,8 +252,8 @@ to ensure data locality.
 
 ##Rich queries with joins
 The query engine is extremely flexible, and accommodates
-the SQL [DML](./mvSQL reference.md#keywords) without difficulty, with joins as first-class citizens.
-Advanced features such as path expressions and path indexing push the envelope by making set operations on graphs
+the SQL [DML](./pathSQL reference.md#keywords) without difficulty, with joins as first-class citizens.
+Advanced features such as path expressions (and later path indexing) push the envelope by making set operations on graphs
 considerably more easy and efficient.
 
 ##No compromise with transactions
@@ -279,19 +286,17 @@ This can be useful, for example, when integrating third-party software component
 Database recovery (the process that guaranties consistency when restarting the database after a crash) 
 is one of those features that are practically invisible... until you need to count on it. 
 It's difficult to implement properly, difficult to test, and difficult to prove for correctness in
-practice (even though the algorithms are formally established). Fortunately, mvStore was used 
-for several years in an embedded, multi-user context, and as
-a result it had the opportunity of experiencing countless crashes, resulting in huge efforts
-to make recovery rock-solid.
+practice (even though the algorithms are formally established). Considerable efforts were invested to
+make mvStore's recovery rock-solid.
 
 ##Small, portable, embeddable
 The [mvStore kernel](./terminology.md#mvstore) is a small library (<50K LOC, < 1Mb binary) written in C++
-and ported to all mainstream platforms (windows, linux, OSX, ARM). It allows one to configure all essential
+and ported to all mainstream platforms (OSX, linux, windows, ARM-based devices). It allows one to configure all essential
 aspects of its runtime footprint (global memory usage, memory usage per session, disk usage, file sizes etc.).
 
 ##Uniform programming environment with notifications
 The mvStore kernel does not accept stored procedures, and does not process triggers directly.
-Instead, it forwards [notifications](./terminology.md#notification) (e.g. via [mvServer](./terminology.md#mvserver)) to clients
+Instead, it forwards [notifications](./terminology.md#notification) (e.g. via the [server](./terminology.md#server)) to clients
 that request them, thus allowing those clients to express their data-change handling code in the
 same programming environment as the rest of the application.
 
@@ -300,17 +305,15 @@ Class and PIN notifications cover the whole spectrum of value changes, structura
 and state transitions that can occur over time. The notification approach further
 facilitates the implementation of complex systems based on such events.
 
-##No ideological battle with encapsulation and multiple-inheritance
+##Not an object database
 With its use of object IDs ([PIDs](./terminology.md#pin-id-pid)) and
-[references](./terminology.md#pin-reference), mvStore can be considered an object-oriented database.
-Interacting with entities as objects is a deliberate choice. However, mvStore stays away from
+[references](./terminology.md#pin-reference), technically mvStore can be considered an object-oriented database.
+Interacting with entities as objects is a deliberate choice. However, mvStore avoids
 intimate associations with any particular object-oriented programming language, by providing
-a pure-data abstraction (the [PIN](./terminology.md#pin)) and expression evaluation
-primitives. These pure-data primitives can be integrated to programming languages as appropriate.
-With this choice, mvStore is less exposed to ideological debates around
-schema and code migrations, encapsulation, and multiple-inheritance.
-In that respect, mvStore adopts a stance similar to some of the recent
-graph and document databases.
+a pure-data abstraction (the [PIN](./terminology.md#pin)) and low-level expression evaluation
+primitives. Also, mvStore does not attempt to solve the memory management complications
+implicit in traditional object-oriented systems. In that respect, mvStore adopts a stance 
+similar to some of the recent graph and document databases.
 
 ##Constraints transformed into qualifying criteria for classification
 In general, constraints are conspicuously absent from mvStore's interfaces. This is because mvStore

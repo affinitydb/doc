@@ -17,12 +17,12 @@ CGIs.)
 
 ## USAGE NOTES
 
-Mvstore natively supports two query languages mvSQL and protobuf, plus a
-native C++ api.  mvSQL is a SQL dialect.  protobuf is query/response
+Mvstore natively supports two query languages pathSQL and protobuf, plus a
+native C++ api.  pathSQL is a SQL dialect.  protobuf is query/response
 serialization defined with google protobuf.  The store server supports both
-mvSQL and protobuf.
+pathSQL and protobuf.
 
-With mvSQL queries, the result is sent in JSON encoding by default.  (But
+With pathSQL queries, the result is sent in JSON encoding by default.  (But
 you can alternatively request protobuf encoded results.)
 
 With protobuf encoded queries, the result is sent in protobuf by
@@ -68,7 +68,7 @@ The built-in GET/POST CGI is named `/db`
 
 Supported arguments are:
 
-    `query=string` the mvSQL text query (only mvsql query language is
+    `query=string` the pathSQL text query (only pathSQL query language is
     supported in GET, see HTTP POST below for support for protobuf
     encoded queries).
 
@@ -77,8 +77,8 @@ Supported arguments are:
     larger are rejected with an HTTP code 413 (Request Entity too
     Large) response code.
 
-    `input=mvsql` if not specified, defaults is mvsql, so specifying
-    the query language is redudant.
+    `input=pathsql` if not specified, default is pathsql, so specifying
+    the query language is redundant.
 
     `output=json|proto` default if not specified is JSON.  Protobuf
     encoded output is also supported.
@@ -99,7 +99,7 @@ Supported arguments are:
     <start>.
 
     `p<n>=<value>` query parameters.  Queries can include query
-    parameters which are labeled ":<n>" in the mvSQL.  The
+    parameters which are labeled ":<n>" in the pathSQL.  The
     corresponding value can be instantiated via the `p<n>` parameter.
     For example query parameter 1 ":1" can be instantiated with value
     "hello" with p1=hello.
@@ -160,10 +160,10 @@ HTTP keep-alive is supported.
 
 ## FILES
 
-    `mv.store`
-
-    (Temporarily the default named stored that is auto-created and
-    opened until multi-store support is complete).
+    `mv.store` and `mv*.txlog`, in a sub-directory of the document-root,
+    named after the basic-auth user connecting with the server
+    (the default sub-directory name is `test` if no basic-auth header
+    was specified).
 
 ## AUTHOR
 

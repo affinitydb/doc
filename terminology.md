@@ -3,7 +3,7 @@
 [C++ interface](#c-interface), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [data model](#essential-concepts-data-model),
 [element ID (eid)](#element-id-eid), [encryption](#encryption), [family](#family), [identity](#identity), [index](#index),
-[mvCommand](#mvcommand), [mvEngine](#mvengine), [mvServer](#mvserver), [mvSQL](#mvsql), [mvStore](#mvstore),
+[mvCommand](#mvcommand), [server](#server), [pathSQL](#pathsql), [mvStore](#mvstore),
 [namespace](#namespace), [notification](#notification), [page](#page), [parameter](#parameter), [PIN](#pin),
 [PIN ID (PID)](#pin-id-pid), [property](#property), [protocol-buffer](#protocol-buffer), [RDF](#rdf),
 [reference](#pin-reference), [replication](#replication), [snapshot isolation](#snapshot-isolation),
@@ -12,12 +12,13 @@
 
 #Essential Concepts (Data Model)
 The key components of mvStore's data model are the following:
-[PIN](#pin), [property](#property), [value](#value), [collection](#collection), [class](#class).
+[PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)), [collection](#collection), [class](#class).
 
 ###PIN
 The PIN is mvStore's primary information node. It's the basic unit of data.
-It is somewhat analogous to the row of a relational table, or to the
-object of an object-oriented database.
+It is somewhat analogous to the row of a relational table, the
+object of an object-oriented database, the node of a graph database or of XML's DOM,
+the document of a document database etc.
 A PIN can contain many [properties](#property). Each property of a PIN can either hold a single (scalar) [value](#value),
 or an arbitrarily large [collection](#collection) of values. Unlike rdbms rows,
 PINs aren't constrained to any table, and can actually belong to many [classes](#class).
@@ -28,7 +29,8 @@ uniquely identified by a [PIN ID](#pin-id-pid).
 
 _Note: the theoretical maximum number of properties per PIN is related with the configured
 [page](#page) size - typically, in the order of thousands of properties
-on a PIN_
+on a PIN; this limit only puts a boundary on the structural complexity of a PIN,
+not the amount of data that each property can contain_
 
 ###Property
 Properties are symbolic entities (names) that define the relationship between
@@ -36,8 +38,9 @@ a [PIN](#pin) and its [values](#value). Properties
 define the structure of a PIN. A mvStore property is somewhat analogous to
 the column name of a relational table, or to a predicate in [RDF](#rdf).
 Property names can be composed of multiple sections, separated by a slash (/) character,
-and are sometimes referred to as URIs. This enables a practically infinite, semantically 
-coherent [namespace](#namespace). The basic data model of mvStore does
+following the same convention as URIs. This enables a practically infinite, semantically 
+coherent [namespace](#namespace) usable across multiple applications (which may not necessarily
+be fully aware of each other). The basic data model of mvStore does
 not attach any type information to properties: instances
 of a property ([values](#value)) can be of any type. Properties are a key component of
 [class](#class) definitions, because they establish a semantic relationship
@@ -52,20 +55,20 @@ outside of that scope must use the textual representation of the property.
 In the data modeling process with mvStore, selecting meaninful, stable property names
 constitutes an important first step, that can influence the effectiveness of
 categorization into [classes](#class) later on. When possible, it is recommended to refer
-to an already existing, authoritative source (ontology). The semantic web 
+to an already existing source (ontology). The semantic web 
 community uses resources such as the following, to achieve similar goals:
 
  * [http://sindice.com](http://sindice.com)
  * [http://www.sameas.org](http://www.sameas.org)
  * [DAML](http://www.daml.org/ontologies/)
- * [schemaweb](http://www.schemaweb.info/default.aspx)
 
 ###Value
 Like in any database, values can be numbers, strings, booleans, dates, times,
 [BLOBs](#blob) etc. A value can also be a [reference](#pin-reference) to another [PIN](#pin)
 (or to another [property](#property) of a PIN, or even to a specific collection [element](#element-id-eid)). There's also a
 data type attribute allowing to attach a physical [unit of measurement](#unit-of-measurement) to a value.
-Data types are described in detail [here](./mvSQL reference.md#data-types).
+In a future release, it will also be possible to define customized sub-structures (as values embedded in a PIN).
+Data types are described in detail [here](./pathSQL reference.md#data-types).
 At the programming level, the same value structure is also used to hold a [collection](#collection).
 In mvStore, every instance of a value is free to be of any type;
 mvStore may perform data type [coercion](#coercion).
@@ -75,9 +78,9 @@ A collection is an ordered list of scalar [values](#value), held by a [PIN](#pin
 a [property](#property). The values of a collection can be heterogeneous
 (they can have different types). Internally, each element of a collection is uniquely 
 identified by an immutable [Element ID (eid)](#element-id-eid). This design enables consistent interactions
-in concurrent access scenarios. Note that collections cannot directly contain nested collections.
-Small collections can be presented as arrays, and allow random access, 
-while very large collections must be traversed with an iterator
+in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version.
+Small collections can be represented as arrays internally, and allow random access, 
+whereas very large collections must be traversed with an iterator
 (with the option of seeking to any known [eid](#element-id-eid)). 
 A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like
 plain values (additional control is provided). Collections also play a key role
@@ -92,7 +95,7 @@ Where a table or a view would be used in the relational model, one could use a c
 in mvStore to achieve a similar organization. A class is a stored query predicate 
 (involving any number of [properties](#property)).
 It is most often defining an [index](#index), although this is not mandatory.
-Classes can be declared at any point in time (both before and after the occurrence of PINs
+Classes can be declared at any point in time (both earlier and later than the occurrence of PINs
 satisfying the predicate). Classes are named according to similar conventions as properties (using URIs).
 Unlike the 'classes' of programming languages such as C++ or java, 
 mvStore classes don't define static _types_, in the sense that they don't establish a binding
@@ -114,7 +117,7 @@ unique in the scope of that identity. Within the scope of one
 instance of a mvStore database, PINs created by the owner 
 can be designated with the second (64-bit) section only, since
 the first section will be 0 (STORE_OWNER) - this elision is common,
-for example in mvSQL's [references](./mvSQL reference.md#refid). 
+for example in pathSQL's [references](./pathSQL reference.md#refid). 
 By convention, the text representation of this second section should always be in hex. 
 PIDs are immutable, and are usually not recycled (if a PIN is deleted, there is no risk that
 dangling references would ever point to a new, unrelated PIN) - unless explicitly
@@ -139,12 +142,12 @@ a sorted index, by analogy with the relational model. Whereas a simple class onl
 indexes [references to the PINs](#pin-id-pid) that satisfy its predicate, a family also indexes the values of
 those PINs that correspond with free [parameters](#parameter) in the predicate. For example, one could define
 an "adult" _class_ (with the predicate "age >= 18"), or an "age_limit" _family_
-(with the predicate "age >= parameter").
+(with the predicate "age >= :0").
 
 ### Parameter
 In the context of a class [family](#family), a parameter is an unspecified (free) value in the 
 definition of the predicate. It usually implies an [index](#index). Typically, this [value](#value) is provided at
-query time. For example, using mvSQL, one could define: <pre>'CREATE CLASS age_limit AS select * where age >= :0(int);'</pre>
+query time. For example, using pathSQL, one could define: <pre>'CREATE CLASS age_limit AS select * where age >= :0;'</pre>
 and then query with <pre>'SELECT * FROM age_limit(18);'</pre>
 
 ###Uncommitted PIN
@@ -154,7 +157,7 @@ The C++ interface allows to create uncommitted PINs in memory, that can be inter
 (and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction
 (thus minimizing the amount of disk io required, and maximizing opportunities for
 data compaction on [pages](#page)). The implementations supporting the [protocol-buffer](#protocol-buffer) streaming interface
-and [mvSQL](#mvsql) both create uncommitted PINs automatically, whenever possible.
+and [pathSQL](#pathsql) both create uncommitted PINs automatically, whenever possible.
 
 ###PIN Reference
 A reference is a special [value](#value) type that allows to create explicit relationships between
@@ -222,7 +225,7 @@ mvStore provides a special [value](#value) attribute that allows to attach a phy
 unit to real number values (most of the common units for length, speed, surface, volume, weight etc. are supported,
 both in the metric and imperial systems). This enhances the semantic and self-descriptive capabilities of a PIN.
 It also enables mvStore to perform automatic conversions, when processing compatible types in expressions.
-Units are described in detail in the [mvSQL reference](./mvSQL reference.md#unit-of-measurement).
+Units are described in detail in the [pathSQL reference](./pathSQL reference.md#units-of-measurement).
 
 ###RDF
 mvStore does not yet provide a complete solution for RDF, OWL or SPARQL.
@@ -252,10 +255,9 @@ mvStore can automatically index any text [value](#value) of any [PIN](#pin),
 to enable full text search. [Classes](#class) and [families](#family) also
 define indexes. All those indexes can be combined in queries for fast information
 retrieval and update. mvStore query processing does not infer index usage from generic
-query conditions: indexes must be explicitly designated. Indexes contain homogeneous
-values only (values of the same type). The type of an index can be specified explicitly; 
-otherwise, the first value to be indexed determines the index's type. Indexing may
-imply data type [coercion](#coercion); if coercion fails for a value,
+query conditions: indexes must be explicitly designated in the queries. Indexes can contain
+heterogeneous values (values of different types). The type of an index can also be specified
+explicitly. Indexing may imply data type [coercion](#coercion); if coercion fails for a value,
 the corresponding PIN won't be indexed for this family.
 
 ###Coercion
@@ -273,8 +275,8 @@ Notifications are similar to triggers, and allow to track changes
 on specific [PINs](#pin) or [classes](#class). The notification functionality
 is exposed in a low-level way in the kernel ([startup.h](./sources/startup_h.html)),
 and is also available via the [comet](http://en.wikipedia.org/wiki/Comet_%28programming%29)
-pattern in [mvServer](#mvserver). In the future a highly scalable messaging infrastructure
-may be added. By comparison with triggers and stored procedures, mvStore's notifications
+pattern in the [server](#server). In the future a highly scalable (asynchronous) messaging infrastructure
+will be added. By comparison with triggers and stored procedures, mvStore's notifications
 establish a more strict boundary between the kernel and application code. They
 enhance application code consistency and maintainability, by concentrating all
 the logic in one place, using one language. They can also constitute the
@@ -300,9 +302,9 @@ read-only transaction would.
 
 #Interfaces
 The [mvStore](#mvstore) kernel library is written in C++, and provides a [C++ interface](#c-interface)
-directly talking to the kernel. In addition, it also proposes [mvSQL](#mvsql), and a [protocol-buffer](#protocol-buffer)-based
+directly talking to the kernel. In addition, it also proposes [pathSQL](#pathsql), and a [protocol-buffer](#protocol-buffer)-based
 streaming interface, both of which are better suited as client interfaces for remote access (e.g. through
-a server such as [mvServer](#mvserver)). [Client-side libraries](#client-side-libraries) are also in development.
+a [server](#server)). [Client-side libraries](#client-side-libraries) are also available.
 
 ###C++ interface
 [mvstore.h](./sources/mvstore_h.html) (along with a few extensions
@@ -311,7 +313,7 @@ in [rc.h](./sources/rc_h.html), [startup.h](./sources/startup_h.html) and
 connected to the mvStore kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), 
 plus a few constants and structures. The ISession interface represents a logical connection to 
 a database instance, and provides an entry point for every possible interaction. 
-It exposes the [mvSQL](#mvSQL) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
+It exposes the [pathSQL](#pathSQL) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
 At a lower level, query conditions and [class](#class) predicates can be defined using expression trees (IExprTree),
 which enable the embedding application to develop any desired query language
 (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation.
@@ -322,60 +324,44 @@ most of the design decisions related with memory and reference management were
 taken by ranking performance implications with higher importance than ease of use. Here's
 a [link](./mvStore cpp.md) to more information.
 
-###mvSQL
-mvSQL is the name of a dialect of SQL defined for mvStore.
-Here's a [link](./mvSQL getting started.md) to more information.
+###pathSQL
+pathSQL is the name of a dialect of SQL defined for mvStore.
+Here's a [link](./pathSQL getting started.md) to more information.
 
 ###Protocol-Buffer
 mvStore provides a streaming interface based on Google's protocol-buffers:
 [mvstore.proto](./sources/mvstore_proto.html).
-This is one of the interfaces exposed by the [mvServer](#mvserver).
+This is one of the interfaces exposed by the [server](#server).
 Here's a [link](./mvStore protobuf.md) to more information.
 
 ###Client-Side Libraries
-Although mvServer makes it easy to talk to the store using [mvSQL](#mvsql),
-this traditional approach still implies an object-relational mapping to translate
+Although the [server](#server) makes it easy to talk to the store using [pathSQL](#pathsql),
+this traditional approach still implies a mapping process to translate
 structured objects on the client side into DML statements. The [protocol-buffer](#protocol-buffer) interface
 provides a more direct means of expressing those structures to mvStore. The client-side libraries
 further facilitate the use of both interfaces, in the context of their specific programming language.
 The first release emphasizes [javascript](./sources/mvstore-client_js.html) for node.js.
-Libraries for [python](./sources/mvstore_py.html), ruby and java are also under development.
+Libraries for [python](./sources/mvstore_py.html) and ruby are also available,
+and java and C++ are under development.
 
 #Software Components
 The mvStore package contains the following components: the [mvStore](#mvstore) kernel library,
-the [mvServer](#mvserver) database server application with its online console, 
+the [database server](#server) with its online console and documentation, 
 and some [client-side libraries](#client-side-libraries).
 
 ###mvStore
 The mvStore library is the core component of the mvStore package. 
 It provides a comprehensive database engine that proposes a new, powerful, object-friendly
 [data model](#essential-concepts-data-model), while preserving many of the precious properties of relational database systems,
-such as a [SQL interface (mvSQL)](#mvsql), ACID transactions, logging and recovery, efficient [page](#page) management and
+such as a [SQL interface (pathSQL)](#pathsql), ACID transactions, logging and recovery, efficient [page](#page) management and
 B-link tree [indexing](#index), full-text indexing, etc.
 It is written in C++, and provides a number of [interfaces](#interfaces).
-This library can be embedded directly into an application, or it can be accessed via the [mvServer](#mvserver) or
-[mvEngine](#mvengine). Most of the mvStore documentation focuses on this component.
+This library could be embedded directly into an application.
+Most of the mvStore documentation focuses on various aspects of this component.
 
-###mvServer
+###server
 This process is a database server that embeds [mvStore](#mvstore). It understands the HTTP protocol,
-and accepts messages in [mvSQL](#mvsql) as well as [protocol-buffer](#protocol-buffer). It can return
-results in json format, or [protocol-buffer](#protocol-buffer) format. mvServer is primarily
+and accepts messages in [pathSQL](#pathsql) as well as [protocol-buffer](#protocol-buffer). It can return
+results in json format, or [protocol-buffer](#protocol-buffer) format. It is primarily
 a database server, but its HTTP interface allows it to act as a web server, for increased
 convenience. For more information, visit this [link](./mvStore server.md).
-
-##Other Software Components
-The mvStore project also includes some additional components that are not part of the first release.
-
-###mvCommand
-This process is a console application that allows to talk to [mvStore](#mvstore), using [mvSQL](#mvsql).
-
-###mvEngine
-This is a storage engine designed for MySQL, and using [mvStore](#mvstore) as its core component.
-It allows to assess the mvStore package in a context that facilitates comparison with
-other database engines. It also provides a migration and integration path for applications
-already using a relational data model, and interested to move to mvStore's
-more flexible model. For example, mvEngine will automatically define mvStore [classes](#class)
-and [properties](#property) that match the relational tables. An application could then decide
-to migrate to the native interfaces of mvStore. Note that mvEngine offers good control over
-the mapping of names between both worlds. Unlike [mvSQL](#mvsql), mvEngine respects
-a typical relational DDL (Data Definition Language).

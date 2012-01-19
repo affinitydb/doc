@@ -8,16 +8,16 @@ database server or an embedded system. The "bare-metal" nature of the interface
 is meant to introduce no artificial overhead in those cases.
 
 An essential part of the C++ interface is to give access to
-[mvSQL](./terminology.md#mvsql) and [protocol-buffers](./terminology.md#protocol-buffer).
+[pathSQL](./terminology.md#pathsql) and [protocol-buffers](./terminology.md#protocol-buffer).
 These two entry points are self-sufficient, and enable the writing of "normal" database client code.
 
 However, the bulk of the C++ interface contains elements (such as [PIN creation](#isession::createpin-isession::createuncommittedpin)
 and [modification](#ipin) methods, [expression building](#isession::createstmt-isession::expr) methods etc.) that overlap with the functionality 
-exposed via mvSQL and protocol-buffers. As a rule of thumb, all these elements
+exposed via pathSQL and protocol-buffers. As a rule of thumb, all these elements
 should be avoided unless necessary (being in C++, and being inseparable 
 from the kernel itself, they'd make the client code inseparable from the kernel,
 which is undesirable for normal database client code).
-Even an embedding process such as [mvserver](./terminology.md#mvserver) only uses a tiny portion 
+Even an embedding process such as the [server](./terminology.md#server) only uses a tiny fraction 
 of the C++ interface (all in storecmd.cpp).
 A justification for using more of the C++ interface could be, for example,
 to implement additional query languages for mvStore.
@@ -77,7 +77,7 @@ A new session attaches itself to the calling thread by default.
 The client can use `detachFromCurrentThread` and `attachToCurrentThread` to unmap 
 and remap sessions to threads (e.g. to use a pool of physical connections).
 
-ISession gives access to [mvSQL](#isession::execute-isession::createstmt-mvsql) and
+ISession gives access to [pathSQL](#isession::execute-isession::createstmt-pathsql) and
 [protocol-buffers](#isession::createinputstream-protocol-buffers). These interfaces
 are self-sufficient (all major interactions can go through them exclusively).
 
@@ -86,12 +86,12 @@ It allows to declare [properties](./terminology.md#property) and create [IStmt](
 define [classes](./terminology.md#class). It exposes the transaction control methods. It also provides other per-session controls, 
 as well as some controls global to a database instance.
 
-###ISession::execute, ISession::createStmt [mvSQL]
-These methods let you execute [mvSQL](./terminology.md#mvsql) statements (more precisely,
+###ISession::execute, ISession::createStmt [pathSQL]
+These methods let you execute [pathSQL](./terminology.md#pathsql) statements (more precisely,
 the overloads of these methods that accept a query as string). The `execute` method
 produces json output. The `createStmt` method lets you choose between raw PINs and protocol-buffer outputs
 (via the resulting [IStmt](#istmt)). _The rest of the documentation on this page is mostly unnecessary, when
-using mvSQL._
+using pathSQL._
 
 ###ISession::createInputStream [protocol-buffers]
 This is the synchronous way of executing [protocol-buffers](./terminology.md#protocol-buffer) streams.
@@ -99,7 +99,7 @@ There is also a more optimized, asynchronous way, through startup.h's `createSer
 _The rest of the documentation on this page is mostly unnecessary, when using protocol-buffers._
 
 ###ISession::mapURIs
-This is how new [properties](./terminology.md#property) are declared. Note that the mvSQL and protocol-buffer
+This is how new [properties](./terminology.md#property) are declared. Note that the pathSQL and protocol-buffer
 interfaces do this implicitly, so one should only need to call `mapURIs` when going through
 the lower-level methods ([createPIN etc.](#isession::createpin-isession::createuncommittedpin)).
 `mapURIs` is one of the only places in the interface where the textual form
@@ -136,7 +136,7 @@ better data locality. This includes a user-defined, per-PIN-insert threshold for
 
 ###ISession::createStmt, ISession::expr
 There are various flavors of `createStmt` (one of which was already covered earlier in this page,
-for [mvSQL](#isession::execute-isession::createstmt-mvsql)). The simplest flavor requires no explicit argument,
+for [pathSQL](#isession::execute-isession::createstmt-pathsql)). The simplest flavor requires no explicit argument,
 and creates an empty statement. It is used in combination with `expr`, which allows to build an expression
 tree piece by piece, and finally add the root of that tree to the empty statement. This can also be used in combination
 with built-in conditions (see [IStmt](#istmt) for details). Statements can be executed directly (using one of the
@@ -192,7 +192,7 @@ Here's an example building a multi-segment class index:
 ###ISession::startTransaction
 Transactions are bound to sessions. For a good discussion on all available options,
 including isolation modes and read-only transactions,
-please refer to [mvSQL's description](./mvSQL reference.md#transactions).
+please refer to [pathSQL's description](./pathSQL reference.md#transactions).
 Note that operations (such as `ISession::createPIN` or `IPIN::modify`)
 can be invoked outside of the explicit scope of a transaction,
 in which case they implicitly declare their own transaction internally.
@@ -225,7 +225,7 @@ so this is not a panacea for reducing disk io, but it can be useful.
 
 #Value
 The `Value` structure defined in [mvstore.h](./sources/mvstore_h.html) can represent any of the
-[data types](./mvSQL reference.md#data-types) supported by mvStore. `Value` is used both as
+[data types](./pathSQL reference.md#data-types) supported by mvStore. `Value` is used both as
 an input value (to create or modify PINs) and as an output value (to read the contents of PINs).
 
 ###As Input (modify)

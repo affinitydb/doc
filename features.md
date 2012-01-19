@@ -6,10 +6,10 @@ is available on the [philosophy](./mvStore FAQ.md), [software components](./term
 is a list of mvStore's features:
 
  * small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)
- * [mvSQL](./terminology.md#mvsql) interface, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)
- * path expressions for advanced (yet compact) graph queries
+ * [pathSQL](./terminology.md#pathsql) query language, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)
+ * path expressions for advanced, recursive, yet compact graph queries
  * ability to mix SQL and graph queries
- * nested DML for compact graph inserts and updates
+ * nested DML for single-statement graph inserts and updates
  * ACID transactions (with support for JOIN spanning multiple objects)
  * [snapshot isolation](./terminology.md#snapshot-isolation) for read-only transactions
  * nested transactions
@@ -30,7 +30,7 @@ is a list of mvStore's features:
  * page-level AES [encryption](./terminology.md#encryption) and log encryption
  * extensive multi-user support
  * [ACL](./terminology.md#acl) at object granularity
- * rich set of [data types](./mvSQL reference.md#data-types), including [collections](./terminology.md#collection),
+ * rich set of [data types](./pathSQL reference.md#data-types), including [collections](./terminology.md#collection),
    [references](./terminology.md#pin-reference) and [BLOBs](./terminology.md#blob)
  * [units of measurement](./terminology.md#unit-of-measurement) and dimensionality control in calculations
  * data type and unit conversions
@@ -47,5 +47,5 @@ is a list of mvStore's features:
  * object and schema versioning, with support for concurrent schema versions at run-time
  * multi-node scalability with full ACID on few nodes and relaxed ACID on infinite nodes
  * path indexing (for improved efficiency of path expression evaluation)
- * reasoning, inductive inferences, data mining
+ * probabilistic graph modeling, data mining
  * XQuery and other interfaces

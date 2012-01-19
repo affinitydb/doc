@@ -1,27 +1,27 @@
-The mvSQL Language
-==================
-mvSQL is the name of a dialect of SQL defined for mvStore. The [mvStore data model](./terminology.md#essential-concepts-data-model) is very different
-from the relational model, but mvSQL is designed to remain as close to SQL as possible. 
+The pathSQL Language
+====================
+pathSQL is the name of a dialect of SQL defined for mvStore. The [mvStore data model](./terminology.md#essential-concepts-data-model) is very different
+from the relational model, but pathSQL is designed to remain as close to SQL as possible. 
 This page presents a thorough survey of the language. It covers the
-elements of the [syntax](#mvsql-syntax), the [data types](#data-types) and the [operators](#functions-and-operators).
+elements of the [syntax](#pathsql-syntax), the [data types](#data-types) and the [operators](#functions-and-operators).
 It also provides a formal [BNF description](#statements-bnf) of the [DDL](#ddl) and [DML](#dml).
-For a quick practical overview, please visit the ["getting started"](./mvSQL getting started.md) section.
+For a quick practical overview, please visit the ["getting started"](./pathSQL getting started.md) section.
 
 It's easy to test any of these commands in the online console. Direct links to the console are provided in the documentation.
 
-mvSQL Syntax
-------------
+pathSQL Syntax
+--------------
 ### Lexical Structure
-mvSQL supports the following token types: [keywords](#keywords), [identifiers](#identifiers), [qnames](#qnames), [constants](#constants), [operators](#operators), [comments](#comments), and [special characters](#special-characters).
+pathSQL supports the following token types: [keywords](#keywords), [identifiers](#identifiers), [qnames](#qnames), [constants](#constants), [operators](#operators), [comments](#comments), and [special characters](#special-characters).
 
 #### Keywords
-mvSQL's coverage of standard SQL keywords depends on functional areas.
+pathSQL's coverage of standard SQL keywords depends on functional areas.
 
-mvSQL supports most of the keywords related to common [DML](#dml) (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.
+pathSQL supports most of the keywords related to common [DML](#dml) (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.
 
-mvSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, mvStore introduces the [CLASS](#ddl) keyword.
+pathSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, mvStore introduces the [CLASS](#ddl) keyword.
 
-mvSQL doesn't support any DSPL (Data Stored Procedure Language).  
+pathSQL doesn't support any DSPL (Data Stored Procedure Language).  
 
 _Note: Keywords are **case insensitive**. A common convention is to write keywords in upper case._
 
@@ -38,7 +38,7 @@ _Note: To include a double quote, write two double quotes._
 
 _Note: A string which is enclosed in single quotes (') is a string constant, not an identifier._
 
-Sample: [identifier.sql](./sources/mvsql/identifier.html)
+Sample: [identifier.sql](./sources/pathsql/identifier.html)
 
 #### QNames
 QName stands for "qualified name", and follows the standard conventions defined in XML, RDF etc.
@@ -53,42 +53,42 @@ Careful selection of prefixes (with clear, distinct and meaningful semantics) yi
 better long-term interoperability with other applications.
 
 #### Constants
-mvSQL understands most common [value](./terminology.md#value) types.  Some standard constants are
+pathSQL understands most common [value](./terminology.md#value) types.  Some standard constants are
 associated with these value types, such as TRUE and FALSE.
 Refer to [Data Types](#data-types) for more details.  
 
 #### Operators
-mvSQL supports most of the standard SQL operators (logic, comparison, arithmetic, aggregation, string manipulations, date and time manipulations etc.).
+pathSQL supports most of the standard SQL operators (logic, comparison, arithmetic, aggregation, string manipulations, date and time manipulations etc.).
 Refer to [Functions and Operators](#functions-and-operators) for more details.   
 
 #### Comments
 A comment is removed from the input stream before further syntax analysis.
 
-mvSQL supports 3 styles of comments:
+pathSQL supports 3 styles of comments:
 
 1. SQL-style: A sequence of characters beginning with double dashes (--) and extending to the end of the line, e.g.:   
 
-		-- This is a standard SQL comment   
+        -- This is a standard SQL comment   
 
 2. C-style: This syntax enables a comment to extend over multiple lines (the beginning and closing sequences need not be on the same line). The comment begins with /* and extends to the matching occurrence of */. These blocks can be nested, as specified in the SQL standard (but unlike C): one can comment out larger blocks of code that might contain existing block comments. For example:
 
-    /* multiline comment
-    * with nesting: /* nested block comment */
-    */  
+        /* multiline comment
+        * with nesting: /* nested block comment */
+        */  
 
 3. SPARQL-style: A sequence of characters beginning with number sign (\#) and extending to the end of the line, e.g.:
 
-		\# This is a SPARQL comment
+        # This is a SPARQL comment
 
 #### Special Characters
 Some non-alphanumeric characters have special meaning, without being [operators](#operators).
 
-Some cases are extensions specific to mvSQL:
+Some cases are extensions specific to pathSQL:
 
 1. The dollar sign ($), followed by digits, is used to represent a positional [_property_](./terminology.md#property) in the body of a statement or class definition. Other uses are ${statement} and $(expression), to indicate a statement/expression variable. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.   
 2. The colon (:), followed by digits, is used to represent a positional [_parameter_](./terminology.md#parameter) in the body of a statement or class definition. The colon is also used in [QNames](#qnames).   
-3. The period (.) can be used to separate store, class, property names, and path expression. It can also be part of numerical constants.   
-4. Brackets ({}) are used to select the elements of a collection.    
+3. The period (.) can be used to separate store, class, and property names (in path expression). It can also be part of numerical constants.   
+4. Brackets ({}) are used to select the elements of a collection, or to create new collections.    
 5. The at sign (@), followed by digits, is used to represent a [PIN ID](./terminology.md#pin-id-pid). In some instances, @ may stand alone and represent the currently processed PIN (e.g. in UPDATE statements and path expressions).  
 
 Other cases are standard:
@@ -101,12 +101,12 @@ Other cases are standard:
 ### Path Expressions
 Path expressions are an extension which is not found in SQL.
 
-Path expressions define navigation paths through the relationships of the abstract schema. They specify both the scope and the results of a query. 
+Path expressions define navigation paths along the relationships of the abstract schema. They specify both the scope and the results of a query. 
 Path expressions support several navigation mechanisms, applicable to each segment of a path:
 
 1. Property of a CLASS, e.g. if PINs in class "cls1" have property "prop1", then we can fetch the value of "prop1" for each PIN in this class with: `cls1.prop1`  
 2. Dereference, e.g. if "pin1" has a property "emp_ref", of which the value is a PIN reference to "pin2" with property "name", then we can fetch the value of "pin2.name" with: `pin1.emp_ref.name`  
-3. (future) Sub-structure, e.g. if the PIN "pin1" has a property "employee", and the property "employee" has a sub-property "name", then we can fetch the value of this sub-property with: `pin1.employ.name`  
+3. (future) Sub-structure, e.g. if the PIN "pin1" has a property "employee", and the property "employee" has a sub-property "name", then we can fetch the value of this sub-property with: `pin1.employee.name`  
 
 In order to support more complex graph queries, mvStore provides regular expressions for each segment (or property) of the path. There are several options:
 
@@ -118,9 +118,10 @@ Format			Description
 {?}				Same as {0, 1}.
 {+}				Same as {1, infinity}.
 
-A predicate (i.e. WHERE clause in SQL) can be attached to each segment of a path expression. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)]. The at sign (@) can be used here to denote the PIN ID which is being processed.  
+A predicate (i.e. WHERE clause in SQL) can be attached to each segment of a path expression. E.g. `pin1.emp_ref[name='Jack' AND EXISTS(age)]`. The at sign (@) can be used here to denote the PIN ID which is being processed.  
 
-Path expressions are an important construct in the syntax of the query language. They can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY).  
+Path expressions are an important construct in the syntax of the query language. They will be supported in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY).
+Note that in the current version, they can only appear in FROM.
 
 ### Value Expressions
 Value expressions are expressions which can be executed and will return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).  
@@ -143,9 +144,9 @@ Format: $digit
 A dollar sign ($) followed by digits is used to represent a positional property in the body of a statement or class (family) definition. 
 In other contexts, the dollar sign can be part of an identifier (or a dollar-quoted string constant).   
 
-This feature is not self-contained in mvSQL. It implies a special invocation of the underlying kernel functions 
+This feature is not self-contained in pathSQL. It implies a special invocation of the underlying kernel functions 
 (e.g. `IStmt::createStmt` or `IStmt::execute`), allowing to provide the property names separately.
-Currently, the mvserver doesn't provide any entry point for this feature.
+Please refer to the [HTTP GET](./mvStore server.md#http-get-support) section of the server documentation.
 This could be used to enhance efficiency, or to prevent SQL injection attacks.
 
 #### Positional Parameters
@@ -156,16 +157,16 @@ Format:
 
 The colon (:) followed by digits is used to represent a positional parameter in the body of a statement or class definition. E.g.
 
-  <code class='mvsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code>  
-  <code class='mvsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code>  
+  <code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code>
+  <code class='pathsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code>  
 
 Here, :0 designates the first parameter defining class `hasPropI`'s index. This parameter could be specified at query time as follows:
 
-  <code class='mvsql_snippet'>SELECT * FROM hasPropI(23);</code>  
+  <code class='pathsql_snippet'>SELECT * FROM hasPropI(23);</code>  
 
 Or like this, provided we used `IN` in the class definition:
 
-  <code class='mvsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code>  
+  <code class='pathsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code>  
 
 #### REFID
 [PIN reference](./terminology.md#pin-reference)  
@@ -192,14 +193,14 @@ Format: @XXXXX[!Identity].Property[ElementID]
 Data Types
 ----------
 mvStore offers most of the basic [value](./terminology.md#value) types common to all programming languages.
-Unlike relational databases, mvStore doesn't support length or precision specifications for any data type
-(e.g. there are no fixed-length strings or binary strings). mvStore doesn't support user-defined data types either,
-although it does allow to attach a [unit of measurement](#unit-of-measurement) to a value.
+Unlike relational databases, mvStore doesn't require length or precision specifications for any data type
+(e.g. there are no fixed-length strings or binary strings). mvStore doesn't support user-defined data types either, yet,
+but it does allow to attach a [unit of measurement](#units-of-measurement) to a value.
 
-The type names listed here use the mvSQL convention. In the [C++](./terminology.md#c-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
+The type names listed here use the pathSQL convention. In the [C++](./terminology.md#c-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
 these names are prefixed with "VT_" (e.g. VT_INT).
 
-Sample: [types.sql](./sources/mvsql/types.html).  
+Sample: [types.sql](./sources/pathsql/types.html).  
 
 ### STRING
 A string constant in SQL is an arbitrary sequence of characters bounded by single quotes ('): 'This is a string'.   
@@ -211,7 +212,7 @@ To include a single-quote character within a string constant, write two adjacent
 mvStore supports the UTF-8 encoding exclusively. All string data should be converted to UTF-8 before being passed to mvStore.  
 
 ### BSTR(Binary String)
-mvSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f),
+pathSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f),
 and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).  
 
 ### URL
@@ -228,16 +229,17 @@ Numeric constants are accepted in these general forms:
   digits [type-suffix]  
   digits[.digits][e[+-]digits] [type-suffix]  
 
-where **digits** is _one or more_ decimal digit in ASCII (0 through 9) or Unicode (０through９).  
+where **digits** is _one or more_ decimal digit in ASCII (0 through 9) or Unicode.  
 *Note*: There must be at least one digit before and after the decimal point (if one is used).  
 *Note*: At least one digit must follow the exponent marker (e) (if one is present).  
 *Note*: There cannot be any space or other character embedded in a numeric constant.  
 *Note*: Any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.  
 
 <p id="typesuffix">
-The **type-suffix** is an alphabetical character appended to the numeric constant, to specify its type. It can be used when user want to do some 
-bitwise operation for this numberic constant, or user want to store it with specific data type format on disk. If it is not specified, then mvStore
-will select a default representation matching the value; it may convert the number to the most space-efficient data type that can represent this value.  
+The **type-suffix** is an alphabetical character appended to the numeric constant, to specify its type. It can be used in
+the context of bitwise operations, or to store data with a specific format. If it is not specified, then mvStore
+will select a default representation matching the value; it may convert the number to the most space-efficient data type that can 
+represent this value.  
 </p>
 
 #### UINT
@@ -268,20 +270,20 @@ a numeric representation of a real number, following the common IEEE 754 standar
 range is [1.17549e-038F, 3.40282e+038f]  
 [type-suffix](#typesuffix): 'f'  
 
-Note that the suffix 'F' is not allowed, as it collides with the 'farad' [unit of measurement](#unit-of-measurement). 
+Note that the suffix 'F' is not allowed, as it collides with the 'farad' [unit of measurement](#units-of-measurement). 
 
 #### DOUBLE
 similar to FLOAT, but with higher precision; it is the default representation for real numbers  
 range is [2.22507e-308, 1.79769e+308]  
 [type-suffix](#typesuffix): none  
 
-Note that numbers that have a [unit of measurement](#unit-of-measurement) suffix are automatically of this type.
+Note that numbers that have a [unit of measurement](#units-of-measurement) suffix are automatically of this type.
 
 #### BOOL
 TRUE or FALSE  
 
 ### DATE/TIME Types  
-Currently, mvSQL does not expose time zone control.  
+Currently, pathSQL does not expose time zone control.  
 
 #### DATETIME
 Format: TIMESTAMP 'YYYY-MM-DD HH:MM:SS.XXXXXX', where the time and fractional second parts are optional  
@@ -289,16 +291,15 @@ range is ['1601-01-01 00:00:00.000001', '9999-12-31 23:59:59.999999']
 
 #### INTERVAL
 Format: INTERVAL 'HHHHHHH:MM:SS.XXXXXX', the first number is hours, then minutes, seconds and (optional) fractional seconds part.  
-range is: ???  
 In the future, year-month-day will be supported as well.  
 
 ### EXPR (expression definition)
 Format:  $(expression)  
 
 EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine.
-An EXPR can be stored as a [value](./terminology.md#value), but it is not evaluated automatically at INSERT/UPDATE statment execution time.
+An EXPR can be stored as a [value](./terminology.md#value), but it is not evaluated automatically at INSERT/UPDATE execution time 
 (the value of that property will always be the EXPR itself, never its evaluation).
-However properties with type EXPR are evaluated automatically when they’re used in expressions. E.g.
+However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.
 
 <pre>
   mvcommand>INSERT prop1=3;
@@ -322,10 +323,10 @@ However properties with type EXPR are evaluated automatically when they’re use
   1 PINs INSERTED.
 </pre>
 
-Here prop2 is stored directly with the value of that expression executed at UPDATE execution time, while prop3 is stored in type EXPR, 
-which is evaluated when query.  
+In the example just above, `prop2` is stored directly with the result of the evaluation (at UPDATE execution time), while `prop3` is stored as type EXPR, 
+which is only evaluated when queried.  
 
-It's also possible to invoke such a property with parameters (up to 254). E.g.
+It's also possible to invoke such a EXPR property with parameters (up to 254). E.g.
 
 <pre>
   mvcommand>
@@ -339,8 +340,7 @@ It's also possible to invoke such a property with parameters (up to 254). E.g.
   1 PINs SELECTED.
 </pre>
 
-Note that now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the expression, 
-because there is no parameter description when define the expression value.
+Note that mvstore can support missing or extraneous parameters.
   
 ### EXPRTREE
 This is an internal, transient type used primarily in C++, to build expression trees before they are compiled by mvStore into
@@ -353,41 +353,34 @@ QUERY is similar to EXPR, but for a whole statement.
 
 ### ARRAY/CNAVIGATOR ([Collection](./terminology.md#collection)) 
 Format:   
+
 1. (elem1,...,elemN) -- SQL standard style. *Note*: (0) is a int (the parentheses in this case are not interpreted as defining a set)  
-2. {elem1,...,elemN} -- mvSQL extension. *Note*: {0} specifies a one-element collection  
+2. {elem1,...,elemN} -- pathSQL extension. *Note*: {0} specifies a one-element collection  
 
 Please refer to the [definition of 'collection'](./terminology.md#collection).  
 
-<pre>
-  mvcommand> insert (prop2,prop3) values(123 ,{123, 'test', 120, 534});   
-  PIN@327684(2):(<prop2|VT_INT>:123	<prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
-  1 PINs INSERTED. 
-    
-  mvcommand> SELECT * WHERE prop4[3] = 534;   
-  WARNING: Full scan query: SELECT *  
-  WHERE prop4 [ 3] = 534  
-  PIN@327684(2):(<prop2|VT_INT>:123	<prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
-  1 PINs found.  
-</pre>
+  <code class='pathsql_snippet'>INSERT (prop2,prop3) VALUES(123 ,{123, 'test', 120, 534});</code>
+  <code class='pathsql_snippet'>SELECT * WHERE prop3[3] = 534;</code>  
   
 Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY).
 Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections
-with fast retrieval of known eids. The transition between those two states is relatively transparent, and applications
+with fast retrieval of known eids. The transition between those two states is transparent, and applications
 should not assume that a collection will be stored as an ARRAY.  
 
 The transition between a scalar value and a collection is also designed to be relatively transparent
 (with a core query syntax that applies to both cases indifferently).
-For more information about collections, see [comparison between collections](#comparison-between-collections),
+
+For more information about collections, see [comparisons involving collections](#comparisons-involving-collections),
 [value in collection](#value-in-collection) and [UPDATE ADD/SET](#update).  
 
-*Note*: although mvStore doesn't support nested collections, it is possible to implement similar functionality by combining multiple properties or PINs, by adding a collection reference to a collection.   
- 
+*Note*: although mvStore doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.  
+
 ### Range
 Format: [number1, number2]   
 it can be used with keywork IN. The meaning is the same as BETWEEN number1 AND number2.  
 *Note*: * is used here to denote the infinity number.
 
-Examples: [between_in.sql](./sources/mvsql/between_in.html). 
+Examples: [between_in.sql](./sources/pathsql/between_in.html). 
 
 ### Reference types
 
@@ -404,24 +397,25 @@ REFIDELT       A reference to a collection element by its PID, PropertyID and El
 You can see the format of all there reference types is here: [Reference and Dereference Operators](#reference-and-dereference-operators).
 
 ### CURRENT
+Not yet documented.
 
 ### STREAM
+Not yet documented.
 
-Unit of Measurement
+Units of Measurement
 --------------------
 mvStore allows to attach [units](./terminology.md#unit-of-measurement) to [double](#double)-precision floating point numbers, 
 to enhance the self-descriptiveness of data, and interoperability. mvStore automatically converts values between different units 
 when performing computations on compatible types.
 
-*Note*:  In mvSQL, integer with unit suffix will be converted to double/float automatically. Because in mvStore, only float/double 
-value can support unit suffix. The design reason is the unit conversion which may lead to float/double result even we input integer.
-E.g. 1 inch = 0.0254 meter, and even user input 1 inch and 1 meter, then the sum() result is: 1 inch and 1 meter = 1.0254 meter, which
-can not be stored as a integer. 
+The syntax simply requires to append the chosen unit suffix to a literal value (wherever a value is legal). Note that suffixes
+are case-sensitive, and unit suffixes can not be used together with [type-suffixes](#typesuffix). 
 
-The syntax simply requires to append the chosen suffix to a literal value (wherever a value is legal). Note that suffixes
-are case-sensitive, and unit suffixes can not be used together with [type-suffix](#typesuffix). 
+*Note*:  In pathSQL, integers with a unit suffix will be converted to double/float automatically (only float/double 
+values can have a unit suffix). That's because as soon as unit conversions are involved, whole integer values become
+very unlikely (e.g. 1 inch = 0.0254 meter; 1 inch + 1 meter = 1.0254 meter).  
 
-Sample: [units.sql](./sources/mvsql/units.html)
+Sample: [units.sql](./sources/pathsql/units.html)
 
 Here is a table of all units supported by mvStore.  
 
@@ -513,7 +507,7 @@ mvStore supports many common functions and operators available in relational dat
 
 Internally mvStore regards all functions as operators, so here we discuss them together. 
  
-Sample: [functions.sql](./sources/mvsql/functions.html).
+Sample: [functions.sql](./sources/pathsql/functions.html).
 
 ### Logical Operators  
 
@@ -538,14 +532,17 @@ Operator                    Description
 <>                          not equal
 expr BETWEEN min AND max    return (expr>=min and expr<= max) 
 expr IN [min, max]          return (expr>=min and expr<= max). The [min, max] is a value with RANGE type.  
-expr IN list                return whether or not the val is equal to one value of the list. 
+expr IN list                return whether or not expr is equal to one value of the list. 
 
-These binary comparison operators can not only support single value right operants, but also a list of values with [ANY/SOME/ALL qualifier](#anysomeall-qualifier). 
+These binary comparison operators can support not only single-value right-hand operands, but also a list of values with [ANY/SOME/ALL qualifier](#anysomeall-qualifier). 
 The List can be a collection, or a list of values returned by sub-query. 
 
-#### comparison between collections  
+*Note*: The condition "PROP<>val" will not filter out PINs without property "PROP".
+
+#### Comparisons Involving Collections  
+
 1. value = collection 	-- same as  "value IN collection"    
-2. collection1 in collection2  -- for each element in collection1, check {the element's value IN collection2}  
+2. collection1 IN collection2  -- for each element in collection1, check {the element's value IN collection2}  
 
 The default behaviour for operator = is to check if ANY element is = the compared value, whereas for every other comparison operator, the default behavior is to check how ALL elements compare with the value.
 Currently mvStore only exposes this default behavior.
@@ -596,14 +593,13 @@ STDDEV_POP(expression)            Returns the biased standard deviation (/n) of 
 STDDEV_SAMP(expression)           Returns the sample standard deviation (/n-1) of a set of numbers. The formula used to calculate the sample standard deviation is: STDDEV_SAMP = SQRT(VAR_SAMP)
 
 The 'expression' can be a list of values or a collection. If a collection is specified, the function will include all its elements in the calculation.
-These functions can also support [DISTINCT/ALL qualifier](#distinctall-qualifier) to indicate we should calculate the duplicate value in the expression or not, e.g. AVG(DISTINCT expression).
+These functions can also support [DISTINCT/ALL qualifier](#distinctall-qualifier) to indicate whether or not duplicate values should be included in the expression, e.g. AVG(DISTINCT expression).
 
 ### String Operators
 
 Operator              Description
 --------              -----------
 ||                    string concatenation  
-
 
 ### String Functions
 
@@ -626,7 +622,7 @@ REGEX                                                                           
 CONCAT(str1,str2,...)                                                                  return the string that results from concatenating the arguments.
 MATCH [(property list)] AGAINST(string)                                                full-text search for string in specified properties of PINs. If no property list is specified, then search all properties.
 
-Sample: [full_text_search.sql](./sources/mvsql/full_text_search.html).  
+Sample: [full_text_search.sql](./sources/pathsql/full_text_search.html).  
 
 ### EXTRACT(unit FROM date) 
 Extract the unit part of the date/time/timestamp.  
@@ -640,21 +636,21 @@ The type name can be any type supported by mvStore.
 
 .       -- class/property name separator   
 
-### IN 	
+### IN
 
 Operator                    Description
 --------                    -----------
 expr IN [min, max]          return (expr>=min and expr<= max). The [min, max] is a value with RANGE type.  
-expr IN list                return whether or not the val is equal to one value of the list. The List can be a collection, or a list of values returned by sub-query.
-	
-### EXISTS	
+expr IN list                return whether or not the val is equal to one value of the list. The List can be a collection, or a list of values returned by sub-query.  
+
+### EXISTS
 
 Operator                    Description
 --------                    -----------
 EXISTS(property)            return "property IS NOT NULL".
 EXISTS(list)                return "COUNT(list)>0". The List can be a collection, or a list of values returned by sub-query.
 
-Sample: [exists.sql](./sources/mvsql/exists.html)
+Sample: [exists.sql](./sources/pathsql/exists.html)
 
 ### ANY/SOME/ALL qualifier
 These qualifiers can only be used as right operands of the binary comparison operators. E.g.
@@ -665,24 +661,24 @@ val < ANY (list)         return true if val< any element of the list, otherwise 
 val < SOME(list)         some as "val < ANY (list)"
 val < ALL (list)         return true if val< all element of the list, otherwise return false.
 
-Sample: [collection_operators.sql](./sources/mvsql/collection_operators.html)
+Sample: [collection_operators.sql](./sources/pathsql/collection_operators.html)
 
 ### DISTINCT/ALL qualifier
 
 Operator                         Description
 --------                         -----------
-DISTINCT list                    return the list of values after eliminating the duplicate values. If the list is pins, eliminating the same PINs( PINs are equal means they are the same PINs, because equal operator not only compare values of PIN, but also PID.).
-DISTINCT VALUES pins             return the list of values after eliminating the duplicate values of PINs, without comparing PIDs.
-ALL list                         return the list of value without eliminating the duplicate.
+DISTINCT list                    return the list of values after eliminating the duplicate values. In the case of a list of pins, comparison is based on PIDs.
+DISTINCT VALUES pins             return the list of values after eliminating the duplicate values of PINs (excluding PIDs).
+ALL list                         return the list of values without eliminating duplicates.
 
-There some 3 usage for these qualifier:
+There are three contexts where to use these qualifiers:
 
-  - SELECT item. E.g. SELECT DISTINCT prop1 FROM class1.
-  - Aggreation functions parameters. E.g. AVG( DISTINCT {1.0, 2.0})
-  - list of values returned by subquery which is used as operants of set operators. e.g. query1 UNION DISTINCT(prop1,prop2) query2.
-  
-  
+  - SELECT list (e.g. `SELECT DISTINCT prop1 FROM class1`)  
+  - Parameter passed to an aggregation function (e.g. `AVG(DISTINCT {1.0, 2.0})`)  
+  - list of values returned by sub-query and used as operands of set operators (e.g. `query1 UNION DISTINCT(prop1,prop2) query2`)  
+ 
 ISLOCAL
+Not yet documented.
 
 ### Collection Functions and Operators
 
@@ -694,14 +690,14 @@ IN                     val IN collection              Return whether or not the 
 IN                     collection1 IN collection2     Return whether or not all values of collection1 are IN collection2.   
 
 
-#### value in collection
-value1 IN value2 is interpreted by mvSQL to mean "is value1 part of the collection value2?". In contrast, this would be considered an error in MySQL.  
+#### Value IN Collection
+value1 IN value2 is interpreted by pathSQL to mean "is value1 part of the collection value2?".  
 
 ### Reference and Dereference Operators
 Reference operator: &  
 Dereference operator: *  
 
-*Note*: & has 2 meanings: "bitwise AND" and "dereference"; it depends on the context where it is used.   
+*Note*: & can have 2 meanings: "bitwise AND" and "dereference"; it depends on the context where it is used.   
 
 A few examples (here X is a hexadecimal digit, XXXXXXXXXXXXXXXX is a PID):
 
@@ -714,8 +710,7 @@ Expression                            Meanning
 @XXXXXXXXXXXXXXXX.prop[0]             Return the element value of the prop in pin @XXXXXXXXXXXXXXXX.  
 &@XXXXXXXXXXXXXXXX.prop[0]            Return the element reference of the prop in pin @XXXXXXXXXXXXXXXX.  
 
-Additional examples: [reference.sql](./sources/mvsql/reference.html).  
-
+Additional examples: [reference.sql](./sources/pathsql/reference.html).  
   
 ### Precedence of Operators and Functions (in decreasing order)
 Most operators have the same precedence and are left-associative.
@@ -751,113 +746,123 @@ ${}                   right               query
 
 Statements (BNF)
 ----------------
-In this section we describe the mvSQL BNF. Here are the display conventions used:
+In this section we describe the pathSQL BNF. Here are the display conventions used:
 
-Expression                Meanings
-----------                --------
+Expression                Meaning
+----------                -------
 UPPERCASE                 KEYWORD 
-lowcase                   terminal or non-terminal fragment of statement 
+lowercase                 terminal or non-terminal fragment of statement 
 [ ]                       optional fragment 
 {A|B}                     choose fragment A or B 
 ...                       repeat the previous statement fragment type 
 
-### Store management statement
+### Store Management Statements
 Synopsis: 
 
-		- CREATE STORE [IN 'directory'] [OPTIONS(...)], where options have format: NAME=value[,NAME=value..]
-		- DROP STORE [IN 'directory']
-		- MOVE STORE [FROM 'source directory'] TO 'destination directory'
-		- OPEN STORE [IN 'directory'] [OPTIONS(...)]
-		- CLOSE STORE
+  - CREATE STORE [IN 'directory'] [OPTIONS(...)], where options have format: NAME=value[,NAME=value..]
+  - DROP STORE [IN 'directory']
+  - MOVE STORE [FROM 'source directory'] TO 'destination directory'
+  - OPEN STORE [IN 'directory'] [OPTIONS(...)]
+  - CLOSE STORE
 
-If 'directory' is not specified, mvstore assumes the "current directory" (platform dependent).
-*Note*: The API for these statments(call manageStores(...)) is different from the API for other statments(ISession.createStmt(...)), because these statements can be executed before db connection established. 
+If 'directory' is not specified, mvstore defaults to the "current directory" (platform dependent).  
 
-List of option names (case insensitive):
-a) for OPEN STORE and CREATE STORE:
-        - NBUFFERS=number
-        - LOGBUFSIZE=number
-        - MAXFILES=number
-        - SHUTDOWNASYNCTIMEOUT=number
-        - PASSWORD='string'
-        - LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided)
-b) for CREATE STORE only:
-        - PAGESIZE=number
-        - FILEEXTENTSIZE=number
-        - OWNER='string'
-        - STOREID=number
-        - ENCRYPTED={TRUE|FALSE}
-        - MAXSIZE=number
-        - LOGSEGSIZE=number
-        - PCTFREE=floating or double number
-Options can be specified in any order.  
+*Note*: The C++ API for these statements (`manageStores(...)`) is different from the API for other statements (`ISession.createStmt(...)`), because store management statements are not necessarily bound to a db connection.  
+
+List of option names for OPEN and CREATE (case insensitive):  
+
+  - NBUFFERS=number  
+  - LOGBUFSIZE=number  
+  - MAXFILES=number  
+  - SHUTDOWNASYNCTIMEOUT=number  
+  - PASSWORD='string'  
+  - LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided)  
+
+Additional option names for CREATE:  
+
+  - PAGESIZE=number  
+  - FILEEXTENTSIZE=number  
+  - OWNER='string'  
+  - STOREID=number  
+  - ENCRYPTED={TRUE|FALSE}  
+  - MAXSIZE=number  
+  - LOGSEGSIZE=number  
+  - PCTFREE=floating or double number  
+
+Options can be specified in any order.   
 
 
 ### DDL
-Here's a description of mvSQL's Data Definition Language.
+Here's a description of pathSQL's Data Definition Language.
 
 #### CREATE CLASS
 Synopsis:  
 
-		CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement.
+  - CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement.
 
 where the query_statement is a [SELECT QUERY](#query). Here's a description of the OPTIONS:  
-1. DEFAULT: This is the default mode (all [PIDs](./terminology.md#pin-id-pid) will be indexed by this class). 
-2. VIEW: Like view in relational db, it is just a query definition for usability.
-3. CLUSTERED: Using clustered index to maintain all [PIDs](./terminology.md#pin-id-pid), for increased performance. Not yet supported.  
-4. SOFT_DELETE: Not only create a index for normal pins, but also create another index for those pins which is marked in deleted status(Deleted PINs are not permanently deleted except that delete with option MODE_DELETED in C++ API or PURGE), and can be restored using mvSQL "UNDELETE". ).
 
-Examples: [class.sql](./sources/mvsql/class.html).   
+  - DEFAULT: This is the default mode (all [PIDs](./terminology.md#pin-id-pid) will be indexed by this class).  
+  - VIEW: Like view in relational db, it is just a query definition for usability.  
+  - CLUSTERED: Using clustered index to maintain all [PIDs](./terminology.md#pin-id-pid), for increased performance. Not yet implemented.  
+  - SOFT_DELETE: Create an index not only for normal pins, but also for those pins marked as deleted (but not purged).  
 
-There is a operator "IS A" can be used to check whether the pin is classified as a class member or not. E.g. below 2 statements are equal.
+Examples: [class.sql](./sources/pathsql/class.html).   
+
+The "IS A" operator can be used to check whether or not a pin belongs to a class. For example, those two statements are equivalent:  
  
-  SELECT * WHERE mv:pinID IS A class1;
-  SELECT * FROM class1;
+        SELECT * WHERE mv:pinID IS A class1;  
+        SELECT * FROM class1;  
 
-#### Create [class family](./terminology.md#family)  
+#### Creating a [class family](./terminology.md#family)  
 
-  CREATE CLASS clsfml11 AS select * where prop1 = :0 and prop2 = :1;    
-  select * from clsfml11(*, 2);    
+        CREATE CLASS clsfml11 AS select * where prop1 = :0 and prop2 = :1;    
+        select * from clsfml11(*, 2);    
 
 Here * indicates all values, including NULL. In this case, the [index](./terminology.md#index) is created with the composite key(prop1 and prop2)  
-**Limitation 1**: Because kernel use BTree for index, we can't store a PIN whose properties is all NULL value. 
-So NULL can be passed as a parameter to class family only when the index for this class family is a multi-segment index; Single property index cannot support NULL parameters.
-For performance consideration, it is not suggested to create a class family with only one parameters which passed to where clause as: WHERE :0 is NULL.
 
-**Limitation 2**: Now mvStore has a syntax restriction about parameter position in predicates. E.g. mvStore can not create index for ":0 = value", 
-please using "value = :0" instead.
+**Limitation 1**: The kernel uses a BTree to store indexes, and can't store a PIN whose properties are all NULL. 
+NULL can be passed as a parameter to a class family only when the index for this class family is a multi-segment index.
+Single-property indexex cannot support NULL parameters.
+For performance reasons, it is recommended not to create a class family with only one parameter passed to the where clause, such as: `WHERE :0 is NULL`.
 
-*Note*: now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the query, 
-because there is no parameter description when define the class family.
+**Limitation 2**: There's a sytactic restriction on the order of parameters in class predicates. For example, mvStore cannot create an index for `:0 = value`,
+but `value = :0` is fine.
+
+*Note*: mvStore can ignore superfluous parameters, i.e. the user can pass more parameters than used in the predicate.
 
 Please refer to the [class](./terminology.md#class), [family](./terminology.md#family) and [indexing](./terminology.md#index) descriptions for
-a brief comparison with the relational DDL. Note that it is possible to declare multiple families with the same predicate, but different
+a brief comparison with the relational DDL. Note that it is possible to declare multiple families with the same predicate, and different
 type specifications:
 
-  CREATE CLASS clsfml21 AS select * where prop1 = :0(int);  
-  CREATE CLASS clsfml22 AS select * where prop1 = :0(String); 
+        CREATE CLASS clsfml21 AS select * where prop1 = :0(int);  
+        CREATE CLASS clsfml22 AS select * where prop1 = :0(String); 
 
 In this case, if a PIN's prop1 is a string which cannot be converted into a number, then it won't be part of clsfml21.
-Note that if prop1 has a float value, then the float value will be truncated and converted into int before it's inserted as index key value.
 
-If the parameter type is not specified, then class family index is created with the date type of the first PIN to match this class family.  
-And all class options work for class family except that SOFT_DELETE. 
+If the parameter type is not specified, then the class family index is created with a typeless index, preserving
+the original type of data items, and performing implicit coercions at evaluation time.  
 
-##### Indexing of collections 
+All class options work for class families as well, except SOFT_DELETE. 
+
+##### Indexing Of Collections 
 For single-property indexes, all elements will be added to the index.  
 For multi-segment indexes, all combinations will be added to the index (Cartesian product of all values of the indexed properties).  
 
-##### How to specify key value order for index
+##### How To Specify Key Value Order For Index
 The available options are:  
-1. ASC:  Store key value in ascendent order.  
-2. DESC: Store key value in decendent order.  
-3. NULLS FIRST: Order the null value(i.e. there is no such a property) before any non-null value.  
-4. NULLS LAST: Order the null value(i.e. there is no such a property) after any non-null value.  
 
-	CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
+  - ASC:  Sort keys in ascending order.  
+  - DESC: Sort keys in descending order.  
+  - NULLS FIRST: Order the null values (e.g. absent property) before any non-null value.  
+  - NULLS LAST: Order the null values after any non-null value.  
+
+Example:  
+
+        CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
 
 ### DML
-Here is a description of mvSQL's Data Manipulation Language.
+Here is a description of pathSQL's Data Manipulation Language.  
 
 #### INSERT
 Synopsis:  
@@ -866,17 +871,14 @@ Synopsis:
   - INSERT property = expression [, ...]  
   - INSERT SELECT ...  
 
-Examples: [insert.sql](./sources/mvsql/insert.html).
+Examples: [insert.sql](./sources/pathsql/insert.html).
 
-Notes:  
-1. mvSQL does not yet support the insertion of graphs of inter-connected pins.  
-2. mvSQL does not yet support multiple pin insertion as suggested by the [, ...] in the first line of the synopsis.  
-3. mvSQL does not yet support the third line of the synopsis.  
+*Note*: pathSQL does not yet support the insertion of graphs (with cycles) in a single statement; the C++ interface does.  
 
 #### UPDATE
 Synopsis:  
 
-		UPDATE [{pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] actions [WHERE conditions]  
+  - UPDATE [{pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] actions [WHERE conditions]  
 
 where *actions* can be:  
 
@@ -888,12 +890,12 @@ where *actions* can be:
 
 and *pin_reference* can be:
   
-  - a pin reference with format: @PID. E.g. @D001. Note when this UPDATE statement is a value of QUERY type property, then AT sign (@) can be used to denote the PIN ID which is processing.
-  - a collection of pin references with format: { @PID[, ...] }. E.g. {@D001, @D002}.
+  - a pin reference (@PID, e.g. @D001). *Note*: when the UPDATE statement is used as a value of a property of type QUERY, then the AT sign (@) can be used to denote the PIN ID which is being processed.  
+  - a collection of pin references with format: { @PID[, ...] }, such as {@D001, @D002}.  
 
 and *expression_as_param* can be any [expression](#value-expressions).  
 
-Examples: [update.sql](./sources/mvsql/update.html).  
+Examples: [update.sql](./sources/pathsql/update.html).  
 
 Notes:  
 
@@ -901,47 +903,50 @@ Notes:
 2. UPDATE SET an existing property: change the value of that property (if the property is a collection, overwrite the whole collection)   
 3. UPDATE ADD an existing property: append a new value to that property (if the property only has one value, then change the type to collection, and append the new value)  
 
-Also mvSQL support C styple operation 'op=', where op is one of +,-,*,/,%,&,|,^,<<,>>,>>>,min,max,||. E.g.
-	
-	UPDATE * SET prop+=1;
+Also pathSQL supports C-style operation-assignments `op=`, where op is one of +,-,*,/,%,&,|,^,<<,>>,>>>,min,max,||. For example:  
+        
+        UPDATE * SET prop+=1;
 
-Any reference to a not existing proerty will lead the query return directly without any result set, in order to skip those PINs which does not exists that property, you can use 
-'!' modifiers in UPDATE, in addition, we can only process those PINs which includes that property using '?' modifiers, E.g.
-	
-	UPDATE * SET prop!=0, prop?+=1;
+Any reference to a non-existing property will make the query return without any result set. In order to skip those PINs missing the property, you can use 
+'!' modifiers in UPDATE, and only process those PINs which include that property using the '?' modifiers, such as:  
+        
+        UPDATE * SET prop!=0, prop?+=1;
 
-This statement will update all PINs: for PINs without "prop" property, add this property; for PINs already has "prop" property, increase this property by 1.
+This statement will update all PINs: for PINs without "prop" property, it will add this property; for PINs already having "prop", it will increment its value.
 
 #### DELETE/UNDELETE/PURGE   
 Synopsis:  
 
-  {DELETE|UNDELETE|PURGE} 
-  [FROM {pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] 
-  [WHERE conditions]
+  - {DELETE|UNDELETE|PURGE}  
+    [FROM {pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}]  
+    [WHERE conditions]  
 
-DELETE:    Mark PINs in deleted status(soft delete).
-UNDELETE:  Change from deleted status to normal active status.
-PURGE:     Remove(permanently delete) PINs from the physical disk. It can not remove the PINs in deleted status.
+where
+
+  - DELETE:    Mark PINs in deleted status ("soft delete").  
+  - UNDELETE:  Change from deleted status to normal active status.  
+  - PURGE:     Permanently delete PINs from the physical disk (note: cannot remove PINs in deleted status).  
  
-Examples: [delete.sql](./sources/mvsql/delete.html).  
+Examples: [delete.sql](./sources/pathsql/delete.html).  
 
 ### QUERY
 
 Synopsis: 
 
-  SELECT [ * ]  
-  [ FROM from_item [, ...] ]  
-  [ WHERE conditions ]  
-  [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]  
-  [ HAVING conditions ]  
-  [ { UNION | INTERSECT | EXCEPT } [ ALL ] select ]  
-  [ ORDER BY {property_name | expression | position} [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] ]  
+  - SELECT [ * | {property_name [AS new_name] } [, ...] ]  
+    [ FROM from_item [, ...] ]  
+    [ WHERE conditions ]  
+    [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]  
+    [ HAVING conditions ]  
+    [ { UNION | INTERSECT | EXCEPT } [ ALL ] select ]  
+    [ ORDER BY {property_name | expression | position} [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] ]  
 
 where *from_item* can be one of:
   
   - pin_reference
   - class_name 
   - class_family_name({expression_as_param| *| NULL}, ...) 
+  - path expression
   - from_item join_type from_item [ ON join_condition | USING ( join_column [, ...] ) ]
   - sub_query AS alias_name
   - from_item AS alias_name
@@ -956,71 +961,75 @@ and *join_type* can be one of:
 
 #### Alias name in FROM clause
 A substitute name for the FROM item containing the alias. An alias is used for brevity or to eliminate ambiguity for self-joins (where the same table is scanned multiple times). 
-When an alias is provided, it completely hides the actual name of the class or family; for example given FROM foo AS f, the remainder of the SELECT must refer to this FROM item as f not foo.
+When an alias is provided, it completely hides the actual name of the class or family; for example given FROM foo AS f, the remainder of the SELECT must refer to this FROM item as f, not foo.
 
 #### Order by
-Examples: [orderBy.sql](./sources/mvsql/orderBy.html).   
+Examples: [orderBy.sql](./sources/pathsql/orderBy.html).   
 
-ORDER BY must appear after ALL the unions.  
-ORDER BY is considered to apply to the whole UNION result (it's effectively got lower binding priority than the UNION).  
+  - ORDER BY must appear after ALL the unionsbut .  
+  - ORDER BY is considered to apply to the whole UNION result (it's effectively got lower binding priority than the UNION).  
+
 To order a subquery result, use parentheses around the subquery.  
 
-*Note*:
-1. In order to include null value for ordered property, NULLS FRIST/LAST should be added to order by clause. 
-2. The default behavior is order by ASC without NULL value PINs.
+*Notes*:  
+1. In order to include null values, NULLS FIRST/LAST must be added to the ORDER BY clause. 
+2. The default behavior is order by ASC, without NULL value PINs.
 
 #### Group by
-Examples: [groupBy.sql](./sources/mvsql/groupBy.html).   
+Examples: [groupBy.sql](./sources/pathsql/groupBy.html).   
 
-#### Set operator: UNION | INTERSECT | EXCEPT
-Examples: [set_operator.sql](./sources/mvsql/set_operator.html).   
+#### Set Operators: UNION | INTERSECT | EXCEPT
+Examples: [set_operator.sql](./sources/pathsql/set_operator.html).   
 
 The functionality of all these set operators is similar to standard SQL, 
-except that mvStore does not require that all operands have same property number or type. 
+except that mvStore does not require that all operands have same number of properties or types. 
 Duplicates are identified based on [PIN ID](./terminology.md#pin-id-pid) instead of property value, which is differnt from standard SQL.
 
-The keyword DISTINCT/ALL can be used to specify the result should eliminate duplicates or not.
+The keyword DISTINCT/ALL can be used to eliminate duplicates.
 
 #### Join
-mvStore returns immutable PIN collections as query results.  Presently, the join results are somewhat limited
-(they only contain PINs from the left-hand class).
+mvStore returns immutable PIN collections as query results.
 
-		SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
+        SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
 
-mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.
+mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the natural JOIN.
 
-Examples: [join.sql](./sources/mvsql/join.html).   
+Examples: [join.sql](./sources/pathsql/join.html).   
 
 #### Sub query in FROM clause
-A sub-SELECT can appear in the FROM clause. This acts as though its output were created as a temporary table for the duration of this single SELECT command. 
-Note that the sub-SELECT must be surrounded by parentheses, and an alias must be provided for it. 
+This is not yet supported.
+
+In a future release, when a sub-SELECT appears in the FROM clause, it will act as though its output were created as a temporary table for the duration of this single SELECT command. 
+Note that a sub-SELECT must be surrounded by parentheses. 
 
 ### Inheritance
-Being different from relational DB, mvStore support a PIN which can be belongs to multiple classes, in this way user can implement some inheritant data.
+mvStore's classification model lets a PIN belong to multiple classes, and also allows to define a hierarchy of classes, such as:
 
-Examples: [inheritance.sql](./sources/mvsql/inheritance.html). 
+        CREATE CLASS Person AS SELECT * WHERE EXISTS(firstname) OR EXISTS(lastname);
+        CREATE CLASS Taxpayer AS SELECT * FROM Person;
 
-#### How to query a PIN which belongs to 2 classes
+Examples: [inheritance.sql](./sources/pathsql/inheritance.html). 
+
+#### How to query only PINs belonging to 2 classes
 
 There are 2 ways:  
 
   - Using built-in property mv:pinID in WHERE CLAUSE, e.g. SELECT * WHERE class1.mv:pinID=class2.mv:pinID.
   - Using operator & for class names in FROM CLAUSE, e.g.  SELECT * FROM class1 & class2.
 
-
 ### TRANSACTIONS
 mvStore not only supports basic transactions, but also sub-transactions.
 The session holds a transaction stack.  Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction).
 Changes are committed to the database only when the outermost transaction in the stack is committed.  
 
-Examples: [transaction_basic.sql](./sources/mvsql/transaction_basic.html).  
+Examples: [transaction_basic.sql](./sources/pathsql/transaction_basic.html).  
 
 #### Start a Transaction
 START TRANSACTION is used to start a transaction/sub-transaction block.
 
 Synopsis: 
 
-		START TRANSACTION [ transaction_mode [, ...] ]
+  - START TRANSACTION [ transaction_mode [, ...] ]
 
 where transaction_mode is one of:  
  
@@ -1028,8 +1037,8 @@ where transaction_mode is one of:
   - READ ONLY |READ WRITE  
 
 Examples:  
-[transaction_readonly.sql](./sources/mvsql/transaction_readonly.html),
-[transaction_sub.sql](./sources/mvsql/transaction_sub.html).   
+[transaction_readonly.sql](./sources/pathsql/transaction_readonly.html),
+[transaction_sub.sql](./sources/pathsql/transaction_sub.html).   
 
 Note:     
 1. mvStore doesn't support isolation level READ UNCOMMITTED.  
@@ -1040,14 +1049,13 @@ Note:
 ##### COMMIT
 Synopsis: 
 
-		COMMIT [ALL]; 
+  - COMMIT [ALL]; 
 
 If ALL is specified, then mvStore will commit the whole stack of transactions (started in the current session), otherwise it only commits the innermost transaction/sub-transaction block in the stack.    
 
 ##### ROLLBACK
 Synopsis: 
 
-		ROLLBACK [ALL];  
+  - ROLLBACK [ALL];  
     
 If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    
-

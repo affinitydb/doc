@@ -1,8 +1,8 @@
 #mvStore Javascript Interface for node.js
 The [mvstore-client.js](./sources/mvstore-client_js.html) module defines a simple interface
-between node.js and mvStore (via HTTP and the the [mvServer](./terminology.md#mvserver)).
+between node.js and mvStore (via HTTP and the [server](./terminology.md#server)).
 The interface is divided in three parts: [connection creation](#connection-creation),
-[mvSQL access with JSON response](#mvsql-access-with-json-response), and
+[pathSQL access with JSON response](#pathsql-access-with-json-response), and
 [object-friendly access](#object-friendly-access).
 
 ##Connection Creation
@@ -15,15 +15,15 @@ To establish a new connection, a client simply needs to do the following:
   lMvStore.terminate();
 </pre>
 
-This example is assuming that mvServer runs on `localhost` and listens to port `4560`, and that
+This example is assuming that the server runs on `localhost` and listens to port `4560`, and that
 the `mvstore-client` module for node.js is properly installed. If a `user` is specified,
 it determines the owner of the store. For a new store, the `password` is optional, and implies
-encryption. It is possible to omit both the `user` and `password` (i.e. `"http://localhost:4560/db/"`),
+encryption of the store. It is possible to omit both the `user` and `password` (i.e. `"http://localhost:4560/db/"`),
 in which case a default store owner is used.
 
 The resulting `lMvStore` object is the public interface of the connection, providing
-[mvSQL](#mvsql-access-with-json-output) access via its `mvsql` and `mvsqlCount` methods, and
-[object-friendly](#object-friendly-access) access via the other methods (`mvsqlProto`, `createPINs`, `startTx`
+[pathSQL](#pathsql-access-with-json-output) access via its `q` and `qCount` methods, and
+[object-friendly](#object-friendly-access) access via the other methods (`qProto`, `createPINs`, `startTx`
 etc.).
 
 The connection can be created with `keepalive` or not. If `keepalive` is enabled,
@@ -39,15 +39,17 @@ multiple instances of a connection.
 
 The connection must be terminated by calling `terminate`.
 
-##mvSQL Access with JSON Response
+Her's a link to more information [about streaming and pagination](./mvStore protobuf.md#about-streaming-and-pagination).
+
+##pathSQL Access with JSON Response
 This access path is self-sufficient and will feel most natural to people with SQL experience.
 Simply emit statements such as:
 
 <pre>
   var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
-  lMvStore.mvsql("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
+  lMvStore.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
   /* ... */
-  lMvStore.mvsql("SELECT * WHERE EXISTS(name);", lOnResult);
+  lMvStore.q("SELECT * WHERE EXISTS(name);", lOnResult);
 </pre>
 
 `pResult` is a parsed JSON response produced by mvStore.
@@ -59,17 +61,17 @@ automatically translate that intention into the `INSERT` statement shown just ab
 This is addressed by the [object-friendly access methods](#object-friendly-access).
 
 This is a very powerful access path nonetheless. 
-For more information, please refer to the [mvSQL reference](./mvSQL reference.md).
+For more information, please refer to the [pathSQL reference](./pathSQL reference.md).
 
-####About Transaction Control with pure mvSQL Access
-The [mvSQL](./mvSQL reference.md) language includes transaction control statements
+####About Transaction Control with pure pathSQL Access
+The [pathSQL](./pathSQL reference.md) language includes transaction control statements
 such as `START TRANSACTION` and `COMMIT`. In order for these statements to produce the
 desired effect, they must be executed in the context of a connection that spans at least
 a whole transaction. Presently this can only be accomplished within a connection
 where `keepalive` is enabled.
 
 ##Object-friendly Access
-This access path complements mvSQL by allowing to create, retrieve and modify
+This access path complements pathSQL by allowing to create, retrieve and modify
 `PIN` objects without any translation to or from a query language.
 
 Our philosophy is different from traditional object-oriented database systems,
@@ -86,7 +88,7 @@ Here are some examples:
   var lOnResult = function(pError, pResult) { /* ... */ };
   lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
   /* ... */
-  lMvStore.mvsqlProto(
+  lMvStore.qProto(
     "SELECT * WHERE EXISTS(name);",
     function(pE, pR)
     {
@@ -97,7 +99,7 @@ Here are some examples:
 </pre>
 
 ####PIN Interface
-The `createPINs` and `mvsqlProto` methods return PIN objects. These objects implement
+The `createPINs` and `qProto` methods return PIN objects. These objects implement
 explicit property accessors (i.e. set/get methods), as a safe and simple way to track
 changes to be effected in the db. Every PIN has the following members: 
 
@@ -131,7 +133,7 @@ last argument, of the same form and serving the same purpose as in `PIN.set`)_. 
 operator on elements of the collection is _not_ supported.
 
 ####About Special Data Types
-mvStore proposes a more comprehensive array of [data types](./mvSQL reference.md#data-types)
+mvStore proposes a more comprehensive array of [data types](./pathSQL reference.md#data-types)
 than javascript's core native types. This leads to the following special cases:
 
  * representation of [collections](./terminology.md#collection):
@@ -158,4 +160,4 @@ At the level of the mvStore kernel, presently, every protobuf stream is associat
 a topmost transaction. That allows the client library to use transactions without
 `keepalive`. Within the protobuf context, transaction control is specified
 via the connection's methods: `startTx`, `commitTx`, `rollbackTx`. In the future,
-the two methods (pure mvSQL vs protobuf) may be further harmonized.
+the two methods (pure pathSQL vs protobuf) may be further harmonized.

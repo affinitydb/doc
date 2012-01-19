@@ -1,5 +1,5 @@
 #Introduction
-Welcome to mvStore!
+Welcome to mvStore, the noSQL database with a SQL interface!
 
 For an overview of the philosophy behind mvStore, visit the [mvStore FAQ](./mvStore FAQ.md).
 There's also a list of [features](./features.md), and an assessment of mvStore's
@@ -12,16 +12,16 @@ and the [software components](./terminology.md#software-components) in the mvSto
 documentation, which points to it as a unified reference. Finally, it contains
 an alphabetically ordered [list of terms](./terminology.md#list-of-terms-in-alphabetical-order), for quick lookup.
 
-The documentation contains a few "getting started" sections:  
+The documentation contains a few introductory sections:  
 
 1. [getting started](./mvStore getting started.md)  
-2. [getting started with mvSQL](./mvSQL getting started.md)  
+2. [getting started with pathSQL](./pathSQL getting started.md)  
 3. [javascript interface for node.js](./mvStore js.md)  
 
 It also contains references:  
 
-1. [mvSQL](./mvSQL reference.md)  
-2. [mvServer](./mvStore server.md)  
+1. [pathSQL](./pathSQL reference.md)  
+2. [server](./mvStore server.md)  
 3. [low-level C++ interface](./mvStore cpp.md)  
 4. [low-level protobuf interface](./mvStore protobuf.md)  
 

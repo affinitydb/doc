@@ -19,15 +19,16 @@ The result is that mvStore objects do not need to be declared as belonging to an
 Instead, objects can be stored first, and then dynamically classified into independently defined classes. 
 Membership in these classes may change as the objects change, and as new applications with new classes begin operating in the database.
 
-The current C++ implementation of mvStore runs in a small-footprint, multithreaded process on windows or linux systems. 
+The current C++ implementation of mvStore runs in a small-footprint, multithreaded process on OSX, linux, Windows and ARM-based systems. 
 Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.
 
 mvStore has a native [C++ interface](./terminology.md#c-interface), as well as a remoteable interface operating through 
 [protobuf](./terminology.md#protocol-buffer)-encoded request/response streams. Queries can be passed to the database via 
-[mvSQL](./terminology.md#mvsql), a SQL-like query language. 
+[pathSQL](./terminology.md#pathsql), a SQL-like query language. mvStore also produces JSON responses.
 
-mvStore can also operate as a MySQL storage engine via [mvEngine](./terminology.md#mvengine), 
+mvStore can also operate as a MySQL storage engine via mvEngine, 
 which maps between the native mvStore data model and the MySQL relational data model.
+This component is not part of the initial release.
 
 Please refer to the [strengths](./strengths.md) page, for more information on the
 basic tenets of mvStore.
