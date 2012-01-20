@@ -105,7 +105,7 @@ To leverage this information while querying, pathSQL offers the following syntax
 
   <code class='pathsql_snippet'>SELECT bornin FROM class2('Jurgen').friends{*}[BEGINS(livesin, 'C')];</code>
 
-  <code class='pathsql_snippet'>SELECT age FROM class2('Jurgen').friends{*}[age > 30];</code>
+  <code class='pathsql_snippet'>SELECT age FROM class2('Jurgen').friends{+}[age > 30];</code>
 
   <code class='pathsql_snippet'>SELECT DISTINCT FROM class1.friends{*}.photos;</code>
 
@@ -154,6 +154,6 @@ the class family behaves like a CLASS. For example:
 
   <code class='pathsql_snippet'>SELECT * FROM clsfml;</code>  
 
-  <code class='pathsql_snippet'>SELECT * FROM clsfml(*, 'Fred');</code>  
+  <code class='pathsql_inert'>SELECT * FROM clsfml(*, 'Fred');</code>  
 
-  <code class='pathsql_snippet'>SELECT * FROM clsfml(27, *);</code>  
+  <code class='pathsql_inert'>SELECT * FROM clsfml(27, *);</code>  
