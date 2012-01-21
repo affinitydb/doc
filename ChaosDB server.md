@@ -1,15 +1,15 @@
 ## NAME
 
-mvstored - embedded web server for CGI access to the mvstored db
+chaosdbd - embedded web server for CGI access to the chaosdbd db
 
 ## SYNOPSIS
 
-`mvstored` [ <options>... ]
+`chaosdbd` [ <options>... ]
 
 ## DESCRIPTION
 
-mvstored is an embedded web server which provides CGI access to the
-mvstore database.  It also includes a minimal simple static web server
+chaosdbd is an embedded web server which provides CGI access to the
+ChaosDB database.  It also includes a minimal simple static web server
 for its own internal purposes to serve basic web admin CGIs & ui.
 
 (All CGIs are builtin, there is intentionally no support for user defined
@@ -17,7 +17,7 @@ CGIs.)
 
 ## USAGE NOTES
 
-Mvstore natively supports two query languages pathSQL and protobuf, plus a
+ChaosDB natively supports two query languages pathSQL and protobuf, plus a
 native C++ api.  pathSQL is a SQL dialect.  protobuf is query/response
 serialization defined with google protobuf.  The store server supports both
 pathSQL and protobuf.
@@ -26,10 +26,10 @@ With pathSQL queries, the result is sent in JSON encoding by default.  (But
 you can alternatively request protobuf encoded results.)
 
 With protobuf encoded queries, the result is sent in protobuf by
-default.  (At present mvstore server does not support JSON encoded
+default.  (At present the ChaosDB server does not support JSON encoded
 results for protobuf encoded requests.)
 
-Mvstore supports both HTTP GET and HTTP POST CGIs and parameters.  With HTTP
+ChaosDB supports both HTTP GET and HTTP POST CGIs and parameters.  With HTTP
 GET the arguments must be URL encoded, and with HTTP POST both binary and
 urlencoded parameters are supported.  The POST handling also supports
 urlencoded url parameters (which is needed to avoid a bootstrap problem in
@@ -37,13 +37,13 @@ specifying the encoding of POST parameters).
 
 ## OPTIONS
 
-The flags that are supported by mvstored are as follows:
+The flags that are supported by chaosdbd are as follows:
 
     `-d dir` document root for the web server.  Also the store file is
     read from this directory.  The docroot can also be specified using
     the DOCROOT environment variable.  The environment variable
-    overrides the mvstored -d argument if both are present.  (Note: if
-    mvstored is executed via mvEngine and the mvDaemon dll/so the
+    overrides the chaosdbd -d argument if both are present.  (Note: if
+    chaosdbd is executed via ksEngine and the ksDaemon dll/so the
     DOCROOT envorinment variable is the only way to set the document
     root).
 
@@ -160,15 +160,15 @@ HTTP keep-alive is supported.
 
 ## FILES
 
-    `mv.store` and `mv*.txlog`, in a sub-directory of the document-root,
+    `chaos.db` and `chaos*.txlog`, in a sub-directory of the document-root,
     named after the basic-auth user connecting with the server
     (the default sub-directory name is `test` if no basic-auth header
     was specified).
 
 ## AUTHOR
 
-Copyright VMware <mvstore@vmware.com>
+Copyright VMware <chaosdb@vmware.com>
 
 ## SEE ALSO
 
-libmvstore(7), http://mvstore.eng.vmware.com/
+libchaosdb(7), http://chaosdb.eng.vmware.com/

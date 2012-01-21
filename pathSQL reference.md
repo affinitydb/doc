@@ -1,11 +1,11 @@
 The pathSQL Language
 ====================
-pathSQL is the name of a dialect of SQL defined for mvStore. The [mvStore data model](./terminology.md#essential-concepts-data-model) is very different
+pathSQL is the name of a dialect of SQL defined for ChaosDB. The [ChaosDB data model](./terminology.md#essential-concepts-data-model) is very different
 from the relational model, but pathSQL is designed to remain as close to SQL as possible. 
 This page presents a thorough survey of the language. It covers the
 elements of the [syntax](#pathsql-syntax), the [data types](#data-types) and the [operators](#functions-and-operators).
 It also provides a formal [BNF description](#statements-bnf) of the [DDL](#ddl) and [DML](#dml).
-For a quick practical overview, please visit the ["getting started"](./pathSQL getting started.md) section.
+For a quick practical overview, please visit the ["getting started"](./pathSQL primer.md) section.
 
 It's easy to test any of these commands in the online console. Direct links to the console are provided in the documentation.
 
@@ -19,14 +19,14 @@ pathSQL's coverage of standard SQL keywords depends on functional areas.
 
 pathSQL supports most of the keywords related to common [DML](#dml) (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.
 
-pathSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, mvStore introduces the [CLASS](#ddl) keyword.
+pathSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, ChaosDB introduces the [CLASS](#ddl) keyword.
 
 pathSQL doesn't support any DSPL (Data Stored Procedure Language).  
 
 _Note: Keywords are **case insensitive**. A common convention is to write keywords in upper case._
 
 #### Identifiers 
-Identifiers are used to designate mvStore entities such as [classes](./terminology.md#class), [properties](./terminology.md#property) etc.  Identifiers are **case sensitive**.  See also the
+Identifiers are used to designate ChaosDB entities such as [classes](./terminology.md#class), [properties](./terminology.md#property) etc.  Identifiers are **case sensitive**.  See also the
 next section about [qnames](#qnames).
 
 There are 2 types of identifiers:
@@ -43,7 +43,7 @@ Sample: [identifier.sql](./sources/pathsql/identifier.html)
 #### QNames
 QName stands for "qualified name", and follows the standard conventions defined in XML, RDF etc.
 A QName is a prefix:name, where prefix and name are identifiers (prefix typically designates a [namespace](./terminology.md#namespace)).
-In mvStore, all built-in properties use prefix "mv" (e.g. mv:pinID).
+In ChaosDB, all built-in properties use prefix "ks" (e.g. ks:pinID).
 
 QNames allow to partition entities such as class names and property names, by namespace.
 They help specify the semantic context in which a name should be interpreted,
@@ -108,7 +108,7 @@ Path expressions support several navigation mechanisms, applicable to each segme
 2. Dereference, e.g. if "pin1" has a property "emp_ref", of which the value is a PIN reference to "pin2" with property "name", then we can fetch the value of "pin2.name" with: `pin1.emp_ref.name`  
 3. (future) Sub-structure, e.g. if the PIN "pin1" has a property "employee", and the property "employee" has a sub-property "name", then we can fetch the value of this sub-property with: `pin1.employee.name`  
 
-In order to support more complex graph queries, mvStore provides regular expressions for each segment (or property) of the path. There are several options:
+In order to support more complex graph queries, ChaosDB provides regular expressions for each segment (or property) of the path. There are several options:
 
 Format			Description
 ---------		-----------
@@ -124,7 +124,7 @@ Path expressions are an important construct in the syntax of the query language.
 Note that in the current version, they can only appear in FROM.
 
 ### Value Expressions
-Value expressions are expressions which can be executed and will return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).  
+Value expressions are expressions which can be executed and will return a value. Unlike relational databases, ChaosDB doesn't support table expressions (where the returned result is a table).  
 
 Because value expressions evaluate to a value, they can be used in place of values, like when passing a parameter to a function, or when specifying the value of a property with INSERT or UPDATE, or in search conditions.  
 
@@ -146,7 +146,7 @@ In other contexts, the dollar sign can be part of an identifier (or a dollar-quo
 
 This feature is not self-contained in pathSQL. It implies a special invocation of the underlying kernel functions 
 (e.g. `IStmt::createStmt` or `IStmt::execute`), allowing to provide the property names separately.
-Please refer to the [HTTP GET](./mvStore server.md#http-get-support) section of the server documentation.
+Please refer to the [HTTP GET](./ChaosDB server.md#http-get-support) section of the server documentation.
 This could be used to enhance efficiency, or to prevent SQL injection attacks.
 
 #### Positional Parameters
@@ -171,7 +171,7 @@ Or like this, provided we used `IN` in the class definition:
 #### REFID
 [PIN reference](./terminology.md#pin-reference)  
 Format: @XXXXX[!Identity]
-Where XXXXX is a [PID](./terminology.md#pin-id-pid) where X is a hexadecimal digit. A PID can be obtained via the built-in property mv:pinID.   
+Where XXXXX is a [PID](./terminology.md#pin-id-pid) where X is a hexadecimal digit. A PID can be obtained via the built-in property ks:pinID.   
 
 PIN references can be specified in the WHERE condition or operation target of SELECT/UPDATE/DELETE queries. 
 
@@ -182,7 +182,7 @@ Where name is a [property](./terminology.md#property) name, and PIN_REF is a [PI
 
 Note that a [class](./terminology.md#class) name can be used in place of PIN_REF, to specify the set of references to all classified PINs.
 
-#### IDENTITY: mvStore user
+#### IDENTITY: ChaosDB user
 Format: !Identity  
 where [Identity](./terminology.md#identity) is the user name.  
 
@@ -192,9 +192,9 @@ Format: @XXXXX[!Identity].Property[ElementID]
 
 Data Types
 ----------
-mvStore offers most of the basic [value](./terminology.md#value) types common to all programming languages.
-Unlike relational databases, mvStore doesn't require length or precision specifications for any data type
-(e.g. there are no fixed-length strings or binary strings). mvStore doesn't support user-defined data types either, yet,
+ChaosDB offers most of the basic [value](./terminology.md#value) types common to all programming languages.
+Unlike relational databases, ChaosDB doesn't require length or precision specifications for any data type
+(e.g. there are no fixed-length strings or binary strings). ChaosDB doesn't support user-defined data types either, yet,
 but it does allow to attach a [unit of measurement](#units-of-measurement) to a value.
 
 The type names listed here use the pathSQL convention. In the [C++](./terminology.md#c-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
@@ -209,7 +209,7 @@ To include a single-quote character within a string constant, write two adjacent
 *Note*: a string which is enclosed in double-quote characters (") is an [identifier](#identifiers).  
 
 #### Supported Encoding
-mvStore supports the UTF-8 encoding exclusively. All string data should be converted to UTF-8 before being passed to mvStore.  
+ChaosDB supports the UTF-8 encoding exclusively. All string data should be converted to UTF-8 before being passed to ChaosDB.  
 
 ### BSTR(Binary String)
 pathSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f),
@@ -218,11 +218,8 @@ and is expected to contain an even number of digits (a leading 0 must be inserte
 ### URL
 Format: U'url_addr'  
 
-### ENUM
-Format: Not supported yet   
-
 ### Numeric Types
-The numeric types in mvStore are closer to C/C++ numeric types.  
+The numeric types in ChaosDB are closer to C/C++ numeric types.  
 
 Numeric constants are accepted in these general forms:   
 
@@ -237,7 +234,7 @@ where **digits** is _one or more_ decimal digit in ASCII (0 through 9) or Unicod
 
 <p id="typesuffix">
 The **type-suffix** is an alphabetical character appended to the numeric constant, to specify its type. It can be used in
-the context of bitwise operations, or to store data with a specific format. If it is not specified, then mvStore
+the context of bitwise operations, or to store data with a specific format. If it is not specified, then ChaosDB
 will select a default representation matching the value; it may convert the number to the most space-efficient data type that can 
 represent this value.  
 </p>
@@ -261,9 +258,6 @@ range is [0,18446744073709551615]
 64-bit signed number  
 range is [9223372036854775807,-9223372036854775808]  
 [type-suffix](#typesuffix): none  
-
-#### DECIMAL
-Not implemented yet. It is used to be store arbitary percision and scale of numberic data.
 
 #### FLOAT
 a numeric representation of a real number, following the common IEEE 754 standard; may lose precision in various circumstances  
@@ -302,23 +296,23 @@ An EXPR can be stored as a [value](./terminology.md#value), but it is not evalua
 However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.
 
 <pre>
-  mvcommand>INSERT prop1=3;
+  kscommand>INSERT prop1=3;
   PIN@0000000000050001(1):(<prop1|VT_INT>:3)
   1 PINs INSERTED.
   
-  mvcommand> UPDATE @50001 ADD prop2=prop1-1, prop3=$(prop1-1);  
+  kscommand> UPDATE @50001 ADD prop2=prop1-1, prop3=$(prop1-1);  
   PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
   1 PINs INSERTED.
 
-  mvcommand> SELECT * FROM {@50001} WHERE prop3=prop2; 
+  kscommand> SELECT * FROM {@50001} WHERE prop3=prop2; 
   PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
   1 PINs INSERTED.
   
-  mvcommand> UPDATE @50001 SET prop1=2;  
+  kscommand> UPDATE @50001 SET prop1=2;  
   PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
   1 PINs INSERTED.
   
-  mvcommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
+  kscommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
   PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
   1 PINs INSERTED.
 </pre>
@@ -329,21 +323,21 @@ which is only evaluated when queried.
 It's also possible to invoke such a EXPR property with parameters (up to 254). E.g.
 
 <pre>
-  mvcommand>
+  kscommand>
   INSERT prop1=3, prop2=$(prop1-:0);
   PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
   1 PINs INSERTED.
   
-  mvcommand>
+  kscommand>
   SELECT * WHERE prop2(1) = 2;
   PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
   1 PINs SELECTED.
 </pre>
 
-Note that mvstore can support missing or extraneous parameters.
+Note that ChaosDB can support missing or extraneous parameters.
   
 ### EXPRTREE
-This is an internal, transient type used primarily in C++, to build expression trees before they are compiled by mvStore into
+This is an internal, transient type used primarily in C++, to build expression trees before they are compiled by ChaosDB into
 expressions (EXPR).
 
 ### QUERY (query statement)
@@ -373,7 +367,7 @@ The transition between a scalar value and a collection is also designed to be re
 For more information about collections, see [comparisons involving collections](#comparisons-involving-collections),
 [value in collection](#value-in-collection) and [UPDATE ADD/SET](#update).  
 
-*Note*: although mvStore doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.  
+*Note*: although ChaosDB doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.  
 
 ### Range
 Format: [number1, number2]   
@@ -404,8 +398,8 @@ Not yet documented.
 
 Units of Measurement
 --------------------
-mvStore allows to attach [units](./terminology.md#unit-of-measurement) to [double](#double)-precision floating point numbers, 
-to enhance the self-descriptiveness of data, and interoperability. mvStore automatically converts values between different units 
+ChaosDB allows to attach [units](./terminology.md#unit-of-measurement) to [double](#double)-precision floating point numbers, 
+to enhance the self-descriptiveness of data, and interoperability. ChaosDB automatically converts values between different units 
 when performing computations on compatible types.
 
 The syntax simply requires to append the chosen unit suffix to a literal value (wherever a value is legal). Note that suffixes
@@ -417,7 +411,7 @@ very unlikely (e.g. 1 inch = 0.0254 meter; 1 inch + 1 meter = 1.0254 meter).
 
 Sample: [units.sql](./sources/pathsql/units.html)
 
-Here is a table of all units supported by mvStore.  
+Here is a table of all units supported by ChaosDB.  
 
 Suffix        Description
 ------        -----------  
@@ -503,9 +497,9 @@ dF            degrees Fahrenheit
 
 Functions and Operators
 -----------------------
-mvStore supports many common functions and operators available in relational databases, and usage is almost the same.   
+ChaosDB supports many common functions and operators available in relational databases, and usage is almost the same.   
 
-Internally mvStore regards all functions as operators, so here we discuss them together. 
+Internally ChaosDB regards all functions as operators, so here we discuss them together. 
  
 Sample: [functions.sql](./sources/pathsql/functions.html).
 
@@ -545,7 +539,7 @@ The List can be a collection, or a list of values returned by sub-query.
 2. collection1 IN collection2  -- for each element in collection1, check {the element's value IN collection2}  
 
 The default behaviour for operator = is to check if ANY element is = the compared value, whereas for every other comparison operator, the default behavior is to check how ALL elements compare with the value.
-Currently mvStore only exposes this default behavior.
+Currently ChaosDB only exposes this default behavior.
 
 ### Arithmetic Operators
 
@@ -618,7 +612,7 @@ TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr FROM] str)  
 CONTAINS(string, subStr)                                                               return whether string contains subStr or not.
 BEGINS(string, prefix)                                                                 return whether or not the prefix is heading part of string.
 ENDS(string, suffix)                                                                   return whether or not the suffix is ending part of string. 
-REGEX                                                                                  not supported yet in mvStore.
+REGEX                                                                                  not supported yet in ChaosDB.
 CONCAT(str1,str2,...)                                                                  return the string that results from concatenating the arguments.
 MATCH [(property list)] AGAINST(string)                                                full-text search for string in specified properties of PINs. If no property list is specified, then search all properties.
 
@@ -630,7 +624,7 @@ The possible units are: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND.
 
 ### CAST(expr AS type) 
 Convert expr to the specified type.
-The type name can be any type supported by mvStore.  
+The type name can be any type supported by ChaosDB.  
 
 ### COALESCE
 
@@ -704,7 +698,7 @@ A few examples (here X is a hexadecimal digit, XXXXXXXXXXXXXXXX is a PID):
 Expression                            Meanning
 ----------                            --------
 @XXXXXXXXXXXXXXXX                     Return the PIN reference.
-*@XXXXXXXXXXXXXXXX                    Return the value of this pin, which is the value of the special mv:value property in this PIN (this values can be set; it can be an EXPR). 
+*@XXXXXXXXXXXXXXXX                    Return the value of this pin, which is the value of the special ks:value property in this PIN (this values can be set; it can be an EXPR). 
 @XXXXXXXXXXXXXXXX.prop                Return the value of prop in pin @XXXXXXXXXXXXXXXX.  
 &@XXXXXXXXXXXXXXXX.prop               Return the reference to the prop in pin @XXXXXXXXXXXXXXXX.  
 @XXXXXXXXXXXXXXXX.prop[0]             Return the element value of the prop in pin @XXXXXXXXXXXXXXXX.  
@@ -732,7 +726,7 @@ any function,$()      right               any built-in function, expression
 &                     left                bitwise and
 ^                     left                bitwise xor (exclusive or)
 |                     left                bitwise or (inclusive or)
-IS A, IS NOT A        left                class membership check, e.g. mv:pinID IS A class_name
+IS A, IS NOT A        left                class membership check, e.g. ks:pinID IS A class_name
 IS, IS NOT            left                IS TRUE, IS FALSE, IS UNKNOWN, IS NULL, 
 IN                    left                collection membership
 BETWEEN...AND...      left                range containment                        
@@ -765,7 +759,7 @@ Synopsis:
   - OPEN STORE [IN 'directory'] [OPTIONS(...)]
   - CLOSE STORE
 
-If 'directory' is not specified, mvstore defaults to the "current directory" (platform dependent).  
+If 'directory' is not specified, ChaosDB defaults to the "current directory" (platform dependent).  
 
 *Note*: The C++ API for these statements (`manageStores(...)`) is different from the API for other statements (`ISession.createStmt(...)`), because store management statements are not necessarily bound to a db connection.  
 
@@ -811,7 +805,7 @@ Examples: [class.sql](./sources/pathsql/class.html).
 
 The "IS A" operator can be used to check whether or not a pin belongs to a class. For example, those two statements are equivalent:  
  
-        SELECT * WHERE mv:pinID IS A class1;  
+        SELECT * WHERE ks:pinID IS A class1;  
         SELECT * FROM class1;  
 
 #### Creating a [class family](./terminology.md#family)  
@@ -826,10 +820,10 @@ NULL can be passed as a parameter to a class family only when the index for this
 Single-property indexex cannot support NULL parameters.
 For performance reasons, it is recommended not to create a class family with only one parameter passed to the where clause, such as: `WHERE :0 is NULL`.
 
-**Limitation 2**: There's a sytactic restriction on the order of parameters in class predicates. For example, mvStore cannot create an index for `:0 = value`,
+**Limitation 2**: There's a sytactic restriction on the order of parameters in class predicates. For example, ChaosDB cannot create an index for `:0 = value`,
 but `value = :0` is fine.
 
-*Note*: mvStore can ignore superfluous parameters, i.e. the user can pass more parameters than used in the predicate.
+*Note*: ChaosDB can ignore superfluous parameters, i.e. the user can pass more parameters than used in the predicate.
 
 Please refer to the [class](./terminology.md#class), [family](./terminology.md#family) and [indexing](./terminology.md#index) descriptions for
 a brief comparison with the relational DDL. Note that it is possible to declare multiple families with the same predicate, and different
@@ -982,17 +976,17 @@ Examples: [groupBy.sql](./sources/pathsql/groupBy.html).
 Examples: [set_operator.sql](./sources/pathsql/set_operator.html).   
 
 The functionality of all these set operators is similar to standard SQL, 
-except that mvStore does not require that all operands have same number of properties or types. 
+except that ChaosDB does not require that all operands have same number of properties or types. 
 Duplicates are identified based on [PIN ID](./terminology.md#pin-id-pid) instead of property value, which is differnt from standard SQL.
 
 The keyword DISTINCT/ALL can be used to eliminate duplicates.
 
 #### Join
-mvStore returns immutable PIN collections as query results.
+ChaosDB returns immutable PIN collections as query results.
 
         SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
 
-mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the natural JOIN.
+ChaosDB supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the natural JOIN.
 
 Examples: [join.sql](./sources/pathsql/join.html).   
 
@@ -1003,7 +997,7 @@ In a future release, when a sub-SELECT appears in the FROM clause, it will act a
 Note that a sub-SELECT must be surrounded by parentheses. 
 
 ### Inheritance
-mvStore's classification model lets a PIN belong to multiple classes, and also allows to define a hierarchy of classes, such as:
+ChaosDB's classification model lets a PIN belong to multiple classes, and also allows to define a hierarchy of classes, such as:
 
         CREATE CLASS Person AS SELECT * WHERE EXISTS(firstname) OR EXISTS(lastname);
         CREATE CLASS Taxpayer AS SELECT * FROM Person;
@@ -1014,11 +1008,11 @@ Examples: [inheritance.sql](./sources/pathsql/inheritance.html).
 
 There are 2 ways:  
 
-  - Using built-in property mv:pinID in WHERE CLAUSE, e.g. SELECT * WHERE class1.mv:pinID=class2.mv:pinID.
+  - Using built-in property ks:pinID in WHERE CLAUSE, e.g. SELECT * WHERE class1.ks:pinID=class2.ks:pinID.
   - Using operator & for class names in FROM CLAUSE, e.g.  SELECT * FROM class1 & class2.
 
 ### TRANSACTIONS
-mvStore not only supports basic transactions, but also sub-transactions.
+ChaosDB not only supports basic transactions, but also sub-transactions.
 The session holds a transaction stack.  Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction).
 Changes are committed to the database only when the outermost transaction in the stack is committed.  
 
@@ -1041,9 +1035,9 @@ Examples:
 [transaction_sub.sql](./sources/pathsql/transaction_sub.html).   
 
 Note:     
-1. mvStore doesn't support isolation level READ UNCOMMITTED.  
+1. ChaosDB doesn't support isolation level READ UNCOMMITTED.  
 2. When READ ONLY is specified, no operation in this transaction must write, otherwise the transaction will fail.  
-3. When READ ONLY is specified, mvStore uses the Read-Only Multi-Version Concurrency Control (ROMV), which will not block (or be blocked by) any read/write transaction.  
+3. When READ ONLY is specified, ChaosDB uses the Read-Only Multi-Version Concurrency Control (ROMV), which will not block (or be blocked by) any read/write transaction.  
 
 #### End a Transaction
 ##### COMMIT
@@ -1051,11 +1045,11 @@ Synopsis:
 
   - COMMIT [ALL]; 
 
-If ALL is specified, then mvStore will commit the whole stack of transactions (started in the current session), otherwise it only commits the innermost transaction/sub-transaction block in the stack.    
+If ALL is specified, then ChaosDB will commit the whole stack of transactions (started in the current session), otherwise it only commits the innermost transaction/sub-transaction block in the stack.    
 
 ##### ROLLBACK
 Synopsis: 
 
   - ROLLBACK [ALL];  
     
-If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    
+If ALL is specified, then ChaosDB will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    

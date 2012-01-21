@@ -1,6 +1,6 @@
-#mvStore Javascript Interface for node.js
-The [mvstore-client.js](./sources/mvstore-client_js.html) module defines a simple interface
-between node.js and mvStore (via HTTP and the [server](./terminology.md#server)).
+#ChaosDB Javascript Interface for node.js
+The [chaosdb-client.js](./sources/chaosdb-client_js.html) module defines a simple interface
+between node.js and ChaosDB (via HTTP and the [server](./terminology.md#server)).
 The interface is divided in three parts: [connection creation](#connection-creation),
 [pathSQL access with JSON response](#pathsql-access-with-json-response), and
 [object-friendly access](#object-friendly-access).
@@ -9,37 +9,37 @@ The interface is divided in three parts: [connection creation](#connection-creat
 To establish a new connection, a client simply needs to do the following:
 
 <pre>
-  var lib_mvstore = require('mvstore-client');
-  var lMvStore = lib_mvstore.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
+  var lib_chaosdb = require('chaosdb-client');
+  var lChaosDB = lib_chaosdb.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
   ...
-  lMvStore.terminate();
+  lChaosDB.terminate();
 </pre>
 
 This example is assuming that the server runs on `localhost` and listens to port `4560`, and that
-the `mvstore-client` module for node.js is properly installed. If a `user` is specified,
+the `chaosdb-client` module for node.js is properly installed. If a `user` is specified,
 it determines the owner of the store. For a new store, the `password` is optional, and implies
 encryption of the store. It is possible to omit both the `user` and `password` (i.e. `"http://localhost:4560/db/"`),
 in which case a default store owner is used.
 
-The resulting `lMvStore` object is the public interface of the connection, providing
+The resulting `lChaosDB` object is the public interface of the connection, providing
 [pathSQL](#pathsql-access-with-json-output) access via its `q` and `qCount` methods, and
 [object-friendly](#object-friendly-access) access via the other methods (`qProto`, `createPINs`, `startTx`
 etc.).
 
 The connection can be created with `keepalive` or not. If `keepalive` is enabled,
-then the resulting `lMvStore` object represents a physical connection, implying one
+then the resulting `lChaosDB` object represents a physical connection, implying one
 stable store session in the server, for the whole lifetime of that connection.
-If `keepalive` is disabled, then the resulting `lMvStore` object represents an
+If `keepalive` is disabled, then the resulting `lChaosDB` object represents an
 abstract connection (which is effectively instantiating shorter physical connections
 on demand).
 
-Either way, `lMvStore` represents one logical connection, usable in one
-logical execution thread. Concurrent access to the mvStore server requires
+Either way, `lChaosDB` represents one logical connection, usable in one
+logical execution thread. Concurrent access to the ChaosDB server requires
 multiple instances of a connection.
 
 The connection must be terminated by calling `terminate`.
 
-Her's a link to more information [about streaming and pagination](./mvStore protobuf.md#about-streaming-and-pagination).
+Her's a link to more information [about streaming and pagination](./ChaosDB protobuf.md#about-streaming-and-pagination).
 
 ##pathSQL Access with JSON Response
 This access path is self-sufficient and will feel most natural to people with SQL experience.
@@ -47,15 +47,15 @@ Simply emit statements such as:
 
 <pre>
   var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
-  lMvStore.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
+  lChaosDB.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
   /* ... */
-  lMvStore.q("SELECT * WHERE EXISTS(name);", lOnResult);
+  lChaosDB.q("SELECT * WHERE EXISTS(name);", lOnResult);
 </pre>
 
-`pResult` is a parsed JSON response produced by mvStore.
+`pResult` is a parsed JSON response produced by ChaosDB.
 
 Note that this simple access path does not include any ORM or any means of feeding
-javascript objects (or JSON) directly to mvStore as input data (for example, it doesn't enable
+javascript objects (or JSON) directly to ChaosDB as input data (for example, it doesn't enable
 saving a javascript object with properties `name` and `profession`, nor will it
 automatically translate that intention into the `INSERT` statement shown just above).
 This is addressed by the [object-friendly access methods](#object-friendly-access).
@@ -86,15 +86,15 @@ Here are some examples:
 
 <pre>
   var lOnResult = function(pError, pResult) { /* ... */ };
-  lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
+  lChaosDB.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
   /* ... */
-  lMvStore.qProto(
+  lChaosDB.qProto(
     "SELECT * WHERE EXISTS(name);",
     function(pE, pR)
     {
-      lMvStore.startTx();
+      lChaosDB.startTx();
       pR[0].set("profession", "Lawyer");
-      lMvStore.commitTx(lOnResult);
+      lChaosDB.commitTx(lOnResult);
     });
 </pre>
 
@@ -133,7 +133,7 @@ last argument, of the same form and serving the same purpose as in `PIN.set`)_. 
 operator on elements of the collection is _not_ supported.
 
 ####About Special Data Types
-mvStore proposes a more comprehensive array of [data types](./pathSQL reference.md#data-types)
+ChaosDB proposes a more comprehensive array of [data types](./pathSQL reference.md#data-types)
 than javascript's core native types. This leads to the following special cases:
 
  * representation of [collections](./terminology.md#collection):
@@ -149,14 +149,14 @@ than javascript's core native types. This leads to the following special cases:
  * representation of urls:
    to create a `VT_URL` (as opposed to a `VT_STRING`), use the connection's `makeUrl` method;
    `PIN.get` always returns an internal `Url` object
- * compatibility with non-js mvStore applications:
+ * compatibility with non-js ChaosDB applications:
    some applications, especially those designed natively in javascript, may not care about
    certain details such as the ideal (most compact, or most exact) representation of numeric values,
    but other applications may; in order to support a healthy coexistence, our javascript client library
    preserves the originally stored value types; in the future, more control may be provided
 
 ####About Transaction Control with Object-friendly Access
-At the level of the mvStore kernel, presently, every protobuf stream is associated with
+At the level of the ChaosDB kernel, presently, every protobuf stream is associated with
 a topmost transaction. That allows the client library to use transactions without
 `keepalive`. Within the protobuf context, transaction control is specified
 via the connection's methods: `startTx`, `commitTx`, `rollbackTx`. In the future,

@@ -1,9 +1,9 @@
 #Features
-mvStore is a new database kernel with features that borrow aspects from
+ChaosDB is a new database kernel with features that borrow aspects from
 RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. More context
-is available on the [philosophy](./mvStore FAQ.md), [software components](./terminology.md#software-components),
+is available on the [philosophy](./FAQ.md), [software components](./terminology.md#software-components),
 [interfaces](./terminology.md#interfaces) and [data model](./terminology.md#essential-concepts-data-model). Here
-is a list of mvStore's features:
+is a list of ChaosDB's features:
 
  * small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)
  * [pathSQL](./terminology.md#pathsql) query language, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)

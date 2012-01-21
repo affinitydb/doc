@@ -14,8 +14,13 @@ def convertMdToHtml():
     "Walk the .. directory and convert its *.md files into html, using pandoc."
     lOutputDir = os.getcwd()
     def onWalk(pArg, pDir, pFileNames):
+        if -1 != pDir.find("deprecated"):
+            return
         lFileNames = pFileNames
         lFileNames.sort()
+        if lFileNames.count("intro.md") > 0: # Force 'intro' at the beginning of the toc.
+            lFileNames.remove("intro.md")
+            lFileNames.insert(0, "intro.md")
         for iFN in lFileNames:
             lM = RE_GREP_MD.match(iFN)
             if not lM:
@@ -42,10 +47,10 @@ def convertMdToHtml():
                 "<head>\n", \
                 "  <script src='js/jquery.js' type='text/javascript'></script>\n", \
                 "  <script src='js/snippets_to_console.js' type='text/javascript'></script>\n", \
-                "  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />\n", \
+                "  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />\n", \
                 "</head>\n", \
-                "<div id='mvtocbar'>\n", \
-                "  <select id='mvtoclist'>\n" ]
+                "<div id='kstocbar'>\n", \
+                "  <select id='kstoclist'>\n" ]
             for _iFN in lFileNames:
                 _lM = RE_GREP_MD.match(_iFN)
                 if not _lM:

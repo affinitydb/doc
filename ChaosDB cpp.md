@@ -1,9 +1,9 @@
-#mvStore C++ Interface
+#ChaosDB C++ Interface
 Please read the brief [introduction](./terminology.md#c-interface). The
-bulk of the interface is defined in [mvstore.h](./sources/mvstore_h.html).
+bulk of the interface is defined in [chaosdb.h](./sources/chaosdb_h.html).
 
-The main purpose of mvStore's C++ interface is to provide a means of
-integrating the mvStore database kernel into an embedding application, such as a
+The main purpose of ChaosDB's C++ interface is to provide a means of
+integrating the ChaosDB database kernel into an embedding application, such as a
 database server or an embedded system. The "bare-metal" nature of the interface
 is meant to introduce no artificial overhead in those cases.
 
@@ -20,7 +20,7 @@ which is undesirable for normal database client code).
 Even an embedding process such as the [server](./terminology.md#server) only uses a tiny fraction 
 of the C++ interface (all in storecmd.cpp).
 A justification for using more of the C++ interface could be, for example,
-to implement additional query languages for mvStore.
+to implement additional query languages for ChaosDB.
 
 Without documenting each and every function (or parameter) of the C++ interface, this page 
 presents enough information to use it successfully. The following interfaces and structures are covered:
@@ -35,9 +35,9 @@ In some cases, these error codes may be accompanied with more explicit messages
 sent to stderr or syslog. `RC_OK` is the success code used throughout the interface.
 
 #startup.h
-[startup.h](./sources/startup_h.html) defines the initial entry point to mvStore.
+[startup.h](./sources/startup_h.html) defines the initial entry point to ChaosDB.
 It provides functions to create, open and shutdown one or more instances of databases.
-`openStore` and `createStore` produce an opaque `MVStoreCtx` token, 
+`openStore` and `createStore` produce an opaque `ChaosDBCtx` token, 
 used to initiate [sessions](#isession).
 
 The `StoreCreationParameters` structure implies a few important decisions
@@ -47,7 +47,7 @@ The `StoreCreationParameters` structure implies a few important decisions
    operating-system and hardware characteristics, performance requirements, and possibly
    special dataset characteristics. This configuration is immutable, and irreversible.
 2. `identity`: the owner [identity](./terminology.md#identity) of this database. 
-   Although it can be changed via `ISession::changeStoreIdentity`, mvStore provides 
+   Although it can be changed via `ISession::changeStoreIdentity`, ChaosDB provides 
    no mechanism to propagate this change to other databases that may have stored [references](./terminology.md#pin-reference) 
    and may assume that the name didn't change.  
 3. `storeId`: this is essentially a replica ID. Until replication is officially released,
@@ -55,14 +55,14 @@ The `StoreCreationParameters` structure implies a few important decisions
 4. `password`: the password protects access to the data. It can be changed via
    `ISession::changePassword` (both for `STORE_OWNER` and guest
    [identities](./terminology.md#identity)). When encryption is enabled,
-   mvStore provides no mechanism to recover a forgotten password.  
+   ChaosDB provides no mechanism to recover a forgotten password.  
 5. `fEncrypted`: to enable [encryption](./terminology.md#encryption). This is immutable.  
 6. `maxSize`: to restrict the database file size to a quota (in bytes). This is immutable.  
 7. `pctFree`: to control the percentage of free space left on pages during insertion. This is immutable.  
 
 The `StartupParameters` is self-explanatory and won't be documented in detail in this release. A few notes:
 
-1. `nBuffers` determines the amount of memory reserved by mvStore for its page buffer.  
+1. `nBuffers` determines the amount of memory reserved by ChaosDB for its page buffer.  
 2. `network`, `notification` and `io` are not fully supported in this release.  
 3. `mode` is related with all the STARTUP_* constants defined in startup.h.  
 
@@ -116,7 +116,7 @@ A property ID is meaningless outside of the scope of a specific database instanc
 This is how new [PINs](./terminology.md#pin) are created. `createPIN` creates the new PIN directly in the database, whereas
 `createUncommittedPIN` creates [uncommitted PINs](./terminology.md#uncommitted-pin), which don't exist in the database
 until `ISession::commitPINs` is called. In either case, the typical flow is to create [Value](#value)-s
-and pass them to these methods. As soon as the PINs become real in the database, mvStore assigns a [PID](./terminology.md#pin-id-pid)
+and pass them to these methods. As soon as the PINs become real in the database, ChaosDB assigns a [PID](./terminology.md#pin-id-pid)
 to each of them. PINs can be easily retrieved by their PID, using `ISession::getPIN`.
 
 When passing data into the store, the store almost always copies the data, and hence the caller retains ownership 
@@ -224,8 +224,8 @@ To obtain the most recent stamp, it is still necessary to load (or `refresh`) th
 so this is not a panacea for reducing disk io, but it can be useful.
 
 #Value
-The `Value` structure defined in [mvstore.h](./sources/mvstore_h.html) can represent any of the
-[data types](./pathSQL reference.md#data-types) supported by mvStore. `Value` is used both as
+The `Value` structure defined in [chaosdb.h](./sources/chaosdb_h.html) can represent any of the
+[data types](./pathSQL reference.md#data-types) supported by ChaosDB. `Value` is used both as
 an input value (to create or modify PINs) and as an output value (to read the contents of PINs).
 
 ###As Input (modify)
@@ -236,22 +236,22 @@ chosen `set` method. The `flags` field is for internal use only and should
 not be interpreted or modified.
 
 The `property` field determines the [property](./terminology.md#property) to which this value
-belongs. It can be one of the `PROP\_SPEC\_*` values (documented in detail in [mvstore.proto](./sources/mvstore_proto.html)).
+belongs. It can be one of the `PROP\_SPEC\_*` values (documented in detail in [chaosdb.proto](./sources/chaosdb_proto.html)).
 Or it can be a property ID obtained via [mapURIs](#isession::mapuris), described earlier.
 
 The `op` field defines how the value is intended to be used. For a relatively thorough
-description of possibilities, please refer to line 198 in [mvstore.proto](./sources/mvstore_proto.html).
+description of possibilities, please refer to line 198 in [chaosdb.proto](./sources/chaosdb_proto.html).
 
 The `eid` field is used depending on the context. For new elements of a [collection](./terminology.md#collection),
 it defines their logical position (either by using `STORE_LAST_ELEMENT, STORE_FIRST_ELEMENT etc.`,
 or by specifying the eid of an already existing element [see the comments about `OP_ADD` and `OP_ADD_BEFORE` in 
-[mvstore.proto](./sources/mvstore_proto.html)]). For existing elements, `eid` can be used in conjunction with
+[chaosdb.proto](./sources/chaosdb_proto.html)]). For existing elements, `eid` can be used in conjunction with
 `OP_MOVE` and `OP_MOVE_BEFORE`. For all other `op`, the `eid`
 simply designates the element being modified.
 
 The `meta` field allows fine-grained (per-property) control of things such as indexing,
 [SSV](./terminology.md#ssv) etc. The `META\_PROP\_*` flags are documented in
-[mvstore.h](./sources/mvstore_h.html).
+[chaosdb.h](./sources/chaosdb_h.html).
 
 ###As Output (read)
 Most of the fields have the same meaning as in the input case. However, `op` and `meta`
@@ -284,7 +284,7 @@ operators such as `OP_AND, OP_OR etc.`). Here's an example:
 </pre>
 
 Usually, the root node of an expression is passed to `IStmt::addCondition`. Internally,
-mvStore compiles the expression into a representation optimized for execution (`IExpr`).
+ChaosDB compiles the expression into a representation optimized for execution (`IExpr`).
 The methods of `IExprTree` are rarely used.
 
 _Note: When freeing an expression tree composed of multiple sub-trees, `destroy` should only be
@@ -377,7 +377,7 @@ the `CollectionIterator` defined at line 249 in serialization.h.
 This interface is used both to push [BLOBs](./terminology.md#blob) into the store (by implementing
 a client IStream-derived class), and to read BLOBs from the store. Via `IStream::dataType`,
 BLOBs can be marked as text-only (ascii or unicode), or binary. Note that BLOBs, like strings, can
-be modified via `OP_EDIT`, described in detail in [mvstore.proto's StrEdit](./sources/mvstore_proto.html)
+be modified via `OP_EDIT`, described in detail in [chaosdb.proto's StrEdit](./sources/chaosdb_proto.html)
 (but in the current state of the implementation, this is not fully optimized for blobs). 
 Note also that text BLOBs can participate to full-text indexes, just like any text property. 
 It is possible to build [collections](./terminology.md#collection) of BLOBs.
