@@ -1,15 +1,15 @@
 ## NAME
 
-chaosdbd - embedded web server for CGI access to the chaosdbd db
+affinityd - embedded web server for CGI access to the affinityd db
 
 ## SYNOPSIS
 
-`chaosdbd` [ <options>... ]
+`affinityd` [ <options>... ]
 
 ## DESCRIPTION
 
-chaosdbd is an embedded web server which provides CGI access to the
-ChaosDB database.  It also includes a minimal simple static web server
+affinityd is an embedded web server which provides CGI access to the
+Affinity database.  It also includes a minimal simple static web server
 for its own internal purposes to serve basic web admin CGIs & ui.
 
 (All CGIs are builtin, there is intentionally no support for user defined
@@ -17,7 +17,7 @@ CGIs.)
 
 ## USAGE NOTES
 
-ChaosDB natively supports two query languages pathSQL and protobuf, plus a
+Affinity natively supports two query languages pathSQL and protobuf, plus a
 native C++ api.  pathSQL is a SQL dialect.  protobuf is query/response
 serialization defined with google protobuf.  The store server supports both
 pathSQL and protobuf.
@@ -26,10 +26,10 @@ With pathSQL queries, the result is sent in JSON encoding by default.  (But
 you can alternatively request protobuf encoded results.)
 
 With protobuf encoded queries, the result is sent in protobuf by
-default.  (At present the ChaosDB server does not support JSON encoded
+default.  (At present the Affinity server does not support JSON encoded
 results for protobuf encoded requests.)
 
-ChaosDB supports both HTTP GET and HTTP POST CGIs and parameters.  With HTTP
+Affinity supports both HTTP GET and HTTP POST CGIs and parameters.  With HTTP
 GET the arguments must be URL encoded, and with HTTP POST both binary and
 urlencoded parameters are supported.  The POST handling also supports
 urlencoded url parameters (which is needed to avoid a bootstrap problem in
@@ -37,13 +37,13 @@ specifying the encoding of POST parameters).
 
 ## OPTIONS
 
-The flags that are supported by chaosdbd are as follows:
+The flags that are supported by affinityd are as follows:
 
     `-d dir` document root for the web server.  Also the store file is
     read from this directory.  The docroot can also be specified using
     the DOCROOT environment variable.  The environment variable
-    overrides the chaosdbd -d argument if both are present.  (Note: if
-    chaosdbd is executed via ksEngine and the ksDaemon dll/so the
+    overrides the affinityd -d argument if both are present.  (Note: if
+    affinityd is executed via afyEngine and the afyDaemon dll/so the
     DOCROOT envorinment variable is the only way to set the document
     root).
 
@@ -160,15 +160,15 @@ HTTP keep-alive is supported.
 
 ## FILES
 
-    `chaos.db` and `chaos*.txlog`, in a sub-directory of the document-root,
+    `affinity.db` and `affinity*.txlog`, in a sub-directory of the document-root,
     named after the basic-auth user connecting with the server
     (the default sub-directory name is `test` if no basic-auth header
     was specified).
 
 ## AUTHOR
 
-Copyright VMware <chaosdb@vmware.com>
+Copyright VMware <affinity@vmware.com>
 
 ## SEE ALSO
 
-libchaosdb(7), http://chaosdb.eng.vmware.com/
+libaffinity(7), http://affinity.eng.vmware.com/

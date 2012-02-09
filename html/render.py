@@ -44,13 +44,18 @@ def convertMdToHtml():
             lOutputF = open(lOutputFN, "w+")
             
             lInsertedHeader = [ \
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n", \
                 "<head>\n", \
                 "  <script src='js/jquery.js' type='text/javascript'></script>\n", \
                 "  <script src='js/snippets_to_console.js' type='text/javascript'></script>\n", \
-                "  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />\n", \
+                "  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />\n", \
+                "  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>\n", \
                 "</head>\n", \
-                "<div id='kstocbar'>\n", \
-                "  <select id='kstoclist'>\n" ]
+                "<div id='width_constraint' class='horizontally_centered'>\n", \
+                "<div id='generic_header'>\n", \
+                "<img src='images/logo_small.png' id='gh_logo_img'></img>\n", \
+                "<div id='afytocbar'>\n", \
+                "  <select id='afytoclist'>\n" ]
             for _iFN in lFileNames:
                 _lM = RE_GREP_MD.match(_iFN)
                 if not _lM:
@@ -58,13 +63,15 @@ def convertMdToHtml():
                 _lN = RE_SIMPLE_MD.sub("", _iFN)
                 lInsertedHeader.append("    <option value='%s'%s>%s</option>\n" % (_lN, ("", " SELECTED")[_iFN == iFN], _lN))
             lInsertedHeader.append("  </select>\n")
-            lInsertedHeader.append("</div>\n")
+            lInsertedHeader.append("</div>\n") # afytocbar
+            lInsertedHeader.append("</div>\n") # generic_header
             lOutputF.writelines(lInsertedHeader)
             
             def replaceMdref(mo):
                 return ".html%s" % mo.group(1)
             for iLine in lTmpOutputF:
                 lOutputF.writelines([RE_INHTML_MDREF.sub(replaceMdref, iLine)])
+            lOutputF.writelines(["</div>\n"])
 
             lTmpOutputF.close()
             lOutputF.close()

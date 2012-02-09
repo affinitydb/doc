@@ -1,88 +1,88 @@
-#Protocol-Buffer Interface for ChaosDB
+#Protocol-Buffer Interface for Affinity
 Protocol-Buffers (aka _protobuf_) are Google's open-source interchange format. This format was designed to provide generic encoding
 and decoding of structured data in an efficient manner (that is both language and platform neutral). It's supported
 in many programming languages and on many platforms.
 
-ChaosDB uses protobuf as a vehicle to export data outside of a store, and to import data (or updates) into a store.
-As such, protobuf can be viewed as another interface to ChaosDB, albeit a rather low-level interface.
-In most cases, the developer writing client code for ChaosDB is not expected to interact directly with protobuf.
+Affinity uses protobuf as a vehicle to export data outside of a store, and to import data (or updates) into a store.
+As such, protobuf can be viewed as another interface to Affinity, albeit a rather low-level interface.
+In most cases, the developer writing client code for Affinity is not expected to interact directly with protobuf.
 
 There are several obvious situations where the protobuf interface can be useful: dump & load, replication, inter-store messaging etc.
 
 Another important use case is when protobuf is combined with [pathSQL](./terminology.md#pathsql) to implement
-language-specific access layers for ChaosDB (aka [client libraries](./terminology.md#client-side-libraries)). In this context, protobuf
+language-specific access layers for Affinity (aka [client libraries](./terminology.md#client-side-libraries)). In this context, protobuf
 acts as a middle-man between the language's object model _(effectively allowing to export/serialize objects outside of the language
-and import/deserialize objects back into the language)_ and ChaosDB's own data model. This reduces
-considerably the need for an ORM when using ChaosDB _(because ChaosDB's internal data model maps directly
+and import/deserialize objects back into the language)_ and Affinity's own data model. This reduces
+considerably the need for an ORM when using Affinity _(because Affinity's internal data model maps directly
 with the core native object model of most languages)_.
 
 Here are two typical examples.
 
-A client _writes_ to ChaosDB:
+A client _writes_ to Affinity:
 
 <pre>
-  the client has a javascript object to be stored in ChaosDB
+  the client has a javascript object to be stored in Affinity
   -> the client serializes it to protobuf, as a new object to be inserted (OP_INSERT)
-  -> the client sends the serialized stream to ChaosDB
-  -> ChaosDB deserializes the protobuf stream into its own internal data model
-  -> ChaosDB detects OP_INSERT and stores the new object
-  -> ChaosDB produces a response (including new PID, new eids etc.)
-  -> ChaosDB serializes the response to protobuf
+  -> the client sends the serialized stream to Affinity
+  -> Affinity deserializes the protobuf stream into its own internal data model
+  -> Affinity detects OP_INSERT and stores the new object
+  -> Affinity produces a response (including new PID, new eids etc.)
+  -> Affinity serializes the response to protobuf
   -> the client deserializes the response
 </pre>
 
-A client _reads_ from ChaosDB:
+A client _reads_ from Affinity:
 
 <pre>
   the client wants to query PIN @50001 and interact with it as an object
   -> the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface
-  -> ChaosDB executes the query and serializes the response to protobuf
+  -> Affinity executes the query and serializes the response to protobuf
   -> the client deserializes the response into a javascript object
 </pre>
 
-The internal structure of the protobuf messages that can be understood by ChaosDB is defined in
-[chaosdb.proto](./sources/chaosdb_proto.html). It allows to express PIN inserts, updates and deletes,
+The internal structure of the protobuf messages that can be understood by Affinity is defined in
+[affinity.proto](./sources/affinity_proto.html). It allows to express PIN inserts, updates and deletes,
 as well as generic queries, transactions, long-running transactions etc. It also provides extensive support for
 fine-grained updates, such as modifying the order of elements in a collection (e.g. `OP_MOVE_BEFORE`),
 performing server-side read-modify-write on specific properties (e.g. `OP_PLUS`), etc.
 
 _Note: The process of serializing to protobuf and deserializing back into
 a client's object model may require a translation. Even though protobuf libraries
-typically produce a language-compliant structure, that structure is defined by chaosdb.proto, for
-serialization purposes, and may not be sufficiently usable as a client object model. For example, chaosdb.proto
+typically produce a language-compliant structure, that structure is defined by affinity.proto, for
+serialization purposes, and may not be sufficiently usable as a client object model. For example, affinity.proto
 stores all property names as indexes, alongside a local translation table (for space efficiency).
 Typically, most languages will prefer to expose objects in a more natural form, where properties
 are standard named entities. This kind of translation is usually implemented in the
-client access library (e.g. [chaosdb-client.js](./sources/chaosdb-client_js.html) or
-[chaosdb.py](./sources/chaosdb_py.html))._
+client access library (e.g. [affinity-client.js](./sources/affinity-client_js.html) or
+[affinity.py](./sources/affinity_py.html))._
 
-###A Closer Look at chaosdb.proto
-All the components of a protobuf stream sent to or received from ChaosDB are defined in
-[chaosdb.proto](./sources/chaosdb_proto.html). The main elements of the structure are:
+###A Closer Look at affinity.proto
+All the components of a protobuf stream sent to or received from Affinity are defined in
+[affinity.proto](./sources/affinity_proto.html). The main elements of the structure are:
 
  * Value
  * PID
- * KSStream.PIN
- * KSStream.PathSQL
- * KSStream
+ * AfyStream.PIN
+ * AfyStream.PathSQL
+ * AfyStream
 
 `Value` corresponds to the [basic notion of value](./terminology.md#value) used throughout the documentation,
-and constitutes the main building block of a `KSStream.PIN` (the [PIN](./terminology.md#pin)). `PID` defines
-the serialization format of [PIN IDs](./terminology.md#pin-id-pid), which are generated by ChaosDB initially, and
-are then used to refer to existing PINs (e.g. to read, modify or delete them). `KSStream.PathSQL` allows to insert
+and constitutes the main building block of a `AfyStream.PIN` (the [PIN](./terminology.md#pin)). `PID` defines
+the serialization format of [PIN IDs](./terminology.md#pin-id-pid), which are generated by Affinity initially, and
+are then used to refer to existing PINs (e.g. to read, modify or delete them). `AfyStream.PathSQL` allows to insert
 pathSQL statements in a protobuf stream (thus implying a serialized query result in the protobuf response,
-often in the form of an array of `KSStream.PIN` objects).
+often in the form of an array of `AfyStream.PIN` objects).
 
-`KSStream` defines the possible contents of any of the contiguous segments of data in the
+`AfyStream` defines the possible contents of any of the contiguous segments of data in the
 actual physical stream. In other words, it should be possible to dissect any physical stream 
-compliant with [chaosdb.proto](./sources/chaosdb_proto.html) and find a series of `KSStream` instances.
+compliant with [affinity.proto](./sources/affinity_proto.html) and find a series of `AfyStream` instances.
 
 For example, the physical input and output streams involved in fetching a PIN, testing some conditions
 and then modifying the PIN in a single transaction could look like this (where each column is
-a physical stream, and each row represents one `KSStream` segment of it):
+a physical stream, and each row represents one `AfyStream` segment of it):
 
-Physical stream sent to ChaosDB                                                   Physical stream returned by ChaosDB
--------------------------------                                                   -----------------------------------
+Physical stream sent to Affinity                                                  Physical stream returned by Affinity
+--------------------------------                                                  ------------------------------------
 { txop:[TX_START] }
 { stmt:[{ sq:"SELECT * FROM @50001;", rtt:RT_PINS }], flush:[0] }
                                                                                   { result:[...], properties:[...], pins:[{ id:{ id:50001 }, values:[...], ... }] }
@@ -96,38 +96,38 @@ _Note: Here comes the client-side logic to decide what to do with the PIN._
 Note: This sequence is typically implemented as a single HTTP connection.
 </sub>
 
-[chaosdb.proto](./sources/chaosdb_proto.html) contains more structures and fields than described here.
+[affinity.proto](./sources/affinity_proto.html) contains more structures and fields than described here.
 It also contains a large number of `enums`, some of which are sometimes used as constants _(n.b.:
-some protobuf libraries don't support this strategy, in which case the values in chaosdb.proto must
-be repeated as literals in the client code)_. Please refer to the comments in [chaosdb.proto](./sources/chaosdb_proto.html)
+some protobuf libraries don't support this strategy, in which case the values in affinity.proto must
+be repeated as literals in the client code)_. Please refer to the comments in [affinity.proto](./sources/affinity_proto.html)
 for more information.
 
 ###About Streaming and Pagination
-ChaosDB offers two distinct and complementary strategies for dealing with data streaming.
+Affinity offers two distinct and complementary strategies for dealing with data streaming.
 
 The simplest strategy consists in letting the client specify pagination OFFSET and LIMIT along with its pathSQL statement.
-This can be done via `KSStream.PathSQL.offset` and `KSStream.PathSQL.limit` (directly in the protobuf request).
-The [server](./ChaosDB server.md) also allows to specify these parameters. ChaosDB interprets them
+This can be done via `AfyStream.PathSQL.offset` and `AfyStream.PathSQL.limit` (directly in the protobuf request).
+The [server](./Affinity server.md) also allows to specify these parameters. Affinity interprets them
 and returns a subset of the whole result set _(n.b. in the current implementation, the query
 is re-evaluated for every requested page; consistency can be secured with a transaction, but the performance
 is not optimal)_. The granularity is the PIN, which may be insufficient in some
 cases, such as data models involving huge collections.
 
 The second strategy involves a different method of reading the response stream, one atomic element at a time
-(instead of one `KSStream`-segment at a time). This strategy provides full control over the stream (and
+(instead of one `AfyStream`-segment at a time). This strategy provides full control over the stream (and
 the memory footprint involved in reading it). On the other hand, it also comes at a cost:
 on one hand, it usually implies a completely different programming model (if you can't afford to put a
 whole PIN in memory, then you probably can't interact with that object as a native object either);
 on the other hand, not all protobuf libraries expose this kind of access.
 
-In their present implementation, the [node.js](./sources/chaosdb-client_js.html) and
-[python](./sources/chaosdb_py.html) client libraries only support the first strategy, but may expose a
+In their present implementation, the [node.js](./sources/affinity-client_js.html) and
+[python](./sources/affinity_py.html) client libraries only support the first strategy, but may expose a
 specialized interface using the second strategy in a near future.
 
 ###More Information
-For more information on ChaosDB's usage of protobuf, please refer to the comments in [chaosdb.proto](./sources/chaosdb_proto.html).
-Another important source of information is the implementation of the [node.js](./sources/chaosdb-client_js.html) and
-[python](./sources/chaosdb_py.html) access layers, which can be used as examples to implement new access layers.
+For more information on Affinity's usage of protobuf, please refer to the comments in [affinity.proto](./sources/affinity_proto.html).
+Another important source of information is the implementation of the [node.js](./sources/affinity-client_js.html) and
+[python](./sources/affinity_py.html) access layers, which can be used as examples to implement new access layers.
 
 For more information about Google's protobuf, please refer to the project's [homepage](http://code.google.com/p/protobuf),
 its [developer guide](http://code.google.com/apis/protocolbuffers/docs/overview.html) and its

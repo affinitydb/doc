@@ -3,7 +3,7 @@
 [C++ interface](#c-interface), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [data model](#essential-concepts-data-model),
 [element ID (eid)](#element-id-eid), [encryption](#encryption), [family](#family), [identity](#identity), [index](#index),
-[server](#server), [pathSQL](#pathsql), [ChaosDB](#chaosdb),
+[server](#server), [pathSQL](#pathsql), [Affinity](#affinity),
 [namespace](#namespace), [notification](#notification), [page](#page), [parameter](#parameter), [PIN](#pin),
 [PIN ID (PID)](#pin-id-pid), [property](#property), [protocol-buffer](#protocol-buffer), [RDF](#rdf),
 [reference](#pin-reference), [replication](#replication), [snapshot isolation](#snapshot-isolation),
@@ -11,11 +11,11 @@
 [unit of measurement](#unit-of-measurement), [value](#value)
 
 #Essential Concepts (Data Model)
-The key components of ChaosDB's data model are the following:
+The key components of Affinity's data model are the following:
 [PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)), [collection](#collection), [class](#class).
 
 ###PIN
-The PIN is ChaosDB's primary information node. It's the basic unit of data.
+The PIN is Affinity's primary information node. It's the basic unit of data.
 It is somewhat analogous to the row of a relational table, the
 object of an object-oriented database, the node of a graph database or of XML's DOM,
 the document of a document database etc.
@@ -35,24 +35,24 @@ not the amount of data that each property can contain_
 ###Property
 Properties are symbolic entities (names) that define the relationship between
 a [PIN](#pin) and its [values](#value). Properties
-define the structure of a PIN. A ChaosDB property is somewhat analogous to
+define the structure of a PIN. A property, in Affinity, is somewhat analogous to
 the column name of a relational table, or to a predicate in [RDF](#rdf).
 Property names can be composed of multiple sections, separated by a slash (/) character,
 following the same convention as URIs. This enables a practically infinite, semantically 
 coherent [namespace](#namespace) usable across multiple applications (which may not necessarily
-be fully aware of each other). The basic data model of ChaosDB does
+be fully aware of each other). The basic data model of Affinity does
 not attach any type information to properties: instances
 of a property ([values](#value)) can be of any type. Properties are a key component of
 [class](#class) definitions, because they establish a semantic relationship
 across PINs (two PINs that contain the same property have something
 in common, and can be classified accordingly).
-Because there is no constraint on any value's type, ChaosDB may 
+Because there is no constraint on any value's type, Affinity may 
 perform data type [coercion](#coercion) when required.
 Internally, a numeric ID is associated with each property. This ID is only
 valid in the scope of one database instance; any reference to a property
 outside of that scope must use the textual representation of the property.
 
-In the data modeling process with ChaosDB, selecting meaninful, stable property names
+In the data modeling process with Affinity, selecting meaninful, stable property names
 constitutes an important first step, that can influence the effectiveness of
 categorization into [classes](#class) later on. When possible, it is recommended to refer
 to an already existing source (ontology). The semantic web 
@@ -70,8 +70,8 @@ data type attribute allowing to attach a physical [unit of measurement](#unit-of
 In a future release, it will also be possible to define customized sub-structures (as values embedded in a PIN).
 Data types are described in detail [here](./pathSQL reference.md#data-types).
 At the programming level, the same value structure is also used to hold a [collection](#collection).
-In ChaosDB, every instance of a value is free to be of any type;
-ChaosDB may perform data type [coercion](#coercion).
+In Affinity, every instance of a value is free to be of any type;
+Affinity may perform data type [coercion](#coercion).
 
 ###Collection
 A collection is an ordered list of scalar [values](#value), held by a [PIN](#pin) via
@@ -87,22 +87,22 @@ plain values (additional control is provided). Collections also play a key role
 in other aspects of the data model, such as [ACLs](#acl).
 
 ###Class
-The class is ChaosDB's main mechanism of data organization. It is very similar to the
+The class is Affinity's main mechanism of data organization. It is very similar to the
 materialized view of some relational databases, in the sense that classification operates
 automatically ([PINs](#pin) are not explicitly declared to belong to a class) and synchronously
 (in the context of transactions). 
 Where a table or a view would be used in the relational model, one could use a class 
-in ChaosDB to achieve a similar organization. A class is a stored query predicate 
+in Affinity to achieve a similar organization. A class is a stored query predicate 
 (involving any number of [properties](#property)).
 It is most often defining an [index](#index), although this is not mandatory.
 Classes can be declared at any point in time (both earlier and later than the occurrence of PINs
 satisfying the predicate). Classes are named according to similar conventions as properties (using URIs).
 Unlike the 'classes' of programming languages such as C++ or java, 
-ChaosDB classes don't define static _types_, in the sense that they don't establish a binding
+Affinity classes don't define static _types_, in the sense that they don't establish a binding
 contract with [PINs](#pin): a PIN can belong to a class during a part of its lifetime, 
 and stop belonging to it during another period; as long as the PIN satisfies the predicate, 
 it's part of the class. A PIN can belong to several classes at once. Classification
-triggers [notifications](#notification). ChaosDB defines a 
+triggers [notifications](#notification). Affinity defines a 
 generalization of classes called [families](#family), but the term 'class' is often used 
 to represent both concepts. 'Category' may also be used
 as a synonym for 'class' (to avoid the static type connotation).
@@ -110,11 +110,11 @@ as a synonym for 'class' (to avoid the static type connotation).
 #Related Concepts
 
 ###PIN ID (PID)
-The [PIN](#pin) ID is a globally unique ID, *determined by ChaosDB* when a
+The [PIN](#pin) ID is a globally unique ID, *determined by Affinity* when a
 new PIN is first committed to the database. It's composed of two
 main sections: an [identity](#identity) ID, and a 64-bit value,
 unique in the scope of that identity. Within the scope of one
-instance of a ChaosDB database, PINs created by the owner 
+instance of an Affinity database, PINs created by the owner 
 can be designated with the second (64-bit) section only, since
 the first section will be 0 (STORE_OWNER) - this elision is common,
 for example in pathSQL's [references](./pathSQL reference.md#refid). 
@@ -127,12 +127,12 @@ to a PIN, or to create [references](#pin-reference).
 
 ###Element ID (eid)
 In a [collection](#collection), every value is associated with a unique, immutable
-Element ID (a 32-bit unsigned value, *determined by ChaosDB*). This eid is independent from
+Element ID (a 32-bit unsigned value, *determined by Affinity*). This eid is independent from
 the position of the element in the collection. A few special logical eids
-are defined in the ChaosDB [interfaces](#interfaces), to let the client
+are defined in the Affinity [interfaces](#interfaces), to let the client
 define an initial ordering for new collection elements:
 STORE_COLLECTION_ID, STORE_FIRST_ELEMENT, STORE_LAST_ELEMENT. As soon as
-the new elements are inserted in the database, ChaosDB gives them a new
+the new elements are inserted in the database, Affinity gives them a new
 immutable eid.
 
 ###Family
@@ -151,7 +151,7 @@ query time. For example, using pathSQL, one could define: <pre>'CREATE CLASS age
 and then query with <pre>'SELECT * FROM age_limit(18);'</pre>
 
 ###Uncommitted PIN
-This concept is more or less invisible, depending on the interface used to talk to ChaosDB.
+This concept is more or less invisible, depending on the interface used to talk to Affinity.
 An uncommitted [PIN](#pin) is a representation that is not yet stored in the database.
 The C++ interface allows to create uncommitted PINs in memory, that can be inter-connected
 (and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction
@@ -169,11 +169,11 @@ and even a specific [element ID](#element-id-eid).
 
 ###BLOB
 BLOBs (also known as streams) are binary large objects, such as documents, pictures, video streams etc.
-ChaosDB provides a special [value](#value) type to store them, along with interfaces
+Affinity provides a special [value](#value) type to store them, along with interfaces
 to stream the data in and out.
 
 ###SSV
-SSV stands for "separately stored value". This is one of the mechanisms that ChaosDB provides
+SSV stands for "separately stored value". This is one of the mechanisms that Affinity provides
 to control the physical arrangement of [PINs](#pin) and their [values](#value) on [pages](#page). For example,
 a certain [class](#class) of PINs could represent information about files on disk.
 One property could be a thumbnail representation of the file. To improve data-locality
@@ -181,7 +181,7 @@ of query-able properties of those PINs, the application could request that the [
 the thumbnail [property](#property) be stored on _separate_ pages.
 
 ###Identity
-Each instance of a ChaosDB database is associated with the *identity* of a primary owner. The owner
+Each instance of an Affinity database is associated with the *identity* of a primary owner. The owner
 can authorize guest users (*identities*) to access subsets of the data (using [ACLs](#acl)),
 or to create new data (in principle, the owner can also fetch data from another
 user's database and cache it locally, but this is not fully exposed in the current version).
@@ -196,22 +196,22 @@ numeric ID to the same identities).
 ###Encryption
 The files of a database instance created with a specific [identity](#identity) and password
 can be encrypted (using AES encryption, on a per-[page](#page) basis). It is only
-possible to decrypt them with those identity and password. ChaosDB provides no mechanism 
+possible to decrypt them with those identity and password. Affinity provides no mechanism 
 to restore the owner's password, should it be forgotten.
 
 ###Namespace
-All [properties](#property) defined in ChaosDB belong to a unique, global namespace.
+All [properties](#property) defined in Affinity belong to a unique, global namespace.
 To augment the semantic value of property names, and reduce the risk of undesired
 collisions, property names can be composed of as many particles as required (separated by
-the slash (/) character). Some of the ChaosDB programming interfaces also allow to perform
+the slash (/) character). Some of the Affinity programming interfaces also allow to perform
 operations in the context of a current subset of the global namespace (by analogy with
 URIs and xml, subsets are themselves designated as "namespaces"). This relieves the application
 developer from specifying full names everywhere.
 
 ###ACL
-ACL stands for "Access Control List". ChaosDB's data model allows to specify
+ACL stands for "Access Control List". Affinity's data model allows to specify
 access rights on a per-[PIN](#pin) basis, for individual [identities](#identity).
-However, in the initial release of the ChaosDB package, multi-user scenarios
+However, in the initial release of the Affinity package, multi-user scenarios
 are not fully enabled yet. 
 
 ###Soft Deletion vs Purge
@@ -221,14 +221,14 @@ restore them later on. Note that deleted PINs can be retrieved with queries,
 provided that MODE_DELETED is specified. Irreversible deletion is called "purge".
 
 ###Unit of Measurement
-ChaosDB provides a special [value](#value) attribute that allows to attach a physical
+Affinity provides a special [value](#value) attribute that allows to attach a physical
 unit to real number values (most of the common units for length, speed, surface, volume, weight etc. are supported,
 both in the metric and imperial systems). This enhances the semantic and self-descriptive capabilities of a PIN.
-It also enables ChaosDB to perform automatic conversions, when processing compatible types in expressions.
+It also enables Affinity to perform automatic conversions, when processing compatible types in expressions.
 Units are described in detail in the [pathSQL reference](./pathSQL reference.md#units-of-measurement).
 
 ###RDF
-ChaosDB does not yet provide a complete solution for RDF, OWL or SPARQL.
+Affinity does not yet provide a complete solution for RDF, OWL or SPARQL.
 However, the core "subject-predicate-object" model can be easily represented
 with [PIN](#pin) as subject, [property](#property) as predicate,
 and [value](#value) as object.
@@ -236,7 +236,7 @@ and [value](#value) as object.
 ###Page
 The page is the logical unit most closely related with the physical
 layout of data on disk. Every page represents a contiguous segment
-of the database file. When an instance of a ChaosDB database is created,
+of the database file. When an instance of a Affinity database is created,
 an immutable page size must be specified (the default is 32768 bytes).
 Every element of information ([PINs](#pin), [indexes](#index) etc.) is
 stored on one or more pages. Because disk io is typically very time consuming,
@@ -245,16 +245,16 @@ an important task of database systems is to minimize io (by compacting as
 much data as possible on a page, by mapping pages in and out of memory
 as efficiently and infrequently as possible, by keeping related data on pages that
 are near, by organizing indexes to satisfy common queries with as
-few pages as possible, etc.). Although ChaosDB takes care of most
+few pages as possible, etc.). Although Affinity takes care of most
 of the complexity, the application developer must be at least minimally
 aware of these considerations (e.g. to optimize queries, and use features
 like [SSVs](#ssv) when appropriate).
 
 ###Index
-ChaosDB can automatically index any text [value](#value) of any [PIN](#pin),
+Affinity can automatically index any text [value](#value) of any [PIN](#pin),
 to enable full text search. [Classes](#class) and [families](#family) also
 define indexes. All those indexes can be combined in queries for fast information
-retrieval and update. ChaosDB query processing does not infer index usage from generic
+retrieval and update. Affinity query processing does not infer index usage from generic
 query conditions: indexes must be explicitly designated in the queries. Indexes can contain
 heterogeneous values (values of different types). The type of an index can also be specified
 explicitly. Indexing may imply data type [coercion](#coercion); if coercion fails for a value,
@@ -262,13 +262,12 @@ the corresponding PIN won't be indexed for this family.
 
 ###Coercion
 [Values](#value) of a [PIN](#pin) can have any type. However, there are several
-circumstances where ChaosDB will need to evaluate or compare a [property](#property),
+circumstances where Affinity will need to evaluate or compare a [property](#property),
 and expect a specific type _(for example, when evaluating a [family](#family)'s predicate for a PIN
 containing properties that match the predicate but with values that
 do not match the corresponding [parameters](#parameter) or [index](#index))_.
-In such cases, ChaosDB can resort to coercion
+In such cases, Affinity can resort to coercion
 to translate values to the required type (e.g. strings to integers and vice versa).
-Note that [indexes](#index) are homogeneous and therefore may imply data coercion.
 
 ###Notification
 Notifications are similar to triggers, and allow to track changes
@@ -276,20 +275,20 @@ on specific [PINs](#pin) or [classes](#class). The notification functionality
 is exposed in a low-level way in the kernel ([startup.h](./sources/startup_h.html)),
 and is also available via the [comet](http://en.wikipedia.org/wiki/Comet_%28programming%29)
 pattern in the [server](#server). In the future a highly scalable (asynchronous) messaging infrastructure
-will be added. By comparison with triggers and stored procedures, ChaosDB's notifications
+will be added. By comparison with triggers and stored procedures, Affinity's notifications
 establish a more strict boundary between the kernel and application code. They
 enhance application code consistency and maintainability, by concentrating all
 the logic in one place, using one language. They can also constitute the
 starting point of a messaging system between database instances.
 
 ###Replication
-Although several elements of ChaosDB's design take database replication
-into consideration, replication is not part of the initial release of ChaosDB.
+Although several elements of Affinity's design take database replication
+into consideration, replication is not part of the initial release of Affinity.
 Database replication is typically used to increase reliability and
 accessibility.
 
 ###Snapshot Isolation
-ChaosDB uses the Read-Only multiversion [ROMV] protocol for read-only transactions,
+Affinity uses the Read-Only multiversion [ROMV] protocol for read-only transactions,
 thus enabling non-blocking reads. This only applies to transactions that are explicitly
 specified as read-only by the caller. These transactions read a snapshot that
 will correspond to the effect of committed write transactions up to the point
@@ -301,16 +300,16 @@ and may in some cases read data items in a "newer" state than the corresponding 
 read-only transaction would.
 
 #Interfaces
-The [ChaosDB](#chaosdb) kernel library is written in C++, and provides a [C++ interface](#c-interface)
+The [Affinity](#affinity) kernel library is written in C++, and provides a [C++ interface](#c-interface)
 directly talking to the kernel. In addition, it also proposes [pathSQL](#pathsql), and a [protocol-buffer](#protocol-buffer)-based
 streaming interface, both of which are better suited as client interfaces for remote access (e.g. through
 a [server](#server)). [Client-side libraries](#client-side-libraries) are also available.
 
 ###C++ interface
-[chaosdb.h](./sources/chaosdb_h.html) (along with a few extensions
+[affinity.h](./sources/affinity_h.html) (along with a few extensions
 in [rc.h](./sources/rc_h.html), [startup.h](./sources/startup_h.html) and
 [units.h](./sources/units_h.html)) defines a self-contained, low-level interface directly
-connected to the ChaosDB kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), 
+connected to the Affinity kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), 
 plus a few constants and structures. The ISession interface represents a logical connection to 
 a database instance, and provides an entry point for every possible interaction. 
 It exposes the [pathSQL](#pathSQL) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
@@ -319,49 +318,49 @@ which enable the embedding application to develop any desired query language
 (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation.
 [PINs](#pin) are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot
 of a PIN and related read-write activity to the database (in the context of one specific session).
-Since chaosdb.h is primarily a kernel integration interface (rather than a client interface), 
+Since affinity.h is primarily a kernel integration interface (rather than a client interface), 
 most of the design decisions related with memory and reference management were
 taken by ranking performance implications with higher importance than ease of use. Here's
-a [link](./ChaosDB cpp.md) to more information.
+a [link](./cplusplus.md) to more information.
 
 ###pathSQL
-pathSQL is the name of a dialect of SQL defined for ChaosDB.
+pathSQL is the name of a dialect of SQL defined for Affinity.
 Here's a [link](./pathSQL primer.md) to more information.
 
 ###Protocol-Buffer
-ChaosDB provides a streaming interface based on Google's protocol-buffers:
-[chaosdb.proto](./sources/chaosdb_proto.html).
+Affinity provides a streaming interface based on Google's protocol-buffers:
+[affinity.proto](./sources/affinity_proto.html).
 This is one of the interfaces exposed by the [server](#server).
-Here's a [link](./ChaosDB protobuf.md) to more information.
+Here's a [link](./protobuf.md) to more information.
 
 ###Client-Side Libraries
 Although the [server](#server) makes it easy to talk to the store using [pathSQL](#pathsql),
 this traditional approach still implies a mapping process to translate
 structured objects on the client side into DML statements. The [protocol-buffer](#protocol-buffer) interface
-provides a more direct means of expressing those structures to ChaosDB. The client-side libraries
+provides a more direct means of expressing those structures to Affinity. The client-side libraries
 further facilitate the use of both interfaces, in the context of their specific programming language.
-The first release emphasizes [javascript](./sources/chaosdb-client_js.html) for node.js.
-Libraries for [python](./sources/chaosdb_py.html) and ruby are also available,
+The first release emphasizes [javascript](./sources/affinity-client_js.html) for node.js.
+Libraries for [python](./sources/affinity_py.html) and ruby are also available,
 and java and C++ are under development.
 
 #Software Components
-The ChaosDB package contains the following components: the [ChaosDB](#chaosdb) kernel library,
+The Affinity package contains the following components: the [Affinity](#affinity) kernel library,
 the [database server](#server) with its online console and documentation, 
 and some [client-side libraries](#client-side-libraries).
 
-###ChaosDB
-The ChaosDB library is the core component of the ChaosDB package. 
+###Affinity
+The Affinity library is the core component of the Affinity package. 
 It provides a comprehensive database engine that proposes a new, powerful, object-friendly
 [data model](#essential-concepts-data-model), while preserving many of the precious properties of relational database systems,
 such as a [SQL interface (pathSQL)](#pathsql), ACID transactions, logging and recovery, efficient [page](#page) management and
 B-link tree [indexing](#index), full-text indexing, etc.
 It is written in C++, and provides a number of [interfaces](#interfaces).
 This library could be embedded directly into an application.
-Most of the ChaosDB documentation focuses on various aspects of this component.
+Most of the Affinity documentation focuses on various aspects of this component.
 
 ###server
-This process is a database server that embeds [ChaosDB](#chaosdb). It understands the HTTP protocol,
+This process is a database server that embeds [Affinity](#affinity). It understands the HTTP protocol,
 and accepts messages in [pathSQL](#pathsql) as well as [protocol-buffer](#protocol-buffer). It can return
 results in json format, or [protocol-buffer](#protocol-buffer) format. It is primarily
 a database server, but its HTTP interface allows it to act as a web server, for increased
-convenience. For more information, visit this [link](./ChaosDB server.md).
+convenience. For more information, visit this [link](./Affinity server.md).

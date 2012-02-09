@@ -1,9 +1,9 @@
 #Features
-ChaosDB is a new database kernel with features that borrow aspects from
+Affinity is a new database kernel with features that borrow aspects from
 RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. More context
 is available on the [philosophy](./FAQ.md), [software components](./terminology.md#software-components),
 [interfaces](./terminology.md#interfaces) and [data model](./terminology.md#essential-concepts-data-model). Here
-is a list of ChaosDB's features:
+is a list of Affinity's features:
 
  * small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)
  * [pathSQL](./terminology.md#pathsql) query language, plus streaming interface using [protocol-buffers](./terminology.md#protocol-buffer)
@@ -28,7 +28,7 @@ is a list of ChaosDB's features:
  * [notifications](./terminology.md#notifications) for object-level changes as well as for classification changes
  * authenticated sessions
  * page-level AES [encryption](./terminology.md#encryption) and log encryption
- * extensive multi-user support
+ * extensive multi-user support (e.g. hundreds of distinct database instances can be managed by a single process)
  * [ACL](./terminology.md#acl) at object granularity
  * rich set of [data types](./pathSQL reference.md#data-types), including [collections](./terminology.md#collection),
    [references](./terminology.md#pin-reference) and [BLOBs](./terminology.md#blob)
