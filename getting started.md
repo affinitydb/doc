@@ -12,7 +12,7 @@ Until Affinity becomes open-source, the procedure to install from github
 will involve the following steps (on linux):
 
 3. send your account's user name to maxw@vmware.com, to become a private collaborator
-4. git clone git@github.com:Affinity/setup.git
+4. git clone git@github.com:affinitydb/setup.git
 5. bash ./setup/linux/setup.sh
 
 This will install the kernel, server, nodejs, doc and other components of the release,
@@ -54,8 +54,8 @@ msvcp100.dll (windows only)      If not already present on your machine, it can 
 
 ##Runtime Files
 For each distinct store created by `affinityd`, one file named `affinity.db` will be created. This is the data file.
-Additionally, any number of files following the pattern `affinity*.txlog` may be created, containing transactional
-logs for database logging & recovery. Upon a checkpoint or a clean shutdown, the `affinity*.txlog` files are automatically deleted.
+Additionally, any number of files following the pattern `afy*.txlog` may be created, containing transactional
+logs for database logging & recovery. Upon a checkpoint or a clean shutdown, the `afy*.txlog` files are automatically deleted.
 
 By default, `affinityd` puts those files in the parent folder of the docroot directory specified with the `-d` argument.
 
