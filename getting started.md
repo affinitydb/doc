@@ -44,7 +44,7 @@ Here's a short table summarizing the parts involved.
 
 File                             Description
 ---------------------------      -----------
-affinity.dll / libaffinity.so    The [Affinity kernel library](./terminology.md#affinity)
+affinity.dll / libaffinity.so    The Affinity [kernel](./terminology.md#kernel) library
 affinityd[.exe]                  The database [server](./terminology.md#server)
 server/src/www                   The server's online console
 affinity-client.js               The client library for [node.js](./javascript.md)

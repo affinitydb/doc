@@ -63,7 +63,7 @@ be shared and interpreted by other systems. Note that even a partial shared unde
 in an object between systems is sufficient for this kind of interoperability.
 
 ##Self-descriptiveness
-Objects in Affinity are naturally serializable as dictionaries that fully describe their full contents.
+Objects in Affinity are naturally serializable as dictionaries that fully describe their contents.
 Therefore, it's trivial to export or transport objects.
 
 ##Data before structure (a two-step modeling process)
@@ -293,7 +293,7 @@ practice (even though the algorithms are formally established). Considerable eff
 make Affinity's recovery rock-solid.
 
 ##Small, portable, embeddable
-The [Affinity kernel](./terminology.md#affinity) is a small library (<50K LOC, < 1Mb binary) written in C++
+The [Affinity kernel](./terminology.md#kernel) is a small library (<50K LOC, < 1Mb binary) written in C++
 and ported to all mainstream platforms (OSX, linux, windows, ARM-based devices). It allows one to configure all essential
 aspects of its runtime footprint (global memory usage, memory usage per session, disk usage, file sizes etc.).
 

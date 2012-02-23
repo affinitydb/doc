@@ -1,6 +1,6 @@
 ## NAME
 
-affinityd - embedded web server for CGI access to the affinityd db
+affinityd - embedded web server for CGI access to the Affinity db
 
 ## SYNOPSIS
 

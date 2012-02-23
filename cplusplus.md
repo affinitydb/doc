@@ -1,8 +1,8 @@
-#Affinity C++ Interface
-Please read the brief [introduction](./terminology.md#c-interface). The
+#Affinity Kernel's C++ Interface
+Please read the brief [introduction](./terminology.md#c-kernel-interface). The
 bulk of the interface is defined in [affinity.h](./sources/affinity_h.html).
 
-The main purpose of Affinity's C++ interface is to provide a means of
+The main purpose of the Affinity kernel's C++ interface is to provide a way of
 integrating the Affinity database kernel into an embedding application, such as a
 database server or an embedded system. The "bare-metal" nature of the interface
 is meant to introduce no artificial overhead in those cases.

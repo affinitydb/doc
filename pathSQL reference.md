@@ -197,7 +197,7 @@ Unlike relational databases, Affinity doesn't require length or precision specif
 (e.g. there are no fixed-length strings or binary strings). Affinity doesn't support user-defined data types either, yet,
 but it does allow to attach a [unit of measurement](#units-of-measurement) to a value.
 
-The type names listed here use the pathSQL convention. In the [C++](./terminology.md#c-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
+The type names listed here use the pathSQL convention. In the [C++](./terminology.md#c-kernel-interface) and [protocol-buffer](./terminology.md#protocol-buffer) interfaces,
 these names are prefixed with "VT_" (e.g. VT_INT).
 
 Sample: [types.sql](./sources/pathsql/types.html).  
@@ -387,7 +387,7 @@ REFIDPROP      A reference to a value (property of this or another PIN) by its P
 REFELT         A reference to a collection element by its IPIN*, PropertyID and ElementID.
 REFIDELT       A reference to a collection element by its PID, PropertyID and ElementID.
 
-*Note*: The distinction between REF and REFID only applies to the [C++ interface](./terminology.md#c-interface). REF allows to specify directly an IPIN*.  
+*Note*: The distinction between REF and REFID only applies to the embedded [C++ interface](./terminology.md#c-kernel-interface). REF allows to specify directly an IPIN*.  
 You can see the format of all there reference types is here: [Reference and Dereference Operators](#reference-and-dereference-operators).
 
 ### CURRENT

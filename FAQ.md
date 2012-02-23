@@ -22,7 +22,7 @@ Membership in these classes may change as the objects change, and as new applica
 The current C++ implementation of Affinity runs in a small-footprint, multithreaded process on OSX, linux, Windows and ARM-based systems. 
 Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.
 
-Affinity has a native [C++ interface](./terminology.md#c-interface), as well as a remoteable interface operating through 
+Affinity has a native embedded [C++ interface](./terminology.md#c-kernel-interface), as well as a remoteable interface operating through 
 [protobuf](./terminology.md#protocol-buffer)-encoded request/response streams. Queries can be passed to the database via 
 [pathSQL](./terminology.md#pathsql), a SQL-like query language. Affinity also produces JSON responses.
 

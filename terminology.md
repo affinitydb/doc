@@ -1,12 +1,12 @@
 #List of Terms (in Alphabetical Order)
 [ACL](#acl), [BLOB](#blob),
-[C++ interface](#c-interface), [class](#class), [client-side library](#client-side-libraries),
+[C++ interface](#c-kernel-interface), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [data model](#essential-concepts-data-model),
-[element ID (eid)](#element-id-eid), [encryption](#encryption), [family](#family), [identity](#identity), [index](#index),
-[server](#server), [pathSQL](#pathsql), [Affinity](#affinity),
-[namespace](#namespace), [notification](#notification), [page](#page), [parameter](#parameter), [PIN](#pin),
+[element ID (eid)](#element-id-eid), [encryption](#encryption), [family](#family), [identity](#identity),
+[index](#index), [kernel](#kernel), [namespace](#namespace), [notification](#notification),
+[page](#page), [parameter](#parameter), [pathSQL](#pathsql), [PIN](#pin),
 [PIN ID (PID)](#pin-id-pid), [property](#property), [protocol-buffer](#protocol-buffer), [RDF](#rdf),
-[reference](#pin-reference), [replication](#replication), [snapshot isolation](#snapshot-isolation),
+[reference](#pin-reference), [replication](#replication), [server](#server), [snapshot isolation](#snapshot-isolation),
 [soft deletion](#soft-deletion-vs-purge), [SSV](#ssv), [uncommitted PIN](#uncommitted-pin),
 [unit of measurement](#unit-of-measurement), [value](#value)
 
@@ -300,12 +300,12 @@ and may in some cases read data items in a "newer" state than the corresponding 
 read-only transaction would.
 
 #Interfaces
-The [Affinity](#affinity) kernel library is written in C++, and provides a [C++ interface](#c-interface)
+The [Affinity kernel library](#kernel) is written in C++, and provides a [C++ interface](#c-kernel-interface)
 directly talking to the kernel. In addition, it also proposes [pathSQL](#pathsql), and a [protocol-buffer](#protocol-buffer)-based
 streaming interface, both of which are better suited as client interfaces for remote access (e.g. through
 a [server](#server)). [Client-side libraries](#client-side-libraries) are also available.
 
-###C++ interface
+###C++ Kernel Interface
 [affinity.h](./sources/affinity_h.html) (along with a few extensions
 in [rc.h](./sources/rc_h.html), [startup.h](./sources/startup_h.html) and
 [units.h](./sources/units_h.html)) defines a self-contained, low-level interface directly
@@ -344,12 +344,12 @@ Libraries for [python](./sources/affinity_py.html) and ruby are also available,
 and java and C++ are under development.
 
 #Software Components
-The Affinity package contains the following components: the [Affinity](#affinity) kernel library,
-the [database server](#server) with its online console and documentation, 
+The Affinity package contains the following components: the Affinity [kernel](#kernel) library,
+the database [server](#server) with its online console and documentation, 
 and some [client-side libraries](#client-side-libraries).
 
-###Affinity
-The Affinity library is the core component of the Affinity package. 
+###Kernel
+The Affinity kernel library is the core component of the Affinity package. 
 It provides a comprehensive database engine that proposes a new, powerful, object-friendly
 [data model](#essential-concepts-data-model), while preserving many of the precious properties of relational database systems,
 such as a [SQL interface (pathSQL)](#pathsql), ACID transactions, logging and recovery, efficient [page](#page) management and
@@ -358,8 +358,8 @@ It is written in C++, and provides a number of [interfaces](#interfaces).
 This library could be embedded directly into an application.
 Most of the Affinity documentation focuses on various aspects of this component.
 
-###server
-This process is a database server that embeds [Affinity](#affinity). It understands the HTTP protocol,
+###Server
+This process is a database server that embeds the Affinity [kernel](#kernel). It understands the HTTP protocol,
 and accepts messages in [pathSQL](#pathsql) as well as [protocol-buffer](#protocol-buffer). It can return
 results in json format, or [protocol-buffer](#protocol-buffer) format. It is primarily
 a database server, but its HTTP interface allows it to act as a web server, for increased

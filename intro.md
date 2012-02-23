@@ -20,10 +20,10 @@ The documentation contains a few introductory sections:
 
 It also contains references:  
 
-1. [pathSQL](./pathSQL reference.md)  
+1. [pathSQL reference](./pathSQL reference.md)  
 2. [Affinity server](./Affinity server.md)  
-3. [low-level C++ interface](./cplusplus.md)  
-4. [low-level protobuf interface](./protobuf.md)  
+3. [Affinity kernel's C++ interface](./cplusplus.md)  
+4. [protobuf interface](./protobuf.md)  
 
 Some pages point directly to examples in the source-code, e.g. [affinity.proto](./sources/affinity_proto.html).
 
