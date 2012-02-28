@@ -37,7 +37,7 @@ sent to stderr or syslog. `RC_OK` is the success code used throughout the interf
 #startup.h
 [startup.h](./sources/startup_h.html) defines the initial entry point to Affinity.
 It provides functions to create, open and shutdown one or more instances of databases.
-`openStore` and `createStore` produce an opaque `AffinityCtx` token, 
+`openStore` and `createStore` produce an opaque `AfyDBCtx` token,
 used to initiate [sessions](#isession).
 
 The `StoreCreationParameters` structure implies a few important decisions
@@ -66,8 +66,8 @@ The `StartupParameters` is self-explanatory and won't be documented in detail in
 2. `network`, `notification` and `io` are not fully supported in this release.  
 3. `mode` is related with all the STARTUP_* constants defined in startup.h.  
 
-The kernel shares a single page buffer across all open database instances and sessions. The maximum value of all
-`StartupParameters::nBuffers` open so far is used as the amount of buffers. In a multi-store environment all stores 
+The kernel shares a single page buffer system across all open database instances and sessions. The maximum value of all
+`StartupParameters::nBuffers` open so far is used as the amount of pages in the buffer. In a multi-store environment, all stores 
 must have exactly the same page size (`StoreCreationParameters::pageSize`).
 
 #ISession
@@ -161,10 +161,10 @@ Here's an example building a multi-segment class index:
 <pre>
   IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
   Value lV[2];
-  lV[0].setVarRef(0, 1, &mProps[0]);
+  lV[0].setVarRef(0, mProps[0]);
   lV[1].setParam(0);
   lExpr1 = mSession->expr(OP_LT, 2, lV);  
-  lV[0].setVarRef(0, 1, &mProps[1]);
+  lV[0].setVarRef(0, mProps[1]);
   lV[1].setParam(1);
   lExpr2 = mSession->expr(OP_GT, 2, lV);
 
@@ -217,7 +217,7 @@ Alternatively, one can use `ISession::modifyPIN` to avoid
 loading the IPIN object.
 
 The same `IPIN` is used to represent pure in-memory objects ([uncommitted PINs](./terminology.md#uncommitted-pin))
-and objects in the database. The main difference is that instances of the former don't have a [PID](./terminology.md#pin-id-pid).
+as well as objects in the database. The main difference is that instances of the former don't have a [PID](./terminology.md#pin-id-pid).
 
 The PIN's stamp allows to determine if a PIN has changed since the stamp was last grabbed.
 To obtain the most recent stamp, it is still necessary to load (or `refresh`) the PIN from the database,
@@ -240,7 +240,7 @@ belongs. It can be one of the `PROP\_SPEC\_*` values (documented in detail in [a
 Or it can be a property ID obtained via [mapURIs](#isession::mapuris), described earlier.
 
 The `op` field defines how the value is intended to be used. For a relatively thorough
-description of possibilities, please refer to line 198 in [affinity.proto](./sources/affinity_proto.html).
+description of possibilities, please refer to line 215 in [affinity.proto](./sources/affinity_proto.html).
 
 The `eid` field is used depending on the context. For new elements of a [collection](./terminology.md#collection),
 it defines their logical position (either by using `STORE_LAST_ELEMENT, STORE_FIRST_ELEMENT etc.`,
@@ -255,7 +255,7 @@ The `meta` field allows fine-grained (per-property) control of things such as in
 
 ###As Output (read)
 Most of the fields have the same meaning as in the input case. However, `op` and `meta`
-are unused in this case. Also, `length` can be uninteresting when large objects are returned ([INav](#inav)
+are unused in this case. Also, `length` can be irrelevant when large objects are returned ([INav](#inav)
 or [IStream](#istream)). This is done to delay expensive length computations until requested. 
 
 #IExprTree
@@ -272,10 +272,10 @@ operators such as `OP_AND, OP_OR etc.`). Here's an example:
   CmvautoPtr<IStmt> lQ(mSession->createStmt());  
   unsigned const char lVar = lQ->addVariable();  
   Value lV[2];  
-  lV[0].setVarRef(0, 1, &mFilePathPropID);  
+  lV[0].setVarRef(0, mFilePathPropID);  
   lV[1].setParam(0);  
   IExprTree *lET1 = mSession->expr(OP_EQ, 2, lV);  
-  lV[0].setVarRef(0, 1, &mPIFSAttrPropID);  
+  lV[0].setVarRef(0, mPIFSAttrPropID);  
   IExprTree *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
   lV[0].set(lET1);  
   lV[1].set(lET2);  
@@ -322,8 +322,12 @@ To merge two classes:
 To do a join:
 
 <pre>
-  // same thing as merge, except replace setOp with:
-  lQ->join(lVars[0], lVars[1], NULL, QRY_JOIN);
+  // same thing as merge, except replace setOp with something like:
+  Value lV[2];
+  lV[0].setVarRef(lVars[0], propid1);
+  lV[1].setVarRef(lVars[1], propid2);
+  IExprTree * lExprJ = mSession->expr(OP_EQ, 2, lV);
+  lQ->join(lVars[0], lVars[1], lExprJ, QRY_SEMIJOIN);
 </pre>
 
 To use a family instead:
@@ -346,15 +350,13 @@ To use a full-text condition with ordered results:
   TVERIFYRC(lQ->setOrder(&lOrder, 1));
 </pre>
 
-_Note: In the present release, output transformations are not yet considered ready._
-
 #ICursor
 `ICursor` is the result of some of the `IStmt::exec*` methods,
 and allows to walk a query result, in one of three possible ways:
 
-1. by IPIN*: every next pin is loaded and returned
-2. by PID: only the PID of every next PIN is returned
-3. by IPIN**: for joins, to obtain all pins involved in the join (one result at a time, same as 1 and 2)
+1. by `Value&`: this is the most flexible form, capable of representing transformed outputs, join results etc.
+2. by `PID&`: only the PID of every next PIN is returned
+3. by `IPIN*` [deprecated]: every next pin is loaded and returned
 
 By default, `ICursor` is bound to (and should not outlive [i.e. be destroyed after])
 the `IStmt` that generated it. This restriction can be removed with `MODE_COPY_VALUES`, 
@@ -371,7 +373,7 @@ becomes large; this also implies that seeks and certain queries are fast).
 
 Because the point at which a small collection becomes large (and vice versa) is not controlled
 explicitly by the client, it is recommended to always use code that handles both cases, such as
-the `CollectionIterator` defined at line 249 in serialization.h.
+the `CollectionIterator` defined at line 247 in serialization.h (in tests_kernel/src).
 
 #IStream
 This interface is used both to push [BLOBs](./terminology.md#blob) into the store (by implementing
