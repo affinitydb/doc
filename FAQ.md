@@ -1,6 +1,7 @@
 # What is Affinity?
 
-Affinity is a new database kernel with features that borrow (we hope the best) aspects from
+Affinity is a new open-source database kernel, licensed under the Apache License Version 2.0.
+Its features borrow (we hope the best) aspects from
 RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. 
 In academic terms, it is a hybrid between value-oriented databases (that distinguish entities primarily by their values
 [e.g. primary keys of relational systems]) and ID-based object-oriented databases.

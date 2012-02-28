@@ -1,28 +1,21 @@
 #Getting Started with Affinity
 
 ##Setup
-Affinity is hosted on github, from where it will be released as a series of
-open-source projects. Github requires these preliminary steps:
+The Affinity source code is hosted on github, from where it is released as a series of
+open-source projects. With a properly configured personal github account,
+just do:
 
-1. create a personal (free) user account in github (visit https://github.com/)
-2. setup a ssh keypair (uploading the public key to that github account)
+      curl -s -k -B https://raw.github.com/affinitydb/setup/master/linux/setup.sh > affinity_setup.sh
+      bash affinity_setup.sh
 
-Affinity is not yet open to the public. For now, it resides in private projects.
-Until Affinity becomes open-source, the procedure to install from github
-will involve the following steps (on linux):
+This will install and build the kernel, server, doc, client libraries etc., all from source files.
 
-3. send your account's user name to maxw@vmware.com, to become a private collaborator
-4. git clone git@github.com:affinitydb/setup.git
-5. bash ./setup/linux/setup.sh
+This procedure should work on linux and OSX.
+A few confirmations will be requested during installation.
 
-This will install the kernel, server, nodejs, doc and other components of the release,
-and start the database server.
-
-<p style="color:red">
-_Note: When Affinity becomes open-source, the procedure will be further simplified:
-steps 3-5 will be replaced with a single step involving a publicly accessible setup script._  
-_Note: A similar setup procedure for Windows is planned but not yet available._  
-</p>
+Presently, no automatic setup is provided for Windows or ARM-based devices.
+These will be provided in a later release. In the meantime, it's possible to
+clone, build and run all projects manually.
 
 ##Simple Access
 The database [server](./terminology.md#server) process is called `affinityd`
@@ -32,8 +25,8 @@ or run `affinityd -h`.
 
 The server exposes a javascript online console at the root (e.g. `http://localhost:4560/`), 
 which allows to navigate the contents of the store and modify data (same as what you find
-[online](http://Affinity.cloudfoundry.com)). Just open that URL
-in a browser. The console can also facilitate learning pathSQL.
+[online](http://affinity.cloudfoundry.com)). Just open that URL
+in a browser. The console can also help learning pathSQL.
 
 ##Quick pathSQL Guide
 Please find a quick guide [here](./pathSQL primer.md).
@@ -48,9 +41,7 @@ affinity.dll / libaffinity.so    The Affinity [kernel](./terminology.md#kernel) 
 affinityd[.exe]                  The database [server](./terminology.md#server)
 server/src/www                   The server's online console
 affinity-client.js               The client library for [node.js](./javascript.md)
-afycommand[.exe]                 (optional) A command-line app to interact with the db
-afyclient.dll / libafyclient.so  (optional) The http client library that afycommand uses to talk to the db
-msvcp100.dll (windows only)      If not already present on your machine, it can be obtained [here](#links-to-msvcp100-dll)
+affinity.py                      The client library for [python](./sources/affinity_py.html)
 
 ##Runtime Files
 For each distinct store created by `affinityd`, one file named `affinity.db` will be created. This is the data file.
@@ -59,7 +50,7 @@ logs for database logging & recovery. Upon a checkpoint or a clean shutdown, the
 
 By default, `affinityd` puts those files in the parent folder of the docroot directory specified with the `-d` argument.
 
-## Links to MSVCP100 DLL (windows)
+## Links to MSVCP100 DLL (Windows)
 Microsoft redistributable libraries can be retrieved here.  Make sure that the version you obtain is compatible with Affinity binaries.  
 [win64: MSVCP100.dll](http://www.microsoft.com/downloads/en/confirmation.aspx?FamilyID=bd512d9e-43c8-4655-81bf-9350143d5867)  
 [win32: MSVCP100.dll](http://www.microsoft.com/downloads/en/details.aspx?displaylang=en&FamilyID=a7b7a05e-6de6-4d3a-a423-37bf0912db84#AffinityDownloads)  

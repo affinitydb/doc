@@ -1,6 +1,9 @@
 #Introduction
 Welcome to Affinity!
 
+Affinity is a new open-source database kernel,
+licensed under the Apache License, Version 2.0.
+
 For an overview of the philosophy behind Affinity, visit the [FAQ](./FAQ.md).
 There's also a list of [features](./features.md), and an assessment of Affinity's
 comparative [strengths](./strengths.md).

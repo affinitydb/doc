@@ -62,7 +62,7 @@ As part of using the Service, you may submit comments, suggestions and other fee
 
 ##3. Privacy Policy
 
-Information shared with VMware is subject to the VMware privacy policy available at http://www.VMware.com/help/privacy.html.   The contact information you provide may be used to send you updates or other information about our or our partners’ services and products.  To opt out of receiving future marketing communications regarding the Service, please follow the opt out instructions in the VMware privacy policy or in the email that you received.  
+Information shared with VMware is subject to the [Affinity privacy policy](./demo_privacy.md).   The contact information you provide may be used to send you updates or other information about our or our partners’ services and products.  To opt out of receiving future marketing communications regarding the Service, please follow the opt out instructions in the Affinity privacy policy or in the email that you received.  
 
 ##4. Indemnity
 You agree to hold harmless and indemnify VMware, and its subsidiaries, affiliates, officers, agents, and employees, advertisers or partners, from and against any third party claim arising from or in any way related to your use of the Service or violation of this Agreement, including any liability or expense arising from all claims, losses, damages (actual and consequential), suits, judgments, litigation costs and attorneys' fees, of every kind and nature. In such a case, VMware will provide You with written notice of such claim, suit or action.  
