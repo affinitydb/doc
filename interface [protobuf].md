@@ -107,7 +107,7 @@ Affinity offers two distinct and complementary strategies for dealing with data 
 
 The simplest strategy consists in letting the client specify pagination OFFSET and LIMIT along with its pathSQL statement.
 This can be done via `AfyStream.PathSQL.offset` and `AfyStream.PathSQL.limit` (directly in the protobuf request).
-The [server](./Affinity server.md) also allows to specify these parameters. Affinity interprets them
+The [server](./server.md) also allows to specify these parameters. Affinity interprets them
 and returns a subset of the whole result set _(n.b. in the current implementation, the query
 is re-evaluated for every requested page; consistency can be secured with a transaction, but the performance
 is not optimal)_. The granularity is the PIN, which may be insufficient in some

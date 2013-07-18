@@ -1,9 +1,10 @@
 #Affinity Kernel's C++ Interface
+<!-- TODO: many little things to review here... -->
 Please read the brief [introduction](./terminology.md#c-kernel-interface). The
 bulk of the interface is defined in [affinity.h](./sources/affinity_h.html).
 
 The main purpose of the Affinity kernel's C++ interface is to provide a way of
-integrating the Affinity database kernel into an embedding application, such as a
+integrating the Affinity store kernel into an embedding application, such as a
 database server or an embedded system. The "bare-metal" nature of the interface
 is meant to introduce no artificial overhead in those cases.
 
@@ -36,19 +37,19 @@ sent to stderr or syslog. `RC_OK` is the success code used throughout the interf
 
 #startup.h
 [startup.h](./sources/startup_h.html) defines the initial entry point to Affinity.
-It provides functions to create, open and shutdown one or more instances of databases.
-`openStore` and `createStore` produce an opaque `AfyDBCtx` token,
+It provides functions to create, open and shutdown one or more instances of stores.
+`openStore` and `createStore` produce an instance of `IAffinity`,
 used to initiate [sessions](#isession).
 
 The `StoreCreationParameters` structure implies a few important decisions
-(note: some of the immutable fields can be modified via a complete dump & load of the database):
+(note: some of the immutable fields can be modified via a complete dump & load of the store):
 
 1. `pageSize`: the ideal [page](./terminology.md#page) size can be influenced by
    operating-system and hardware characteristics, performance requirements, and possibly
    special dataset characteristics. This configuration is immutable, and irreversible.
-2. `identity`: the owner [identity](./terminology.md#identity) of this database. 
+2. `identity`: the owner [identity](./terminology.md#identity) of this store. 
    Although it can be changed via `ISession::changeStoreIdentity`, Affinity provides 
-   no mechanism to propagate this change to other databases that may have stored [references](./terminology.md#pin-reference) 
+   no mechanism to propagate this change to other stores that may have stored [references](./terminology.md#pin-reference) 
    and may assume that the name didn't change.  
 3. `storeId`: this is essentially a replica ID. Until replication is officially released,
    it is recommended to use the default value 0. This is immutable.  
@@ -71,7 +72,7 @@ The kernel shares a single page buffer system across all open database instances
 must have exactly the same page size (`StoreCreationParameters::pageSize`).
 
 #ISession
-The session represents a logical connection to an already opened database instance (please
+The session represents a logical connection to an already opened store instance (please
 refer to [startup.h](#startup-h)). A session must be attached to a thread determined by the client. 
 A new session attaches itself to the calling thread by default.
 The client can use `detachFromCurrentThread` and `attachToCurrentThread` to unmap 
@@ -81,10 +82,10 @@ ISession gives access to [pathSQL](#isession::execute-isession::createstmt-paths
 [protocol-buffers](#isession::createinputstream-protocol-buffers). These interfaces
 are self-sufficient (all major interactions can go through them exclusively).
 
-ISession also opens a more direct door to all major functions of the database: [PIN](./terminology.md#pin) creation, retrieval, update and deletion.
+ISession also opens a more direct door to all major functions of the store: [PIN](./terminology.md#pin) creation, retrieval, update and deletion.
 It allows to declare [properties](./terminology.md#property) and create [IStmt](#istmt) objects, which are used both to query and to 
 define [classes](./terminology.md#class). It exposes the transaction control methods. It also provides other per-session controls, 
-as well as some controls global to a database instance.
+as well as some controls global to a store instance.
 
 ###ISession::execute, ISession::createStmt [pathSQL]
 These methods let you execute [pathSQL](./terminology.md#pathsql) statements (more precisely,
@@ -95,8 +96,8 @@ using pathSQL._
 
 ###ISession::createInputStream [protocol-buffers]
 This is the synchronous way of executing [protocol-buffers](./terminology.md#protocol-buffer) streams.
-There is also a more optimized, asynchronous way, through startup.h's `createServerInputStream`.
-_The rest of the documentation on this page is mostly unnecessary, when using protocol-buffers._
+Protocol buffers can also be used in a [communication PIN's](./terminology.md#communication-pin)
+service stack.  _The rest of the documentation on this page is mostly unnecessary, when using protocol-buffers._
 
 ###ISession::mapURIs
 This is how new [properties](./terminology.md#property) are declared. Note that the pathSQL and protocol-buffer
@@ -108,15 +109,15 @@ represent properties. This design is driven by obvious efficiency motivations. W
 the `URIMap::uid` field is typically initialized by the caller to `STORE_INVALID_PROPID`,
 and then the resulting value is stored by the caller (e.g. in some evaluation context variable) upon confirmation of success (`RC_OK`).
 Property IDs are identical across all sessions of a store, but not necessarily identical across different stores.
-A property ID is meaningless outside of the scope of a specific database instance, and should never be serialized alone
+A property ID is meaningless outside of the scope of a specific store instance, and should never be serialized alone
 (without its textual counterpart). `ISession::getURI` retrieves the name bound to a property ID.
 `ISession::setURIAlias` is considered incomplete in the current release.
 
 ###ISession::createPIN, ISession::createUncommittedPIN
-This is how new [PINs](./terminology.md#pin) are created. `createPIN` creates the new PIN directly in the database, whereas
+This is how new [PINs](./terminology.md#pin) are created. `createPIN` creates the new PIN directly in the store, whereas
 `createUncommittedPIN` creates [uncommitted PINs](./terminology.md#uncommitted-pin), which don't exist in the database
 until `ISession::commitPINs` is called. In either case, the typical flow is to create [Value](#value)-s
-and pass them to these methods. As soon as the PINs become real in the database, Affinity assigns a [PID](./terminology.md#pin-id-pid)
+and pass them to these methods. As soon as the PINs become real in the store, Affinity assigns a [PID](./terminology.md#pin-id-pid)
 to each of them. PINs can be easily retrieved by their PID, using `ISession::getPIN`.
 
 When passing data into the store, the store almost always copies the data, and hence the caller retains ownership 

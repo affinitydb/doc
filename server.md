@@ -9,7 +9,7 @@ affinityd - embedded web server for CGI access to the Affinity db
 ## DESCRIPTION
 
 affinityd is an embedded web server which provides CGI access to the
-Affinity database.  It also includes a minimal simple static web server
+Affinity store.  It also includes a minimal simple static web server
 for its own internal purposes to serve basic web admin CGIs & ui.
 
 (All CGIs are builtin, there is intentionally no support for user defined
@@ -43,8 +43,8 @@ The flags that are supported by affinityd are as follows:
     read from this directory.  The docroot can also be specified using
     the DOCROOT environment variable.  The environment variable
     overrides the affinityd -d argument if both are present.  (Note: if
-    affinityd is executed via afyEngine and the afyDaemon dll/so the
-    DOCROOT envorinment variable is the only way to set the document
+    affinityd is executed via afyEngine and the afyDaemon dll/so/dylib, the
+    DOCROOT environment variable is the only way to set the document
     root).
 
     `-h` print usage help and exit.
@@ -160,15 +160,15 @@ HTTP keep-alive is supported.
 
 ## FILES
 
-    `affinity.db` and `afy*.txlog`, in a sub-directory of the document-root,
+    `affinity.store` and `afy*.txlog`, in a sub-directory of the document-root,
     named after the basic-auth user connecting with the server
     (the default sub-directory name is `test` if no basic-auth header
     was specified).
 
 ## AUTHOR
 
-Copyright VMware <affinity@vmware.com>
+Copyright GoPivotal <affinity-ng-privacy@gopivotal.com>
 
 ## SEE ALSO
 
-libaffinity(7), http://affinity.eng.vmware.com/
+libaffinity(7), http://affinityng.org/

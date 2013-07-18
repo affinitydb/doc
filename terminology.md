@@ -1,27 +1,38 @@
 #List of Terms (in Alphabetical Order)
-[ACL](#acl), [BLOB](#blob),
-[C++ interface](#c-kernel-interface), [class](#class), [client-side library](#client-side-libraries),
-[coercion](#coercion), [collection](#collection), [data model](#essential-concepts-data-model),
-[element ID (eid)](#element-id-eid), [encryption](#encryption), [family](#family), [identity](#identity),
-[index](#index), [kernel](#kernel), [namespace](#namespace), [notification](#notification),
+[ACL](#acl), [action](#action), [BLOB](#blob),
+[C++ interface](#c-kernel-interface), [CEP](#cep), [class](#class), [client-side library](#client-side-libraries),
+[coercion](#coercion), [collection](#collection), [communication PIN](#communication-pin), [condition](#condition),
+[data model](#essential-concepts-data-model),
+[element ID (eid)](#element-id-eid), [encryption](#encryption), [enumeration](#enumeration), [family](#family),
+[FSM](#fsm), [identity](#identity), [index](#index), [kernel](#kernel),
+[loader](#loader), [map](#map), [namespace](#namespace), [notification](#notification),
 [page](#page), [parameter](#parameter), [pathSQL](#pathsql), [PIN](#pin),
 [PIN ID (PID)](#pin-id-pid), [property](#property), [protocol-buffer](#protocol-buffer), [RDF](#rdf),
-[reference](#pin-reference), [replication](#replication), [server](#server), [snapshot isolation](#snapshot-isolation),
-[soft deletion](#soft-deletion-vs-purge), [SSV](#ssv), [uncommitted PIN](#uncommitted-pin),
+[reference](#pin-reference), [replication](#replication), [rule](#rule), [server](#server), [service](#service),
+[SSV](#ssv), [structure](#structure), [timer](#timer), [uncommitted PIN](#uncommitted-pin),
 [unit of measurement](#unit-of-measurement), [value](#value)
+<!-- [snapshot isolation](#snapshot-isolation) -->
 
 #Essential Concepts (Data Model)
-The key components of Affinity's data model are the following:
-[PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)), [collection](#collection), [class](#class).
+The key components of Affinity's data model can be presented on two layers:  
+
+  1. a base layer (plain "passive" data items): [PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)),
+     [collection](#collection), [class](#class)  
+  2. an active layer, <span class='pathsql_new'>NEW in AffinityNG</span> (components of this layer are built upon the base layer): [condition](#condition), [action](#action),
+     [rule](#rule), [FSM](#fsm), [CEP](#cep), [timer](#timer), [service](#service), [communication PIN](#communication-pin)  
+
+##Basic Components Of The Data Model
 
 ###PIN
 The PIN is Affinity's primary information node. It's the basic unit of data.
-It is somewhat analogous to the row of a relational table, the
-object of an object-oriented database, the node of a graph database or of XML's DOM,
+It is somewhat analogous to the object of an object-oriented programming language
+or database, the row of a relational table, the node of a graph database or of XML's DOM,
 the document of a document database etc.
-A PIN can contain many [properties](#property). Each property of a PIN can either hold a single (scalar) [value](#value),
-or an arbitrarily large [collection](#collection) of values. Unlike rdbms rows,
-PINs aren't constrained to any table, and can actually belong to many [classes](#class).
+A PIN can live in memory only, and can also be persistent - transitions between these two
+states is practically seemless, since the PIN's content access interface is the same in both cases.
+A PIN can contain many [properties](#property). Each property of a PIN holds a [value](#value),
+which can be a simple scalar, a collection, a map or a complex tree structure. 
+Unlike rdbms rows, PINs aren't constrained to any table, and can actually belong to many [classes](#class).
 Each PIN can describe its own unique structure (i.e. enumerate its [properties](#property)). 
 PINs can [refer](#pin-reference) to each other.
 Properties can be added to PINs (or removed) without limitation. Each PIN is 
@@ -36,7 +47,8 @@ not the amount of data that each property can contain_
 Properties are symbolic entities (names) that define the relationship between
 a [PIN](#pin) and its [values](#value). Properties
 define the structure of a PIN. A property, in Affinity, is somewhat analogous to
-the column name of a relational table, or to a predicate in [RDF](#rdf).
+the column name of a relational table, to a predicate in [RDF](#rdf), to the field
+of a structure in C, or to the property of an object in a standard object-oriented programming language.
 Property names can be composed of multiple sections, separated by a slash (/) character,
 following the same convention as URIs. This enables a practically infinite, semantically 
 coherent [namespace](#namespace) usable across multiple applications (which may not necessarily
@@ -65,13 +77,14 @@ community uses resources such as the following, to achieve similar goals:
 ###Value
 Like in any database, values can be numbers, strings, booleans, dates, times,
 [BLOBs](#blob) etc. A value can also be a [reference](#pin-reference) to another [PIN](#pin)
-(or to another [property](#property) of a PIN, or even to a specific collection [element](#element-id-eid)). There's also a
-data type attribute allowing to attach a physical [unit of measurement](#unit-of-measurement) to a value.
-In a future release, it will also be possible to define customized sub-structures (as values embedded in a PIN).
+(or to another [property](#property) of a PIN, or even to a specific collection [element](#element-id-eid)).
+At the programming level, the same value structure is also used to hold a [collection](#collection),
+a [structure](#structure) or a [map](#map). As a result, the full addressing model of a standard
+programming language is readily available in [pathSQL](#pathsql).
+Additionally, Affinity provides a data type attribute allowing to attach a physical [unit of measurement](#unit-of-measurement) to a value.
 Data types are described in detail [here](./pathSQL reference.md#data-types).
-At the programming level, the same value structure is also used to hold a [collection](#collection).
 In Affinity, every instance of a value is free to be of any type;
-Affinity may perform data type [coercion](#coercion).
+in some contexts Affinity may perform automatic data type [coercion](#coercion).
 
 ###Collection
 A collection is an ordered list of scalar [values](#value), held by a [PIN](#pin) via
@@ -79,12 +92,29 @@ a [property](#property). The values of a collection can be heterogeneous
 (they can have different types). Internally, each element of a collection is uniquely 
 identified by an immutable [Element ID (eid)](#element-id-eid). This design enables consistent interactions
 in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version.
-Small collections can be represented as arrays internally, and allow random access, 
-whereas very large collections must be traversed with an iterator
+Small collections (VT_ARRAY) can be represented as arrays internally, and allow random access, 
+whereas very large collections (VT_COLLECTION) must be traversed with an iterator
 (with the option of seeking to any known [eid](#element-id-eid)). 
 A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like
 plain values (additional control is provided). Collections also play a key role
 in other aspects of the data model, such as [ACLs](#acl).
+Collections are represented by either VT_COLLECTION or VT_ARRAY in [affinity.h](./sources/affinity_h.html).
+
+###Structure
+A structure is a set of labeled [values](#value), aka a set of [properties](#property).
+The structure is analogous to an embedded PIN (held "by value" by its owner PIN). Structures may contain
+substructures. Structures are represented by VT_STRUCT in [affinity.h](./sources/affinity_h.html).
+They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG (even though they were
+already a stealth feature in AffinityDB).
+<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
+
+###Map
+A map is an associative array (or dictionary) where both the value and the key itself are [values](#value).
+Unlike the [property](#property) of a [PIN](#pin), the key of a map is not limited to a symbolic entity:
+it can be anything. The map essentially opens up full access to Affinity's internal B-link tree.
+Maps are represented by VT_MAP in [affinity.h](./sources/affinity_h.html).
+They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG.
+<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
 
 ###Class
 The class is Affinity's main mechanism of data organization. It is very similar to the
@@ -96,7 +126,9 @@ in Affinity to achieve a similar organization. A class is a stored query predica
 (involving any number of [properties](#property)).
 It is most often defining an [index](#index), although this is not mandatory.
 Classes can be declared at any point in time (both earlier and later than the occurrence of PINs
-satisfying the predicate). Classes are named according to similar conventions as properties (using URIs).
+satisfying the predicate). 
+In pathSQL, classes are declared with [CREATE CLASS](./pathSQL reference [definition].md#create-class).
+Classes are named according to similar conventions as properties (using URIs).
 Unlike the 'classes' of programming languages such as C++ or java, 
 Affinity classes don't define static _types_, in the sense that they don't establish a binding
 contract with [PINs](#pin): a PIN can belong to a class during a part of its lifetime, 
@@ -106,6 +138,81 @@ triggers [notifications](#notification). Affinity defines a
 generalization of classes called [families](#family), but the term 'class' is often used 
 to represent both concepts. 'Category' may also be used
 as a synonym for 'class' (to avoid the static type connotation).
+
+##Active Components Of The Data Model
+Most of the material from this section is <span class='pathsql_new'>NEW</span> in AffinityNG.
+
+###Condition
+A condition is a predicate, i.e. an expression evaluating to true or false:
+"should condition X be met, do Y".  Conditions are of common usage in programming
+languages in general, and in SQL.  Those that are of particular interest
+in the context of the active layer of pathSQL are:  
+
+  1. the predicates of [classes](#class),
+  2. the conditions that define [rules](#rule), and
+  3. the conditions that define state transitions in [FSMs](#fsm), and
+     constitute building blocks for the regular expressions used in [CEP](#cep)  
+
+In pathSQL most conditions are expressed in a declarative or functional style
+(as opposed to imperative), for example by callback: the statements defined in the
+`afy:onEnter` property of a class are invoked automatically by Affinity when the class's
+`afy:predicate` evaluates to true for a given PIN.  
+
+###Action
+An action is a list of [DML](./pathSQL reference.md#dml) statements, invoked upon
+the satisfaction of a [condition](#condition). Examples of actions are the `afy:onEnter` property of a [class](#class),
+or the `afy:action` property of a [timer](#timer).
+Actions usually modify some state, either locally in the database, or externally
+via [communication PINs](#communication-pin). Actions can cause new [conditions](#condition)
+to evaluate to true, and thus trigger a chain of actions.
+
+###Rule
+A rule is a simple construct that binds a [condition](#condition) to an [action](#action).
+While [classes](#class) can be seen as a special category of rule, their declaration is less flexible,
+and classes also integrate the notion of index. In the alpha release of AffinityNG,
+rules are available as an implicit feature of [classes](#class). In an imminent update of the alpha release,
+a higher-level syntactic construct will also allow to easily reuse [conditions](#condition) and
+[actions](#action). The [reference](./pathSQL reference [definition].md#rule) describes how.
+<!-- TODO: review when available -->
+
+###FSM
+A Finite State Machine (FSM) is a very common computational model represented as a graph,
+where vertices are states and edges are transitions.  Any instance of a FSM operates on
+a specific set of PINs, that define its context.  The transitions are a special type of
+[rules](#rule), i.e. pairs of [conditions](#condition) and [actions](#action), that operate in that
+local context.  This provides a means of encapsulation, as well as a basis for the
+definition and recognition of [complex events](#cep).  Affinity's graph database engine
+makes it trivial to represent FSMs internally (and in pathSQL).  
+
+###CEP
+Complex Event Processing (CEP) is the ability to express and detect more complex
+correlations of events (i.e. [conditions](#condition) encountered at discrete points in time).
+In pathSQL, those correlations are described as a regular expression of a [FSM's](#fsm)
+transitions. CEP is not readily available in the alpha release of AffinityNG.
+<!-- TODO: review when available -->
+
+###Timer
+Timers invoke [actions](#action) at regular time intervals, in their own thread.
+The [reference](./pathSQL reference.md#create-timer) describes in detail how to declare timers.
+
+###Service
+A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity
+and providing additional building blocks for [communication PINs](#communication-pin).
+Those building blocks conform with the `Afy::IService` interface defined in
+[affinity.h](./sources/affinity_h.html).
+Affinity comes with a few built-in services; external services can be loaded
+via a [loader](#loader) statement.
+
+###Communication PIN
+Communication PINs are special PINs with dual personnality.
+Their "RAW" form (i.e. their plain and simple set of [properties](#property)
+and [values](#value)), defines the configuration of the communication.
+In pathSQL, once a communication PIN is inserted, its configuration can be examined or
+modified by adding the `RAW` keyword to `SELECT` or `UPDATE`.
+The second personnality, seen via non-decorated `SELECT` or `UPDATE`, is the active
+communication channel itself.  In that context, `SELECT` acts as a read, and
+`UPDATE` acts as a write.  The [reference](./pathSQL reference.md#communication-pins)
+describes communication PINs in more detail.
 
 #Related Concepts
 
@@ -144,6 +251,11 @@ those PINs that correspond with free [parameters](#parameter) in the predicate. 
 an "adult" _class_ (with the predicate "age >= 18"), or an "age_limit" _family_
 (with the predicate "age >= :0").
 
+###Enumeration
+An enumeration allows to declare inter-related symbolic values, without polluting the global namespace.
+This can be useful for managing states, options and conditions based on those.
+For a more detailed description, please visit the [reference](./pathSQL reference.md#create-enumeration).
+
 ### Parameter
 In the context of a class [family](#family), a parameter is an unspecified (free) value in the 
 definition of the predicate. It usually implies an [index](#index). Typically, this [value](#value) is provided at
@@ -158,6 +270,7 @@ The C++ interface allows to create uncommitted PINs in memory, that can be inter
 (thus minimizing the amount of disk io required, and maximizing opportunities for
 data compaction on [pages](#page)). The implementations supporting the [protocol-buffer](#protocol-buffer) streaming interface
 and [pathSQL](#pathsql) both create uncommitted PINs automatically, whenever possible.
+<!-- TODO: review to reflect recent evolution toward transient-first... -->
 
 ###PIN Reference
 A reference is a special [value](#value) type that allows to create explicit relationships between
@@ -187,7 +300,7 @@ or to create new data (in principle, the owner can also fetch data from another
 user's database and cache it locally, but this is not fully exposed in the current version).
 Each user is identified by name, and the store associates a numeric ID to each name
 (the numeric ID of the database owner is 0 (STORE_OWNER)). Within the context 
-of any specific database instance, a fully qualified [PID](#pin-id-pid)
+of any specific store instance, a fully qualified [PID](#pin-id-pid)
 contains the numeric ID of that [PIN](#pin)'s owner. Outside of that context
 (e.g. in serialized messages), the identity must be specified in textual
 form (there is no guaranty that two database instances will associate the same
@@ -213,12 +326,6 @@ ACL stands for "Access Control List". Affinity's data model allows to specify
 access rights on a per-[PIN](#pin) basis, for individual [identities](#identity).
 However, in the initial release of the Affinity package, multi-user scenarios
 are not fully enabled yet. 
-
-###Soft Deletion vs Purge
-[PINs](#pin) can be marked for deletion, while being preserved in the database.
-This reduces their accessibility through querying, while providing an opportunity to
-restore them later on. Note that deleted PINs can be retrieved with queries, 
-provided that MODE_DELETED is specified. Irreversible deletion is called "purge".
 
 ###Unit of Measurement
 Affinity provides a special [value](#value) attribute that allows to attach a physical
@@ -283,10 +390,11 @@ starting point of a messaging system between database instances.
 
 ###Replication
 Although several elements of Affinity's design take database replication
-into consideration, replication is not part of the initial release of Affinity.
+into consideration, replication is not a part of the AffinityNG release.
 Database replication is typically used to increase reliability and
 accessibility.
 
+<!--
 ###Snapshot Isolation
 Affinity uses the Read-Only multiversion [ROMV] protocol for read-only transactions,
 thus enabling non-blocking reads. This only applies to transactions that are explicitly
@@ -298,69 +406,77 @@ In contrast, plain read-write or read-only transactions (not explicitly marked a
 read-only by the caller) progress according to the 2-phase-locking protocol,
 and may in some cases read data items in a "newer" state than the corresponding explicit
 read-only transaction would.
+-->
+
+###Loader
+A loader is a declaration for an external [service](#service) dependency,
+in the form of a persistent [PIN](#pin). It binds a URI to the service and loads it on demand. 
+The pathSQL statement is [CREATE LOADER](./pathSQL reference [definition].md#create-loader).
 
 #Interfaces
 The [Affinity kernel library](#kernel) is written in C++, and provides a [C++ interface](#c-kernel-interface)
-directly talking to the kernel. In addition, it also proposes [pathSQL](#pathsql), and a [protocol-buffer](#protocol-buffer)-based
-streaming interface, both of which are better suited as client interfaces for remote access (e.g. through
-a [server](#server)). [Client-side libraries](#client-side-libraries) are also available.
+directly talking to the kernel. The main interface to Affinity is [pathSQL](#pathsql), in which it is possible
+to write complete programs, with the benefit of having no data translations between multiple representations
+(in memory, persistent, or for specialized procedural interfaces). Additionally, a [protocol-buffer](#protocol-buffer)-based
+streaming interface is provided, for efficient data transfers in machine-to-machine scenarios, or for the more traditional
+client-server case (either via the [server](#server) or via communication [services](#service)).
+[Client-side libraries](#client-side-libraries) are also available.
 
 ###C++ Kernel Interface
 [affinity.h](./sources/affinity_h.html) (along with a few extensions
 in [rc.h](./sources/rc_h.html), [startup.h](./sources/startup_h.html) and
 [units.h](./sources/units_h.html)) defines a self-contained, low-level interface directly
-connected to the Affinity kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), 
-plus a few constants and structures. The ISession interface represents a logical connection to 
-a database instance, and provides an entry point for every possible interaction. 
-It exposes the [pathSQL](#pathSQL) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
+connected to the Affinity kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces),
+for which implementations are provided by the kernel, plus a few constants and structures.
+The IAffinity interface represents a store instance, and allows to create interactive sessions.
+The ISession interface represents a logical connection to a store instance, and provides an entry point for every possible interaction. 
+It understands the [pathSQL](#pathsql) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
 At a lower level, query conditions and [class](#class) predicates can be defined using expression trees (IExprTree),
 which enable the embedding application to develop any desired query language
 (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation.
 [PINs](#pin) are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot
-of a PIN and related read-write activity to the database (in the context of one specific session).
-Since affinity.h is primarily a kernel integration interface (rather than a client interface), 
+of a PIN and related read-write activity to the store (in the context of one specific session).
+Since affinity.h is primarily a kernel integration interface (rather than the client interface in a client-server model), 
 most of the design decisions related with memory and reference management were
 taken by ranking performance implications with higher importance than ease of use. Here's
-a [link](./cplusplus.md) to more information.
+a [link](./interface [cplusplus].md) to more information.
 
 ###pathSQL
 pathSQL is the name of a dialect of SQL defined for Affinity.
-Here's a [link](./pathSQL primer.md) to more information.
+pathSQL provides complete, self-contained access to all passive and active
+aspects of AffinityNG.
+Here's a [link](./pathSQL basics [control].md) to more information.
 
 ###Protocol-Buffer
 Affinity provides a streaming interface based on Google's protocol-buffers:
 [affinity.proto](./sources/affinity_proto.html).
-This is one of the interfaces exposed by the [server](#server).
-Here's a [link](./protobuf.md) to more information.
+This is one of the interfaces exposed by the [server](#server),
+and also useful in machine-to-machine scenarios via [services](#service).
+Here's a [link](./interface [protobuf].md) to more information.
 
 ###Client-Side Libraries
-Although the [server](#server) makes it easy to talk to the store using [pathSQL](#pathsql),
-this traditional approach still implies a mapping process to translate
-structured objects on the client side into DML statements. The [protocol-buffer](#protocol-buffer) interface
+For the traditional client-server scenario, [pathSQL](#pathsql) still implies a mapping process to translate
+structured objects on the client side into DDL & DML statements. The [protocol-buffer](#protocol-buffer) interface
 provides a more direct means of expressing those structures to Affinity. The client-side libraries
 further facilitate the use of both interfaces, in the context of their specific programming language.
 The first release emphasizes [javascript](./sources/affinity-client_js.html) for node.js.
-Libraries for [python](./sources/affinity_py.html) and ruby are also available,
-and java and C++ are under development.
+Libraries for [python](./sources/affinity_py.html) and ruby are also available.
+Java is soon to be released, and C++ is under development for a future release.
 
 #Software Components
 The Affinity package contains the following components: the Affinity [kernel](#kernel) library,
+a set of built-in and external [services](#service),
 the database [server](#server) with its online console and documentation, 
 and some [client-side libraries](#client-side-libraries).
 
 ###Kernel
 The Affinity kernel library is the core component of the Affinity package. 
-It provides a comprehensive database engine that proposes a new, powerful, object-friendly
-[data model](#essential-concepts-data-model), while preserving many of the precious properties of relational database systems,
-such as a [SQL interface (pathSQL)](#pathsql), ACID transactions, logging and recovery, efficient [page](#page) management and
-B-link tree [indexing](#index), full-text indexing, etc.
-It is written in C++, and provides a number of [interfaces](#interfaces).
-This library could be embedded directly into an application.
 Most of the Affinity documentation focuses on various aspects of this component.
 
 ###Server
-This process is a database server that embeds the Affinity [kernel](#kernel). It understands the HTTP protocol,
+This process is a store access server that embeds the Affinity [kernel](#kernel). It understands the HTTP protocol,
 and accepts messages in [pathSQL](#pathsql) as well as [protocol-buffer](#protocol-buffer). It can return
-results in json format, or [protocol-buffer](#protocol-buffer) format. It is primarily
-a database server, but its HTTP interface allows it to act as a web server, for increased
-convenience. For more information, visit this [link](./Affinity server.md).
+results in json format, or [protocol-buffer](#protocol-buffer) format. It can also act as as a web server, for increased
+convenience. For more information, visit this [link](./server.md).
+In the near future, this process will be drastically simplified by substituting its custom implementation
+with generic [services](#service).

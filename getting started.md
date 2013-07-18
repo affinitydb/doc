@@ -18,9 +18,9 @@ These will be provided in a later release. In the meantime, it's possible to
 clone, build and run all projects manually.
 
 ##Simple Access
-The database [server](./terminology.md#server) process is called `affinityd`
+The store [server](./terminology.md#server) process is called `affinityd`
 and listens to HTTP requests on port `4560` by default. For more details on how to run
-and parametrize `affinityd`, please refer to the [server](./Affinity server.md) page,
+and parametrize `affinityd`, please refer to the [server](./server.md) page,
 or run `affinityd -h`.
 
 The server exposes a javascript online console at the root (e.g. `http://localhost:4560/`), 
@@ -29,7 +29,7 @@ which allows to navigate the contents of the store and modify data (same as what
 in a browser. The console can also help learning pathSQL.
 
 ##Quick pathSQL Guide
-Please find a quick guide [here](./pathSQL primer.md).
+Please find a quick guide [here](./pathSQL basics [control].md).
 
 ##Binary Components
 For an overview of the software components involved, please read this [page](./terminology.md#software-components).
@@ -38,13 +38,14 @@ Here's a short table summarizing the parts involved.
 File                             Description
 ---------------------------      -----------
 affinity.dll / libaffinity.so    The Affinity [kernel](./terminology.md#kernel) library
-affinityd[.exe]                  The database [server](./terminology.md#server)
+libxmlservice.so etc.            External [service](./terminology.md#service) libraries - <span class='pathsql_new'>NEW</span>
+affinityd[.exe]                  The store [server](./terminology.md#server)
 server/src/www                   The server's online console
-affinity-client.js               The client library for [node.js](./javascript.md)
+affinity-client.js               The client library for [node.js](./interface [javascript].md)
 affinity.py                      The client library for [python](./sources/affinity_py.html)
 
 ##Runtime Files
-For each distinct store created by `affinityd`, one file named `affinity.db` will be created. This is the data file.
+For each distinct store created by `affinityd`, one file named `affinity.store` will be created. This is the data file.
 Additionally, any number of files following the pattern `afy*.txlog` may be created, containing transactional
 logs for database logging & recovery. Upon a checkpoint or a clean shutdown, the `afy*.txlog` files are automatically deleted.
 

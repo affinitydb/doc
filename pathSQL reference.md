@@ -4,8 +4,8 @@ pathSQL is the name of a dialect of SQL defined for Affinity. The [Affinity data
 from the relational model, but pathSQL is designed to remain as close to SQL as possible. 
 This page presents a thorough survey of the language. It covers the
 elements of the [syntax](#pathsql-syntax), the [data types](#data-types) and the [operators](#functions-and-operators).
-It also provides a formal [BNF description](#statements-bnf) of the [DDL](#ddl) and [DML](#dml).
-For a quick practical overview, please visit the ["getting started"](./pathSQL primer.md) section.
+It also provides a formal [BNF description](#statements-bnf) of the [DDL](./pathSQL reference [definition].md) and [DML](./pathSQL reference [manipulation].md).
+For a quick practical overview, please visit the ["basics"](./pathSQL basics [control].md) section.
 
 It's easy to test any of these commands in the online console. Direct links to the console are provided in the documentation.
 
@@ -17,9 +17,9 @@ pathSQL supports the following token types: [keywords](#keywords), [identifiers]
 #### Keywords
 pathSQL's coverage of standard SQL keywords depends on functional areas.
 
-pathSQL supports most of the keywords related to common [DML](#dml) (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.
+pathSQL supports most of the keywords related to common [DML](./pathSQL reference [manipulation].md) (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.
 
-pathSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, Affinity introduces the [CLASS](#ddl) keyword.
+pathSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint.  However, Affinity introduces the [CLASS](./pathSQL reference [definition].md) keyword.
 
 pathSQL doesn't support any DSPL (Data Stored Procedure Language).  
 
@@ -64,7 +64,7 @@ Refer to [Functions and Operators](#functions-and-operators) for more details.
 #### Comments
 A comment is removed from the input stream before further syntax analysis.
 
-pathSQL supports 3 styles of comments:
+pathSQL supports 2 styles of comments:
 
 1. SQL-style: A sequence of characters beginning with double dashes (--) and extending to the end of the line, e.g.:   
 
@@ -76,16 +76,12 @@ pathSQL supports 3 styles of comments:
         * with nesting: /* nested block comment */
         */  
 
-3. SPARQL-style: A sequence of characters beginning with number sign (\#) and extending to the end of the line, e.g.:
-
-        # This is a SPARQL comment
-
 #### Special Characters
 Some non-alphanumeric characters have special meaning, without being [operators](#operators).
 
 Some cases are extensions specific to pathSQL:
 
-1. The dollar sign ($), followed by digits, is used to represent a positional [_property_](./terminology.md#property) in the body of a statement or class definition. Other uses are ${statement} and $(expression), to indicate a statement/expression variable. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.   
+1. The dollar sign ($), followed by digits, is used to represent a positional [_property_](./terminology.md#property) in the body of a statement or class definition. Other uses are \${statement} and $(expression), to indicate a statement/expression variable. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.   
 2. The colon (:), followed by digits, is used to represent a positional [_parameter_](./terminology.md#parameter) in the body of a statement or class definition. The colon is also used in [QNames](#qnames).   
 3. The period (.) can be used to separate store, class, and property names (in path expression). It can also be part of numerical constants.   
 4. Brackets ({}) are used to select the elements of a collection, or to create new collections.    
@@ -146,7 +142,7 @@ In other contexts, the dollar sign can be part of an identifier (or a dollar-quo
 
 This feature is not self-contained in pathSQL. It implies a special invocation of the underlying kernel functions 
 (e.g. `IStmt::createStmt` or `IStmt::execute`), allowing to provide the property names separately.
-Please refer to the [HTTP GET](./Affinity server.md#http-get-support) section of the server documentation.
+Please refer to the [HTTP GET](./server.md#http-get-support) section of the server documentation.
 This could be used to enhance efficiency, or to prevent SQL injection attacks.
 
 #### Positional Parameters
@@ -341,7 +337,7 @@ This is an internal, transient type used primarily in C++, to build expression t
 expressions (EXPR).
 
 ### QUERY (query statement)
-Format:  ${statement}  
+Format:  \${statement}  
 
 QUERY is similar to EXPR, but for a whole statement.
 
@@ -620,11 +616,16 @@ Sample: [full_text_search.sql](./sources/pathsql/full_text_search.html).
 
 ### EXTRACT(unit FROM date) 
 Extract the unit part of the date/time/timestamp.  
-The possible units are: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND.  
+The possible units are: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND and FRACTIONAL.  
 
-### CAST(expr AS type) 
-Convert expr to the specified type.
-The type name can be any type supported by Affinity.  
+### CAST Function
+
+Expreesion                    Description
+----------                    -----------
+CAST(expr AS TypeName)	      SQL compatible format: cast 'expr' to specific type name which is described at the [data types](#data-types).
+CAST(expr, TypeNumber)        Internal format: the second param is type number which is defined at enum ValueType in file "kernel\include\affinity.h"
+CAST(expr AS UnitName)        Cast 'expr' to specific[units](./terminology.md#unit-of-measurement), and convert the type to[double](#double)-precision floating point numbers
+CAST(expr AS UnitName.f)      Cast 'expr' to specific[units](./terminology.md#unit-of-measurement), and convert the type to[float](#float)-precision floating point numbers
 
 ### COALESCE
 
@@ -649,11 +650,25 @@ Sample: [exists.sql](./sources/pathsql/exists.html)
 ### ANY/SOME/ALL qualifier
 These qualifiers can only be used as right operands of the binary comparison operators. E.g.
 
-Sample                   Description    
-------                   -----------
-val < ANY (list)         return true if val< any element of the list, otherwise return false.
-val < SOME(list)         some as "val < ANY (list)"
-val < ALL (list)         return true if val< all element of the list, otherwise return false.
+Sample                   			    Same as 									Description    
+------------------------------------    ---------------------------------------		------------------------------------------------------------
+val<ANY(Expr1, Expr2, ..., ExprN)       A<Expr1 AND A<Expr2 AND ... AND A<ExprN		return true if any "A<Expr" is true, otherwise return false.
+val<SOME(Expr1, Expr2, ..., ExprN)		val<ANY(Expr1, Expr2, ..., ExprN)
+val<ALL(Expr1, Expr2, ..., ExprN)       A<Expr1 OR A<Expr2 OR ... OR A<ExprN 		return true if all "A<Expr" is true, otherwise return false.
+
+It is more complex when taking NULL into consideration. E.g.
+
+"A<ALL(Expr1, Expr2, ..., ExprN)"
+
+1. If one of the condition "A<Expr" is false, then it return false;
+2. Else if one of the Expr is NULL, then the "A<Expr" is NULL, then finally it return NULL;
+3. Else if (Expr1, Expr2, ..., ExprN) is a empty result of sub-query, i.e. there is no items of Expr, then it return TRUE.(Here return TRUE is to make distinction from the above 2 cases.)
+
+"A=ANY(Expr1, Expr2, ..., ExprN)" same as "A=SOME(Expr1, Expr2, ..., ExprN)" and "A IN (Expr1, Expr2, ..., ExprN)"
+
+1. If one of the condition "A=Expr" is true, then it return true;
+2. Else if one of the Expr is NULL, then the "A=Expr" is NULL, then finally it return NULL;
+3. Else if (Expr1, Expr2, ..., ExprN) is a empty result of sub-query, i.e. there is no items of Expr, then it return FALSE. (Here return FALSE is to make distinction from the above 2 cases.)
 
 Sample: [collection_operators.sql](./sources/pathsql/collection_operators.html)
 
@@ -662,7 +677,6 @@ Sample: [collection_operators.sql](./sources/pathsql/collection_operators.html)
 Operator                         Description
 --------                         -----------
 DISTINCT list                    return the list of values after eliminating the duplicate values. In the case of a list of pins, comparison is based on PIDs.
-DISTINCT VALUES pins             return the list of values after eliminating the duplicate values of PINs (excluding PIDs).
 ALL list                         return the list of values without eliminating duplicates.
 
 There are three contexts where to use these qualifiers:
@@ -735,7 +749,7 @@ BETWEEN...AND...      left                range containment
 NOT                   right               logical negation 
 AND                   left                logical conjunction 
 OR                    left                logical disjunction
-${}                   right               query
+\${}                   right               query
 
 
 Statements (BNF)
@@ -785,271 +799,8 @@ Additional option names for CREATE:
 
 Options can be specified in any order.   
 
-
 ### DDL
-Here's a description of pathSQL's Data Definition Language.
-
-#### CREATE CLASS
-Synopsis:  
-
-  - CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement.
-
-where the query_statement is a [SELECT QUERY](#query). Here's a description of the OPTIONS:  
-
-  - DEFAULT: This is the default mode (all [PIDs](./terminology.md#pin-id-pid) will be indexed by this class).  
-  - VIEW: Like view in relational db, it is just a query definition for usability.  
-  - CLUSTERED: Using clustered index to maintain all [PIDs](./terminology.md#pin-id-pid), for increased performance. Not yet implemented.  
-  - SOFT_DELETE: Create an index not only for normal pins, but also for those pins marked as deleted (but not purged).  
-
-Examples: [class.sql](./sources/pathsql/class.html).   
-
-The "IS A" operator can be used to check whether or not a pin belongs to a class. For example, those two statements are equivalent:  
- 
-        SELECT * WHERE afy:pinID IS A class1;  
-        SELECT * FROM class1;  
-
-#### Creating a [class family](./terminology.md#family)  
-
-        CREATE CLASS clsfml11 AS select * where prop1 = :0 and prop2 = :1;    
-        select * from clsfml11(*, 2);    
-
-Here * indicates all values, including NULL. In this case, the [index](./terminology.md#index) is created with the composite key(prop1 and prop2)  
-
-**Limitation 1**: The kernel uses a BTree to store indexes, and can't store a PIN whose properties are all NULL. 
-NULL can be passed as a parameter to a class family only when the index for this class family is a multi-segment index.
-Single-property indexex cannot support NULL parameters.
-For performance reasons, it is recommended not to create a class family with only one parameter passed to the where clause, such as: `WHERE :0 is NULL`.
-
-**Limitation 2**: There's a sytactic restriction on the order of parameters in class predicates. For example, Affinity cannot create an index for `:0 = value`,
-but `value = :0` is fine.
-
-*Note*: Affinity can ignore superfluous parameters, i.e. the user can pass more parameters than used in the predicate.
-
-Please refer to the [class](./terminology.md#class), [family](./terminology.md#family) and [indexing](./terminology.md#index) descriptions for
-a brief comparison with the relational DDL. Note that it is possible to declare multiple families with the same predicate, and different
-type specifications:
-
-        CREATE CLASS clsfml21 AS select * where prop1 = :0(int);  
-        CREATE CLASS clsfml22 AS select * where prop1 = :0(String); 
-
-In this case, if a PIN's prop1 is a string which cannot be converted into a number, then it won't be part of clsfml21.
-
-If the parameter type is not specified, then the class family index is created with a typeless index, preserving
-the original type of data items, and performing implicit coercions at evaluation time.  
-
-All class options work for class families as well, except SOFT_DELETE. 
-
-##### Indexing Of Collections 
-For single-property indexes, all elements will be added to the index.  
-For multi-segment indexes, all combinations will be added to the index (Cartesian product of all values of the indexed properties).  
-
-##### How To Specify Key Value Order For Index
-The available options are:  
-
-  - ASC:  Sort keys in ascending order.  
-  - DESC: Sort keys in descending order.  
-  - NULLS FIRST: Order the null values (e.g. absent property) before any non-null value.  
-  - NULLS LAST: Order the null values after any non-null value.  
-
-Example:  
-
-        CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
+A description of pathSQL's [Data Definition Language](./pathSQL reference [definition].md).  
 
 ### DML
-Here is a description of pathSQL's Data Manipulation Language.  
-
-#### INSERT
-Synopsis:  
-
-  - INSERT (property [, ...]) VALUES ( expression [, ...] ) [, ...]   
-  - INSERT property = expression [, ...]  
-  - INSERT SELECT ...  
-
-Examples: [insert.sql](./sources/pathsql/insert.html).
-
-*Note*: pathSQL does not yet support the insertion of graphs (with cycles) in a single statement; the C++ interface does.  
-
-#### UPDATE
-Synopsis:  
-
-  - UPDATE [{pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] actions [WHERE conditions]  
-
-where *actions* can be:  
-
-  - {SET|ADD} property = expression [, ...]  
-  - DELETE property [, ...]   
-  - RENAME property = new_property [, ...]  
-  - MOVE collection_property[element_id] {BEFORE|AFTER|TO} {element_id|LAST_ELEMENT|FIRST_ELEMENT}  
-  - EDIT ...  
-
-and *pin_reference* can be:
-  
-  - a pin reference (@PID, e.g. @D001). *Note*: when the UPDATE statement is used as a value of a property of type QUERY, then the AT sign (@) can be used to denote the PIN ID which is being processed.  
-  - a collection of pin references with format: { @PID[, ...] }, such as {@D001, @D002}.  
-
-and *expression_as_param* can be any [expression](#value-expressions).  
-
-Examples: [update.sql](./sources/pathsql/update.html).  
-
-Notes:  
-
-1. UPDATE {SET|ADD} a non-existing property: add a property   
-2. UPDATE SET an existing property: change the value of that property (if the property is a collection, overwrite the whole collection)   
-3. UPDATE ADD an existing property: append a new value to that property (if the property only has one value, then change the type to collection, and append the new value)  
-
-Also pathSQL supports C-style operation-assignments `op=`, where op is one of +,-,*,/,%,&,|,^,<<,>>,>>>,min,max,||. For example:  
-        
-        UPDATE * SET prop+=1;
-
-Any reference to a non-existing property will make the query return without any result set. In order to skip those PINs missing the property, you can use 
-'!' modifiers in UPDATE, and only process those PINs which include that property using the '?' modifiers, such as:  
-        
-        UPDATE * SET prop!=0, prop?+=1;
-
-This statement will update all PINs: for PINs without "prop" property, it will add this property; for PINs already having "prop", it will increment its value.
-
-#### DELETE/UNDELETE/PURGE   
-Synopsis:  
-
-  - {DELETE|UNDELETE|PURGE}  
-    [FROM {pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}]  
-    [WHERE conditions]  
-
-where
-
-  - DELETE:    Mark PINs in deleted status ("soft delete").  
-  - UNDELETE:  Change from deleted status to normal active status.  
-  - PURGE:     Permanently delete PINs from the physical disk (note: cannot remove PINs in deleted status).  
- 
-Examples: [delete.sql](./sources/pathsql/delete.html).  
-
-### QUERY
-
-Synopsis: 
-
-  - SELECT [ * | {property_name [AS new_name] } [, ...] ]  
-    [ FROM from_item [, ...] ]  
-    [ WHERE conditions ]  
-    [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]  
-    [ HAVING conditions ]  
-    [ { UNION | INTERSECT | EXCEPT } [ ALL ] select ]  
-    [ ORDER BY {property_name | expression | position} [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] ]  
-
-where *from_item* can be one of:
-  
-  - pin_reference
-  - class_name 
-  - class_family_name({expression_as_param| *| NULL}, ...) 
-  - path expression
-  - from_item join_type from_item [ ON join_condition | USING ( join_column [, ...] ) ]
-  - sub_query AS alias_name
-  - from_item AS alias_name
-
-and *join_type* can be one of:
-
-  - [ INNER ] JOIN
-  - LEFT [ OUTER ] JOIN
-  - RIGHT [ OUTER ] JOIN
-  - FULL [ OUTER ] JOIN
-  - CROSS JOIN
-
-#### Alias name in FROM clause
-A substitute name for the FROM item containing the alias. An alias is used for brevity or to eliminate ambiguity for self-joins (where the same table is scanned multiple times). 
-When an alias is provided, it completely hides the actual name of the class or family; for example given FROM foo AS f, the remainder of the SELECT must refer to this FROM item as f, not foo.
-
-#### Order by
-Examples: [orderBy.sql](./sources/pathsql/orderBy.html).   
-
-  - ORDER BY must appear after ALL the unionsbut .  
-  - ORDER BY is considered to apply to the whole UNION result (it's effectively got lower binding priority than the UNION).  
-
-To order a subquery result, use parentheses around the subquery.  
-
-*Notes*:  
-1. In order to include null values, NULLS FIRST/LAST must be added to the ORDER BY clause. 
-2. The default behavior is order by ASC, without NULL value PINs.
-
-#### Group by
-Examples: [groupBy.sql](./sources/pathsql/groupBy.html).   
-
-#### Set Operators: UNION | INTERSECT | EXCEPT
-Examples: [set_operator.sql](./sources/pathsql/set_operator.html).   
-
-The functionality of all these set operators is similar to standard SQL, 
-except that Affinity does not require that all operands have same number of properties or types. 
-Duplicates are identified based on [PIN ID](./terminology.md#pin-id-pid) instead of property value, which is differnt from standard SQL.
-
-The keyword DISTINCT/ALL can be used to eliminate duplicates.
-
-#### Join
-Affinity returns immutable PIN collections as query results.
-
-        SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
-
-Affinity supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the natural JOIN.
-
-Examples: [join.sql](./sources/pathsql/join.html).   
-
-#### Sub query in FROM clause
-This is not yet supported.
-
-In a future release, when a sub-SELECT appears in the FROM clause, it will act as though its output were created as a temporary table for the duration of this single SELECT command. 
-Note that a sub-SELECT must be surrounded by parentheses. 
-
-### Inheritance
-Affinity's classification model lets a PIN belong to multiple classes, and also allows to define a hierarchy of classes, such as:
-
-        CREATE CLASS Person AS SELECT * WHERE EXISTS(firstname) OR EXISTS(lastname);
-        CREATE CLASS Taxpayer AS SELECT * FROM Person;
-
-Examples: [inheritance.sql](./sources/pathsql/inheritance.html). 
-
-#### How to query only PINs belonging to 2 classes
-
-There are 2 ways:  
-
-  - Using built-in property afy:pinID in WHERE CLAUSE, e.g. SELECT * WHERE class1.afy:pinID=class2.afy:pinID.
-  - Using operator & for class names in FROM CLAUSE, e.g.  SELECT * FROM class1 & class2.
-
-### TRANSACTIONS
-Affinity not only supports basic transactions, but also sub-transactions.
-The session holds a transaction stack.  Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction).
-Changes are committed to the database only when the outermost transaction in the stack is committed.  
-
-Examples: [transaction_basic.sql](./sources/pathsql/transaction_basic.html).  
-
-#### Start a Transaction
-START TRANSACTION is used to start a transaction/sub-transaction block.
-
-Synopsis: 
-
-  - START TRANSACTION [ transaction_mode [, ...] ]
-
-where transaction_mode is one of:  
- 
-  - ISOLATION LEVEL { READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ  | SERIALIZABLE }   
-  - READ ONLY |READ WRITE  
-
-Examples:  
-[transaction_readonly.sql](./sources/pathsql/transaction_readonly.html),
-[transaction_sub.sql](./sources/pathsql/transaction_sub.html).   
-
-Note:     
-1. Affinity doesn't support isolation level READ UNCOMMITTED.  
-2. When READ ONLY is specified, no operation in this transaction must write, otherwise the transaction will fail.  
-3. When READ ONLY is specified, Affinity uses the Read-Only Multi-Version Concurrency Control (ROMV), which will not block (or be blocked by) any read/write transaction.  
-
-#### End a Transaction
-##### COMMIT
-Synopsis: 
-
-  - COMMIT [ALL]; 
-
-If ALL is specified, then Affinity will commit the whole stack of transactions (started in the current session), otherwise it only commits the innermost transaction/sub-transaction block in the stack.    
-
-##### ROLLBACK
-Synopsis: 
-
-  - ROLLBACK [ALL];  
-    
-If ALL is specified, then Affinity will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.    
+A description of pathSQL's [Data Manipulation Language](./pathSQL reference [manipulation].md).  

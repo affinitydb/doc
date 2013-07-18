@@ -39,7 +39,7 @@ multiple instances of a connection.
 
 The connection must be terminated by calling `terminate`.
 
-Her's a link to more information [about streaming and pagination](./protobuf.md#about-streaming-and-pagination).
+Here's a link to more information [about streaming and pagination](./interface [protobuf].md#about-streaming-and-pagination).
 
 ##pathSQL Access with JSON Response
 This access path is self-sufficient and will feel most natural to people with SQL experience.
@@ -76,7 +76,7 @@ This access path complements pathSQL by allowing to create, retrieve and modify
 
 Our philosophy is different from traditional object-oriented database systems,
 and similar to many recent graph and document databases:
-distinct data objects are used to interact with the database, with no attempt
+distinct data objects are used to interact with the store, with no attempt
 to interfere with the application's run-time object model. In other words, we
 don't emulate the automatic object mapping of object-oriented databases,
 and the developer is not expected to _subclass_ `PIN`, but rather to _use_

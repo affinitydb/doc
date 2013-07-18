@@ -1,12 +1,18 @@
 #Introduction
-Welcome to Affinity!
+Welcome to AffinityNG, the "next generation" edition of Affinity (alpha release)!  
 
-Affinity is a new open-source database kernel,
-licensed under the Apache License, Version 2.0.
+AffinityNG is licensed as open-source software under the Apache License, Version 2.0.  
 
-For an overview of the philosophy behind Affinity, visit the [FAQ](./FAQ.md).
-There's also a list of [features](./features.md), and an assessment of Affinity's
-comparative [strengths](./strengths.md).
+AffinityNG is a universal embedded *platform* for information processing, control and communication,
+with a graph database at its heart. [pathSQL](./terminology.md#pathsql) programs are stored as
+[PINs](./terminology.md#pin) alongside plain data.  
+
+###Where To Find Information
+For an overview of AffinityNG, please have a look at this
+[presentation](../promo/ddos.html).  Additional context is available in the [FAQ](./FAQ.md), list of [features](./features.md),
+and assessment of Affinity's [strengths](./strengths.md).
+
+<!-- TODO: ddos.html is actually not too bad but let's refresh it with Mark's latest prez contents -->
 
 The page on [terminology](./terminology.md) can be used as introductory material,
 to assimilate the terms and concepts in Affinity. In particular, it quickly describes
@@ -15,18 +21,22 @@ and the [software components](./terminology.md#software-components) in the Affin
 documentation, which points to it as a unified reference. Finally, it contains
 an alphabetically ordered [list of terms](./terminology.md#list-of-terms-in-alphabetical-order), for quick lookup.
 
-The documentation contains a few introductory sections:  
+The documentation contains introductory documents with a lot of code examples:  
 
 1. [setup](./getting started.md)  
-2. [pathSQL primer](./pathSQL primer.md)  
-3. [javascript interface for node.js](./javascript.md)  
+2. [pathSQL basics: control](./pathSQL basics [control].md) - <span class='pathsql_new'>NEW</span>  
+3. [pathSQL basics: data](./pathSQL basics [data].md)  
 
-It also contains references:  
+It also contains reference material:  
 
 1. [pathSQL reference](./pathSQL reference.md)  
-2. [Affinity server](./Affinity server.md)  
-3. [Affinity kernel's C++ interface](./cplusplus.md)  
-4. [protobuf interface](./protobuf.md)  
+2. [pathSQL communications](./pathSQL reference [definition].md#communication-pins) - <span class='pathsql_new'>NEW</span>  
+3. [server](./server.md)  
+4. [javascript interface for node.js](./interface [javascript].md)  
+5. [protobuf interface](./interface [protobuf].md)  
+6. [kernel (C++ interface)](./interface [cplusplus].md)  
+
+You can also navigate using the table of contents in the combo on the upper-right corner of each page.  
 
 Some pages point directly to examples in the source-code, e.g. [affinity.proto](./sources/affinity_proto.html).
 
