@@ -32,7 +32,8 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    to select the PIN's ID, one must now do `SELECT afy:pinID FROM ...`.  Note also that `SELECT afy:pinID`
    no longer produces a reference in the JSON output (`['afy:pinID']['$ref']`), but rather a simple `id`.
  * `afy:ClassOfClasses`: This special class was renamed to `afy:Classes`.
- * `afy:classID`: This special property (aka `PROP_SPEC_CLASSID`) was replaced by the more general `afy:objectID`.
+ * `afy:classID`: This special property (aka `PROP_SPEC_CLASSID`) was replaced by the more general
+   `afy:objectID` (`PROP_SPEC_OBJID`).
  * `afy:URI`: This special property (aka `PROP_SPEC_URI`) was replaced by the more general `afy:objectID`.
  * `UPDATE ... FROM x`: This form is no longer supported; it was replaced with `UPDATE x ...`.
  * Full text indexing is no longer enabled by default; to reflect this, the `META_PROP_NOFTINDEX` flag
@@ -53,6 +54,8 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    (e.g. service registration).
  * In the C++ interface, `createPIN` and `createUncommittedPIN` changed names, for `createPINAndCommit`
    and `createPIN` (this is to reflect AffinityNG's preference for in-memory processing by default).
+   The notion of batch insert has been distinguished from the broader topic of in-memory PINs,
+   and a new interface was introduced for batch insert specifically: `IBatch`.
  * The PIN's update stamp is now represented by an optional built-in property (`afy:stamp` aka PROP_SPEC_STAMP),
    and is no longer accessible via the C++ `IPIN::getStamp`. The `afy:stamp` property must be added explicitly
    at PIN creation, in the same manner as `afy:updated`, `afy:created` etc.
@@ -60,8 +63,14 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    by setting the `META_PROP_PART` flag on that referencing property.  Alternatively, `VT_STRUCT`
    (expressed in pathSQL with `INSERT mystruct={field1='Value1', field2='Value2', ...}`) can be used
    to hold structured parts even closer to the owning PIN.
+ * A number of smaller changes were made in the C++ interface, such as `STORE_INVALID_PROPID` being
+   renamed to `STORE_INVALID_URIID`, `ClassSpec` to `SourceSpec`, `ISession::alloc` to `ISession::malloc`,
+   the `AfyDB` namespace renamed to `Afy`, etc.
  * The output of `SELECT HISTOGRAM(property) FROM ...` changed slightly, and now contains an `afy:aggregate` property.
  * The old `ACL_READ` and `ACL_WRITE` have become standard `META_PROP_READ` and `META_PROP_WRITE`.
+ * `ISession::setURIAlias` has been removed.
+ * Most state held by a an `ISession` was migrated to a different scope; the session is practically
+   stateless now, except for its transaction stack.
  * `CLASS_CLUSTERED` and `CLASS_UNIQUE` are no longer available.
  * A few other rarely or never used `META_PROP_*` and `PIN_*` flags were removed.
  * The usage of referencing (\&) and dereferencing (\*) operators in pathSQL was simplified.

@@ -108,6 +108,7 @@ We expect AffinityNG to be used as an operating system, with programs written in
 For more traditional use cases, [client libraries](./terminology.md#client-side-libraries) are also provided,
 for javascript (in the context of node.js), ruby, python and soon java.
 The kernel can also be embedded directly into an application, via its C++ interface.
+
 <!-- TODO: update as soon as java lib will be thoroughly reviewed and copied to github -->
 
 ### What other features does Affinity have?

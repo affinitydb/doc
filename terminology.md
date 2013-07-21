@@ -11,6 +11,7 @@
 [reference](#pin-reference), [replication](#replication), [rule](#rule), [server](#server), [service](#service),
 [SSV](#ssv), [structure](#structure), [timer](#timer), [uncommitted PIN](#uncommitted-pin),
 [unit of measurement](#unit-of-measurement), [value](#value)
+
 <!-- [snapshot isolation](#snapshot-isolation) -->
 
 #Essential Concepts (Data Model)
@@ -106,6 +107,7 @@ The structure is analogous to an embedded PIN (held "by value" by its owner PIN)
 substructures. Structures are represented by VT_STRUCT in [affinity.h](./sources/affinity_h.html).
 They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG (even though they were
 already a stealth feature in AffinityDB).
+
 <!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
 
 ###Map
@@ -114,6 +116,7 @@ Unlike the [property](#property) of a [PIN](#pin), the key of a map is not limit
 it can be anything. The map essentially opens up full access to Affinity's internal B-link tree.
 Maps are represented by VT_MAP in [affinity.h](./sources/affinity_h.html).
 They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG.
+
 <!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
 
 ###Class
@@ -173,6 +176,7 @@ and classes also integrate the notion of index. In the alpha release of Affinity
 rules are available as an implicit feature of [classes](#class). In an imminent update of the alpha release,
 a higher-level syntactic construct will also allow to easily reuse [conditions](#condition) and
 [actions](#action). The [reference](./pathSQL reference [definition].md#rule) describes how.
+
 <!-- TODO: review when available -->
 
 ###FSM
@@ -189,11 +193,12 @@ Complex Event Processing (CEP) is the ability to express and detect more complex
 correlations of events (i.e. [conditions](#condition) encountered at discrete points in time).
 In pathSQL, those correlations are described as a regular expression of a [FSM's](#fsm)
 transitions. CEP is not readily available in the alpha release of AffinityNG.
+
 <!-- TODO: review when available -->
 
 ###Timer
 Timers invoke [actions](#action) at regular time intervals, in their own thread.
-The [reference](./pathSQL reference.md#create-timer) describes in detail how to declare timers.
+The [reference](./pathSQL reference [definition].md#create-timer) describes in detail how to declare timers.
 
 ###Service
 A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity
@@ -263,14 +268,12 @@ query time. For example, using pathSQL, one could define: <pre>'CREATE CLASS age
 and then query with <pre>'SELECT * FROM age_limit(18);'</pre>
 
 ###Uncommitted PIN
-This concept is more or less invisible, depending on the interface used to talk to Affinity.
-An uncommitted [PIN](#pin) is a representation that is not yet stored in the database.
-The C++ interface allows to create uncommitted PINs in memory, that can be inter-connected
-(and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction
-(thus minimizing the amount of disk io required, and maximizing opportunities for
-data compaction on [pages](#page)). The implementations supporting the [protocol-buffer](#protocol-buffer) streaming interface
-and [pathSQL](#pathsql) both create uncommitted PINs automatically, whenever possible.
-<!-- TODO: review to reflect recent evolution toward transient-first... -->
+This terminology is deprecated. An uncommitted PIN designates a PIN that is not persisted.
+In AffinityNG, a large proportion of PINs may never be persisted (e.g. some may represent
+sample values of which only an aggregated value will be persisted, others may represent
+messages only meant to propagate events between sub-systems). AffinityNG distinguishes
+the concept of PINs living in memory only, from the loosely related concept of inserting PINs
+by batches (see [`IBatch`](./interface [cplusplus].md#ibatch)).
 
 ###PIN Reference
 A reference is a special [value](#value) type that allows to create explicit relationships between

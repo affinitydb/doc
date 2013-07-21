@@ -216,7 +216,7 @@ Regular expressions in text manipulations:
       SELECT _retest AS result2 WHERE _retest SIMILAR TO &#47;.&#42;Mike&#47;;
   </code>
 
-  and soon... <span style='color:red;'>TODO: probably convert this into an example using the regex service, once bug #405 is fixed</span>
+  and soon... <!-- TODO: probably convert this into an example using the regex service, once bug #405 is fixed -->
 
   <code class='pathsql_inert'>INSERT CASE WHEN (SELECT ...) SIMILAR TO &#47;^value=([0-9]+), distance=([0-9]+), clock=([0-9]+)&#47;<br>
       THEN {sensor=@50005, movement=&#47;1, distance=CAST(&#47;2 AS m), time=CURRENT_TIMESTAMP, sclock=&#47;3}<br>

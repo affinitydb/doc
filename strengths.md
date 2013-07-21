@@ -59,6 +59,7 @@ Many of the [strengths](#strengths-of-the-database-core) of the database core
 contribute to making data transformations very natural in AffinityNG. In an environment
 with unbounded numbers of devices and formats, data transformations
 are of paramount importance to building sucessful networks of things.
+
 <!-- TODO: expand with concrete examples -->
 
 ##Full Introspection
