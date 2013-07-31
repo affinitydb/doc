@@ -1,8 +1,8 @@
-#List of Terms (in Alphabetical Order)
+#List of Terms
 [ACL](#acl), [action](#action), [BLOB](#blob),
 [C++ interface](#c-kernel-interface), [CEP](#cep), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [communication PIN](#communication-pin), [condition](#condition),
-[data model](#essential-concepts-data-model),
+[data model](#essentials-data-model),
 [element ID (eid)](#element-id-eid), [encryption](#encryption), [enumeration](#enumeration), [family](#family),
 [FSM](#fsm), [identity](#identity), [index](#index), [kernel](#kernel),
 [loader](#loader), [map](#map), [namespace](#namespace), [notification](#notification),
@@ -14,7 +14,7 @@
 
 <!-- [snapshot isolation](#snapshot-isolation) -->
 
-#Essential Concepts (Data Model)
+#Essentials (Data Model)
 The key components of Affinity's data model can be presented on two layers:  
 
   1. a base layer (plain "passive" data items): [PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)),
@@ -22,7 +22,7 @@ The key components of Affinity's data model can be presented on two layers:
   2. an active layer, <span class='pathsql_new'>NEW in AffinityNG</span> (components of this layer are built upon the base layer): [condition](#condition), [action](#action),
      [rule](#rule), [FSM](#fsm), [CEP](#cep), [timer](#timer), [service](#service), [communication PIN](#communication-pin)  
 
-##Basic Components Of The Data Model
+##Data Model: Basic Components
 
 ###PIN
 The PIN is Affinity's primary information node. It's the basic unit of data.
@@ -37,7 +37,8 @@ Unlike rdbms rows, PINs aren't constrained to any table, and can actually belong
 Each PIN can describe its own unique structure (i.e. enumerate its [properties](#property)). 
 PINs can [refer](#pin-reference) to each other.
 Properties can be added to PINs (or removed) without limitation. Each PIN is 
-uniquely identified by a [PIN ID](#pin-id-pid).
+uniquely identified by a [PIN ID](#pin-id-pid). Also <span class='pathsql_new'>NEW in AffinityNG</span>,
+a PIN can be [named](./pathSQL basics [data].md#named-pins).
 
 _Note: the theoretical maximum number of properties per PIN is related with the configured
 [page](#page) size - typically, in the order of thousands of properties
@@ -142,7 +143,7 @@ generalization of classes called [families](#family), but the term 'class' is of
 to represent both concepts. 'Category' may also be used
 as a synonym for 'class' (to avoid the static type connotation).
 
-##Active Components Of The Data Model
+##Data Model: Active Components
 Most of the material from this section is <span class='pathsql_new'>NEW</span> in AffinityNG.
 
 ###Condition
@@ -170,14 +171,11 @@ via [communication PINs](#communication-pin). Actions can cause new [conditions]
 to evaluate to true, and thus trigger a chain of actions.
 
 ###Rule
-A rule is a simple construct that binds a [condition](#condition) to an [action](#action).
-While [classes](#class) can be seen as a special category of rule, their declaration is less flexible,
-and classes also integrate the notion of index. In the alpha release of AffinityNG,
-rules are available as an implicit feature of [classes](#class). In an imminent update of the alpha release,
-a higher-level syntactic construct will also allow to easily reuse [conditions](#condition) and
-[actions](#action). The [reference](./pathSQL reference [definition].md#rule) describes how.
-
-<!-- TODO: review when available -->
+A rule is a simple construct that binds a conjunction of [conditions](#condition) to a list of [actions](#action).
+Internally, a rule functions very much like a [non-indexed class (aka simple event handler)](#class).
+The rule hides implementation details, by presenting to the reader its conditions and actions as named entities,
+rather than code. Rules also allow to reuse and share conditions and actions. For more information,
+see the [basic example](./pathSQL basics [control].md#rules) and the [reference section](./pathSQL reference [definition].md#rule).
 
 ###FSM
 A Finite State Machine (FSM) is a very common computational model represented as a graph,
@@ -209,14 +207,14 @@ Affinity comes with a few built-in services; external services can be loaded
 via a [loader](#loader) statement.
 
 ###Communication PIN
-Communication PINs are special PINs with dual personnality.
+Communication PINs are special PINs with dual personality.
 Their "RAW" form (i.e. their plain and simple set of [properties](#property)
 and [values](#value)), defines the configuration of the communication.
 In pathSQL, once a communication PIN is inserted, its configuration can be examined or
 modified by adding the `RAW` keyword to `SELECT` or `UPDATE`.
-The second personnality, seen via non-decorated `SELECT` or `UPDATE`, is the active
+The second personality, seen via non-decorated `SELECT` or `UPDATE`, is the active
 communication channel itself.  In that context, `SELECT` acts as a read, and
-`UPDATE` acts as a write.  The [reference](./pathSQL reference.md#communication-pins)
+`UPDATE` acts as a write.  The [reference](./pathSQL reference [definition].md#communication-pins)
 describes communication PINs in more detail.
 
 #Related Concepts

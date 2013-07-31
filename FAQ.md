@@ -7,7 +7,7 @@ AffinityNG is designed to lower the barrier of entry for systems targeting
 the Internet of Things (IoT), Wireless Sensor Networks (WSNs), ubiquitous computing, control systems
 and robotics.
 
-AffinityNG provides complete data-acquisition and device control functionality.  The primary
+AffinityNG provides complete data-acquisition and device-control functionality.  The primary
 programming language is a SQL dialect ([pathSQL](./terminology.md#pathsql)).  All components of a program (the program itself
 as well as configurations, logs etc.) are represented in a declarative
 manner, as inspectable data items ([PINs](./terminology.md#pin)).  AffinityNG offers a
@@ -17,19 +17,19 @@ functional, synchronous and asynchronous, etc.
 
 By taking care of a multitude of lower-level difficulties (e.g. establishment of ad-hoc networks,
 communication over various channels, interaction with devices, event detection, exception handling,
-synchronization etc.), and by exposing simple solutions at a higher level of abstraction,
+synchronization etc.), and by exposing simple solutions at a much higher level of abstraction,
 we believe that AffinityNG can significantly reduce the burden of interacting with complex ecosystems
 seen in typical IoT and industrial sensor network scenarios, such as smart factories, smart retail etc.
 A single data representation for all components (the [PIN](./terminology.md#pin))
-brings at your fingertips the complete database artillery.  
+brings the complete database artillery at your fingertips.  
 
-###Database Core
+### Database Core
 
 The database core pays special attention to stream processing for data acquisition and analytics.
 For the more static aspects, it also borrows (we hope the best) aspects from
 RDBMS, OODBMS, document databases, RDF and XML stores.
 Affinity is schema-less (no tables), yet provides a rich native 
-[data model](./terminology.md#essential-concepts-data-model) including objects with fields of 
+[data model](./terminology.md#essentials-data-model) including objects with fields of 
 various native datatypes, ordered [collections](./terminology.md#collection) (for modeling XML-like list structures),
 [sub-structures](./terminology.md#structure), [associative arrays](./terminology.md#map)
 and [references](./terminology.md#pin-reference) (for modeling relationships between objects). 
@@ -71,7 +71,7 @@ Affinity was transferred to VMware in 2010, where it was released as an open-sou
 project for the first time (in February 2012), presented as a graph database with a SQL interface.
 In 2012-2013 the team re-oriented the product around the requirements of the increasingly
 actual "Internet of Things", by adding to the database core a set of
-[active components](./terminology.md#active-components-of-the-data-model),
+[active components](./terminology.md#data-model:-active-components),
 thus transforming it into AffinityNG, a universal embedded information-processing,
 control and communication platform - the present release.
 

@@ -1,4 +1,6 @@
-#Protocol-Buffer Interface for Affinity
+#Protocol-Buffer Interface
+<!-- TODO: should reformulate a little bit, to distinguish/highlight protobuf usage via services, from the older type of usage described below -->
+
 Protocol-Buffers (aka _protobuf_) are Google's open-source interchange format. This format was designed to provide generic encoding
 and decoding of structured data in an efficient manner (that is both language and platform neutral). It's supported
 in many programming languages and on many platforms.

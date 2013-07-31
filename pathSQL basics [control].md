@@ -9,11 +9,12 @@ pathSQL Basics: Control
 *pathSQL* is the name of a dialect of SQL defined for Affinity:
 *path* refers to the ease with which chains of relationships can be built, traversed, queried, modified etc.
 The result is a language that preserves the declarative (non-procedural) qualities of SQL,
-with its well known syntax, but also integrates a very natural, flexible addressing model.
+with its well known syntax, while also integrating a very natural, flexible addressing model.
 
 This flexible addressing model is one of the foundations of the new control layer in AffinityNG.
-It facilitates the configuration of complex communication stacks, network topologies etc.
-And it helps writing event handlers with enough flexibility to express complex logic -
+It facilitates the configuration of complex communication stacks and [FSMs](./terminology.md#fsm),
+as well as the modeling of graphs (e.g. representation of a network topology).
+It also helps writing event handlers, by providing enough flexibility to express complex logic -
 as fluidly and easily as in a standard programming language (no relationship tables, unique keys,
 joins, temporary tables etc.).
 
@@ -47,8 +48,9 @@ a trace object containing additional information (such as a pointer to the event
       CREATE CLASS example:reaction AS SELECT &#42; WHERE EXISTS(example:signal)<br>
       &nbsp;SET afy:onEnter={<br>
       &nbsp;&nbsp;&#36;{UPDATE @self ADD example:"occurred/at"=CURRENT_TIMESTAMP},<br>
-      &nbsp;&nbsp;&#36;{INSERT example:"occurred/at"=@self.example:"occurred/at", example:what=@self, example:previous=@class.example:"signal/previous"},<br>
-      &nbsp;&nbsp;&#36;{UPDATE @class SET example:"signal/previous"=@self}},<br>
+      &nbsp;&nbsp;&#36;{INSERT example:"occurred/at"=@self.example:"occurred/at", example:what=@self,<br>
+      &nbsp;&nbsp;&nbsp;example:previous=@ctx.example:"signal/previous"},<br>
+      &nbsp;&nbsp;&#36;{UPDATE @ctx SET example:"signal/previous"=@self}},<br>
       &nbsp;example:"signal/previous"=0;<br>
       INSERT example:signal=1;<br>
       INSERT example:signal=2;<br>
@@ -77,20 +79,41 @@ the expression of rules and higher-order FSMs. CEP is not available yet in the a
 Rules
 -----
 
-In a very near future, AffinityNG will provide a new interface to create rules from
-a library of conditions and actions. This will provide a higher-level layer in the
-programming model, akin to business rules engines. The intent is to make it easy
-for non-programmer professionals to adjust and customize their system.
+Rules represent a higher-level layer in the programming model. They are typically used to hide implementation details,
+by presenting the logic of a system in quasi-natural language (provided that names were chosen appropriately by the programmers).
+The intent is to make it easy for non-programmer professionals to understand, adjust and customize their system.  
 
-  <code class='pathsql_inert'>
-    SET PREFIX model: 'http://example/model/x102';<br>
+A rule is defined by a conjunction of conditions (i.e. a set of conditions that must all be met),
+and a list of actions. Internally a rule functions very much like a [non-indexed class (aka simple event handler)](./terminology.md#class) 
+(indeed, the rule declaration mechanism can be thought of as a templating or macro system for classes).
+A rule reacts to changes on a PIN (n.b. all conditions of a rule relate to the same PIN;
+for multi-PIN events, see the sections on [CEP](#complex-event-processing-cep) and [FSMs](#finite-state-machines-fsms)).
+The `@self` variable in a rule's conditions and actions refers to the PIN being tested or processed by the rule.
+
+A small example:
+
+  <code class='pathsql_snippet'>
+    /\* Internal implementation provided by the system programmer. \*/<br>
+    SET PREFIX model: 'http://example/model/';<br>
+    CREATE CONDITION model:OutsideTmpChk AS model:OutsideTemp > :0;<br>
+    CREATE CONDITION model:InsideTmpChk AS (SELECT ABS(AVG(model:InsideTempReadings) - :0)) > 5dC;<br>
+    CREATE ACTION model:Pause AS UPDATE @self SET model:PauseUntil=CURRENT_TIMESTAMP + :0,<br>
+    &nbsp;model:PausedAt=CURRENT_TIMESTAMP;<br>
+    CREATE ACTION model:Report AS INSERT model:GlobalMessage=:0, model:FromSample=@self;<br>
+    &nbsp;<br>
+    /\* Actual rule, visible to the non-programmer professional. \*/<br>
     RULE model:HeatAlarm :<br>
     &nbsp;model:OutsideTmpChk(25dC) AND model:InsideTmpChk(20dC) -><br>
-    &nbsp;model:Pause(INTERVAL'00:15:00'), model:Report('HeatAlarm');
+    &nbsp;model:Pause(INTERVAL'00:15:00'), model:Report('HeatAlarm');<br>
+    &nbsp;<br>
+    /\* Demonstrating the behavior...  \*/<br>
+    INSERT model:sample=1, model:OutsideTemp=20dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br>
+    INSERT model:sample=2, model:OutsideTemp=40dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br>
+    INSERT model:sample=3, model:OutsideTemp=20dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC};<br>
+    INSERT model:sample=4, model:OutsideTemp=40dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC};<br>
   </code>
 
-<!-- TODO: expand when ready, plus cover the namespace aspects -->
-<!-- TODO: show code and provide a live link to visual editor -->
+<!-- TODO: provide a live link to visual editor -->
 
 Timers
 ------
@@ -108,11 +131,11 @@ Timers constitute entry points of pure-pathSQL programs (analogous to the thread
     CREATE CLASS control:"step/handler/on.off.572ef13c" AS SELECT * FROM control:"rt/signalable"<br>
     &nbsp;WHERE control:"sensor/model"=.simulation:"sensor/on.off.572ef13c"<br>
     &nbsp;SET afy:onUpdate={<br>
-    &nbsp;&nbsp;&#36;{UPDATE @self SET simulation:tmp1=(SELECT control:"rt/time/signal" FROM @self)},<br>
+    &nbsp;&nbsp;&#36;{UPDATE @auto SET simulation:tmp1=(SELECT control:"rt/time/signal" FROM @self)},<br>
     &nbsp;&nbsp;&#36;{INSERT<br>
-    &nbsp;&nbsp;&nbsp;simulation:"rt/value"=(SELECT simulation:"offset/value" FROM @self) + SIN(@self.simulation:tmp1),<br>
+    &nbsp;&nbsp;&nbsp;simulation:"rt/value"=(SELECT simulation:"offset/value" FROM @self) + SIN(@auto.simulation:tmp1),<br>
     &nbsp;&nbsp;&nbsp;control:"sensor/model"=(SELECT control:"sensor/model" FROM @self),<br>
-    &nbsp;&nbsp;&nbsp;control:handler=(SELECT afy:objectID FROM @class),<br>
+    &nbsp;&nbsp;&nbsp;control:handler=(SELECT afy:objectID FROM @ctx),<br>
     &nbsp;&nbsp;&nbsp;control:at=CURRENT_TIMESTAMP}};<br>
     /\* Declare a few signalable entities \*/<br>
     INSERT control:"rt/time/signal"=0, control:"sensor/name"='sensor A',<br>
@@ -133,22 +156,33 @@ External Services
 <!-- TODO: more examples; either cover all existing services here as a mini-ref, or add a real ref for services... need to cover things like mDNS, HTTP, NFC etc. at least to a usable state; need to document what's not working or unfinished also -->
 
   <code class='pathsql_snippet'>
+    /\* Make sure the required services are loaded. \*/<br>
     INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br>
-    INSERT afy:service={.srv:IO, .srv:XML}, srv:"XML/config/roots"={'item'}, afy:address(READ_PERM)='rss_sports_01.xml', toto=1;<br>
-    INSERT SELECT * WHERE(toto=1);<br>
-    UPDATE * SET afy:position=0u WHERE(toto=1);<br>
   </code>
 
   <code class='pathsql_snippet'>
-    INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br>
-    INSERT afy:service={.srv:XML, .srv:IO}, srv:"XML/config/output/qname/prefixes"={'http://purl.org/dc/terms'->'dcterms'}, afy:address=2, toto=2;<br>
-    UPDATE * SET afy:content=(SELECT *) WHERE(toto=2);<br>
+    /\* Demonstrate a reader. \*/<br>
+    INSERT afy:objectID='myxmlreader1', afy:service={.srv:IO, .srv:XML}, srv:"XML/config/roots"={'item'},<br>
+    &nbsp;afy:address(READ_PERM)='/tmp/mrss.xml';<br>
+    INSERT SELECT * FROM #myxmlreader1;<br>
+    UPDATE #myxmlreader1 SET afy:position=0u;<br>
   </code>
 
   <code class='pathsql_snippet'>
+    /\* Demonstrate a writer. \*/<br>
+    INSERT afy:objectID='myxmlwriter1', afy:service={.srv:XML, .srv:IO},<br>
+    &nbsp;srv:"XML/config/output/qname/prefixes"={'http://purl.org/dc/terms'->'dcterms'}, afy:address=2;<br>
+    UPDATE #myxmlwriter1 SET afy:content=(SELECT *);<br>
+  </code>
+
+  <code class='pathsql_inert'>
+    /\* Demonstrate a web server. \*/<br>
     INSERT afy:objectID=.srv:http, afy:load='http';<br>
     INSERT afy:objectID=.srv:webapp, afy:load='webapp';<br>
-    INSERT afy:objectID=.mywebapp, afy:address='127.0.0.1:4040', afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets}, srv:"webapp/config/paths"={'/media/truecrypt1/src/server/src/www/'}, srv:"webapp/config/modes"=WEBAPPMODES#FILE;<br>
+    INSERT afy:objectID=.mywebapp, afy:address='127.0.0.1:4040',<br>
+    &nbsp;afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets},<br>
+    &nbsp;srv:"webapp/config/paths"={'/media/truecrypt1/src/server/src/www/'},<br>
+    &nbsp;srv:"webapp/config/modes"=WEBAPPMODES#FILE;<br>
   </code>
 
 Communication
@@ -165,9 +199,13 @@ Communication
        /\* Load the XML external service. \*/<br>
        INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br>
        /\* Service stack converting to protobuf and sending to file /tmp/output.proto. \*/<br>
-       INSERT afy:service={.srv:protobuf, .srv:IO}, afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.proto', docsample_key=1000;<br>
+       INSERT afy:service={.srv:protobuf, .srv:IO},<br>
+       &nbsp;afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.proto',<br>
+       &nbsp;docsample_key=1000;<br>
        /\* Service stack converting to xml and sending to file /tmp/output.xml. \*/<br>
-       INSERT afy:service={.srv:XML, .srv:IO}, afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.xml', docsample_key=1001;<br>
+       INSERT afy:service={.srv:XML, .srv:IO},<br>
+       &nbsp;afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.xml',<br>
+       &nbsp;docsample_key=1001;<br>
        /\* Some example data. \*/<br>
        INSERT x=10, y=20, somename='Fred';<br>
        INSERT x=11, y=21, somename='Tony';<br>
@@ -179,9 +217,13 @@ Communication
 
      <code class='pathsql_snippet'>
        /\* Service stack reading protobuf from file /tmp/output.proto. \*/<br>
-       INSERT afy:service={.srv:IO, .srv:protobuf}, afy:address(READ_PERM)='/tmp/output.proto', docsample_key=1010;<br>
+       INSERT afy:service={.srv:IO, .srv:protobuf},<br>
+       &nbsp;afy:address(READ_PERM)='/tmp/output.proto',<br>
+       &nbsp;docsample_key=1010;<br>
        /\* Service stack reading xml from file /tmp/output.xml. \*/<br>
-       INSERT afy:service={.srv:IO, .srv:XML}, afy:address(READ_PERM)='/tmp/output.xml', docsample_key=1011;<br>
+       INSERT afy:service={.srv:IO, .srv:XML},<br>
+       &nbsp;afy:address(READ_PERM)='/tmp/output.xml',<br>
+       &nbsp;docsample_key=1011;<br>
        /\* Just in case, reset seek pointer at the beginning. \*/<br>
        UPDATE * SET afy:position=0u WHERE docsample_key={1010, 1011};<br>
        /\* Read from both communication PINs (protobuf and xml). \*/<br>
@@ -218,14 +260,14 @@ Communication
      <code class='pathsql_snippet'>
        /\* Service stack for a client request in pathSQL returning the server's result as protobuf. \*/<br>
        INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:protobuf}, afy:address='127.0.0.1:8090',<br>
-       &nbsp;afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1020;<br>
+       &nbsp;afy:request=&#36;{SELECT * WHERE EXISTS(somename)}, docsample_key=1020;<br>
      </code>
 
      <code class='pathsql_snippet'>
        INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br>
        /\* Service stack for a client request in pathSQL returning the server's result as xml. \*/<br>
        INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:XML}, afy:address='127.0.0.1:8091',<br>
-       &nbsp;afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1021;<br>
+       &nbsp;afy:request=&#36;{SELECT * WHERE EXISTS(somename)}, docsample_key=1021;<br>
      </code>
 
      <code class='pathsql_snippet'>
@@ -282,9 +324,9 @@ Code Querying
 Logging
 -------
 
-The example provided [above](#global-events) gives a hint of how current time, current topology,
-current state, current code etc. can be attached to a log entry, by reference or by value.
-In the near future, we will provide a more significant example.
+The examples provided above ([events](#global-events) and [rules](#rules)) give a hint of how current time, current topology,
+current state, current code etc. could be attached to a log entry (by reference or by value).
+In the near future, we will provide a more significant example here.
 
 <!-- TODO: show how current time, current topology, current state, current code etc.
 can be attached to a log entry, by ref or by value; easiest would be to attach to the timer above,

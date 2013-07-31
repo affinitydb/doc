@@ -16,10 +16,10 @@ and assessment of Affinity's [strengths](./strengths.md).
 
 The page on [terminology](./terminology.md) can be used as introductory material,
 to assimilate the terms and concepts in Affinity. In particular, it quickly describes
-the [data model](./terminology.md#essential-concepts-data-model), the [interfaces](./terminology.md#interfaces)
+the [data model](./terminology.md#essentials-data-model), the [interfaces](./terminology.md#interfaces)
 and the [software components](./terminology.md#software-components) in the Affinity package. This page also cements the rest of the 
 documentation, which points to it as a unified reference. Finally, it contains
-an alphabetically ordered [list of terms](./terminology.md#list-of-terms-in-alphabetical-order), for quick lookup.
+an alphabetically ordered [list of terms](./terminology.md#list-of-terms), for quick lookup.
 
 The documentation contains introductory documents with a lot of code examples:  
 

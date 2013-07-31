@@ -11,6 +11,8 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    Note that AffinityNG is not binary-compatible with AffinityDB, and thus won't read `affinity.db` files.
    We are considering to provide an upgrade path from AffinityDB to AffinityNG.  Should you be in that situation,
    please let us know, either via an issue in github or a message in our discussion forum.
+ * In the `StoreCreationParameters` structure (C++), the `fEncrypted` field became a bit of a new
+   `mode` field, alongside new bits such as `STORE_CREATE_PAGE_INTEGRITY`.
 <!-- TODO: enable when it's there (e.g. beta, or maybe before)
  * The functionality of the `server` process evolved into a service of the kernel, and the process itself moved to
    the `daemons` project. The REST interface exposed by AffinityDB's server has not changed and remains fully supported
@@ -29,8 +31,7 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    client library, or one `IStmt::execute` or `ISession::execute` call in C++). These changes
    participate in an effort to reduce per-session state to an absolute minimum.
  * `SELECT @ FROM ...`: This form no longer selects a PIN's ID, but rather has the same effect as `SELECT * FROM ...`;
-   to select the PIN's ID, one must now do `SELECT afy:pinID FROM ...`.  Note also that `SELECT afy:pinID`
-   no longer produces a reference in the JSON output (`['afy:pinID']['$ref']`), but rather a simple `id`.
+   to select the PIN's ID, one must now do `SELECT afy:pinID FROM ...`.
  * `afy:ClassOfClasses`: This special class was renamed to `afy:Classes`.
  * `afy:classID`: This special property (aka `PROP_SPEC_CLASSID`) was replaced by the more general
    `afy:objectID` (`PROP_SPEC_OBJID`).
@@ -85,7 +86,7 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    in response to events concerning the class they're attached to.  For example, when a PIN becomes a member of a class,
    the statements contained by an `afy:onEnter` property  will be executed.  The handlers, through the statements
    that define them, have access to special context properties
-   (e.g. `@self` and `@class`), referencing the PINs involved in the event.
+   (e.g. `@self` and `@ctx`), referencing the PINs involved in the event.
 <!-- TODO: enable when exists
  * A higher-level packaging framework allows to organize and compose [rules](./terminology.md#rule) from a directory of
    [conditions](./terminology.md#condition) and [actions](./terminology.md#action), as commonly seen in business rule
@@ -104,6 +105,11 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
  * Loadable [services](./terminology.md#service) allow to augment AffinityNG with customized software components
    (for processing and messaging), that can participate in a communication PIN's service stack.
  * Built-in services use the `srv` URI prefix, defined as `http://affinityng.org/service/`.
+ * [Named PINs](./pathSQL basics [data].md#named-pins), allowing to access PINs efficiently via their globally unique name
+   (`afy:objectID` property), instead of by PID or query conditions. This removes a burden on applications,
+   of defining a basic access path for a lot of their utility PINs. Presently, the global name index is only
+   looked up for #-names used in the `FROM` clause (or target of `UPDATE`):  
+    - `SET PREFIX pfx: 'http://example/'; INSERT afy:objectID=.pfx:myname, myvalue=1; UPDATE #pfx:myname SET myvalue=2;`  
  * A number of new options allow to `INSERT` multiple PINs in one statement:  
     - `INSERT (a,b,c) VALUES (10,11,12), (20,21,22), ('30', '31', '32')`  
     - `INSERT @{a=10, b=11, c=12}, @{a=20, b=21, c=22}, @{a='30', b='31', c='32'}`  

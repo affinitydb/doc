@@ -7,42 +7,42 @@ set up in one line of code a fully-configured communication channel, a parametri
 an event handler, a finite-state machine or a customizable rule.
 
 ##Flexible Communication Channels
-By representing any communication channel with a PIN, and accessing channels
+By representing any communication channel with a PIN, and by accessing channels
 via one simple uniform syntax (`SELECT` to read and `UPDATE` to write), AffinityNG's
 interface to the physical world becomes as simple as reading and writing
 memory locations or registers. Whether it's reading from or writing to a sensor, an actuator,
 a peer node or a web service, AffinityNG makes it look all the same to the programmer.
-The db kernel's native ability to [transform](#easy-data-transformations) data
-further facilitates integration. [Services](./terminology.md#service) complete
+Furthermore, the db kernel's native ability to [transform](#easy-data-transformations) data
+facilitates integration across systems. [Services](./terminology.md#service) complete
 the picture by taking care of the complexities inherent to each physical situation
 (e.g. the NFC service's job is to make it easy to read various models of NFC tags,
-on various types of readers). The kernel's service infrastructure also facilitates
-writing services, by taking care of several aspects such as buffering, configuration etc.
+on various types of readers). The kernel's service infrastructure also facilitates the
+programming task of writing services, by taking care of several aspects such as buffering, configuration etc.
 The service infrastructure is designed to cover the whole spectrum from
-low-level network protocols all the way to high-level patterns such as
-store&forward or publish&subscribe, for example. The kernel favors
+low-level network protocols all the way to high-level communication patterns (such as
+store&forward or publish&subscribe, for example). The kernel favors
 on-the-fly reconfigurability (e.g. `UPDATE` a configuration property
 on a communication PIN, and expect the following communications to
 adapt immediately).
 
 ##Mobile Ad-Hoc Networks
-In a context where an increasing number of devices in the network are not
+In a context where an increasing number of devices in the network will not be
 handled or monitored by a human, it is crucial to simplify as much as possible
-all aspects of making those devices come together, 
+all aspects of making those devices interact with each other, 
 in order to realize their full potential. Security and privacy also expose different
-challenges, in that context. With its use of mDNS, its support for [FSMs](./terminology.md#fsm)
-and path expressions to traverse graphs, we believe AffinityNG has a lot to offer
-to help programmers tame the IoT.
+challenges, in that context. With its use of mDNS, its support for [FSMs](./terminology.md#fsm),
+its simple security model, its path expressions to traverse graphs easily etc.,
+we believe that AffinityNG has a lot to offer, to help programmers tame the IoT.
 
-##Customizable Rules And Multi-Level Programming
-AffinityNG aims at offering the right tools for the right people involved
-with small programmable devices. For example, AffinityNG's [rules](./terminology.md#rule)
+##Multi-Level Programming
+AffinityNG aims at offering the right tools for the right people (involved
+with small programmable devices). For example, AffinityNG's [rules](./terminology.md#rule)
 open a door for the participation of non-programmer professionals or technicians,
 to fine-tune their system. [FSMs](./terminology.md#fsm) may be more familiar
 to people already involved with control systems or network protocols.
-SQL should facilitate access to yet another set of people.
+SQL should facilitate access to yet another group of people.
 
-##Extendable Services Library
+##Extendable Service Libraries
 External services provide another way of augmenting the capabilities of the
 platform. Be it for platform-dependent considerations, performance,
 portability or any other reason, the kernel's service infrastructure
@@ -70,10 +70,10 @@ data, logs etc.
 
 ##Debugging and Maintenance
 In complex networked systems, traceability is usually a requirement, and
-failure tracking a core activity. It only makes sense for configurations
+the tracking of failures a customary activity. It only makes sense for configurations
 and logs to be first-class citizens of the system. In AffinityNG,
-logs can refer to the configurations or graphs that caused events to happen,
-by reference or by value. Logs can then be inspected via the same query
+logs can be PINs rather than plain text, and thus refer to the configurations (or graphs of things)
+that caused the events, be it by reference or by value. Logs can then be inspected via the same query
 engine, within the same rich context.
 
 ##Strengths Of the Database Core
@@ -306,7 +306,7 @@ This simplifies modeling, enhances the semantic value of data, and enables autom
 expressions involving those values.
 
 ###SQL for non-relational data
-Even though the Affinity [data model](./terminology.md#essential-concepts-data-model) is quite different from relational databases,
+Even though the Affinity [data model](./terminology.md#essentials-data-model) is quite different from relational databases,
 [pathSQL](./terminology.md#pathsql) is designed to be as close to SQL as possible (especially
 the [DML](./pathSQL reference.md#keywords)). Affinity and pathSQL can handle relational modeling as well as
 modeling by references.

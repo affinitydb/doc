@@ -23,6 +23,11 @@ and *prop_option* is property options which also be specified for a specific pro
 	- STOPWORDS: filter stop words in ft indexing
 	- SEPARATE_STORAGE: store this property separately from the pin body (for string, stream and collection property types)		
 
+Any PIN can have the special `afy:objectID` property (with value of type `VT_STRING` or `VT_URIID` [i.e. dot-symbol notation in pathSQL]).
+This automatically inserts the PIN in a special global name index, and allows retrieval with the special character #, as follows:
+
+		SET PREFIX pfx: 'http://example/'; INSERT afy:objectID=.pfx:myname, myvalue=1; UPDATE #pfx:myname SET myvalue=2;
+
 ##### Constraint:
 	- The part "INTO class_name" will add a constraint for INSERT operation: need to check the inserted pin should be a member of the class 'class_name'.
 	  moreover the multiple classes membership constraint can be added as:  INSERT INTO class1 & class2 & class3 property1 = ...

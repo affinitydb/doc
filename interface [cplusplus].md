@@ -1,4 +1,4 @@
-#Affinity Kernel's C++ Interface
+#C++ Kernel Interface
 <!-- TODO: many little things to review here... -->
 Please read the brief [introduction](./terminology.md#c-kernel-interface). The
 bulk of the interface is defined in [affinity.h](./sources/affinity_h.html).
@@ -59,10 +59,10 @@ The `StoreCreationParameters` structure implies a few important decisions
    `ISession::changePassword` (both for `STORE_OWNER` and guest
    [identities](./terminology.md#identity)). When encryption is enabled,
    Affinity provides no mechanism to recover a forgotten password.  
-5. `fEncrypted`: to enable [encryption](./terminology.md#encryption). This is immutable.  
+5. `mode`: various creation flags, e.g. `STORE_CREATE_ENCRYPTED` to enable [encryption](./terminology.md#encryption),
+   or `STORE_CREATE_PAGE_INTEGRITY` to request additional validation of page contents at each page I/O. This is immutable.  
 6. `maxSize`: to restrict the database file size to a quota (in bytes). This is immutable.  
 7. `pctFree`: to control the percentage of free space left on pages during insertion. This is immutable.  
-8. `fPageIntegrity`: to request additional validation of page contents at each page I/O. This is immutable.  
 
 The `StartupParameters` is self-explanatory and won't be documented in detail in this release. A few notes:
 
@@ -412,7 +412,7 @@ and [pathSQL](./terminology.md#pathsql) both use `IBatch` automatically, wheneve
 
 #IService
 Unlike most of the other interfaces in [affinity.h](./sources/affinity_h.html),
-`IService` is meant to be implemented externally (not to be invoked by the client).
+`IService` is meant to be implemented externally (not to be invoked by the client, but by the Affinity kernel).
 It provides an extension point for the kernel. Service implementation will be documented
 in more detail in a future update of the documentation. In the meantime, please refer to
 example implementations in the code.

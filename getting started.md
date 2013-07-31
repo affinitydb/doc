@@ -1,6 +1,4 @@
-#Getting Started with Affinity
-
-##Setup
+#Getting Started
 The Affinity source code is hosted on github, from where it is released as a series of
 open-source projects. With a properly configured personal github account,
 just do:

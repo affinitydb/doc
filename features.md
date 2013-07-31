@@ -2,7 +2,7 @@
 AffinityNG is a universal embedded information-processing, control and communication platform,
 with a graph database at its heart. More context is available on the [philosophy](./FAQ.md),
 [software components](./terminology.md#software-components),
-[interfaces](./terminology.md#interfaces) and [data model](./terminology.md#essential-concepts-data-model). Here
+[interfaces](./terminology.md#interfaces) and [data model](./terminology.md#essentials-data-model). Here
 is a list of AffinityNG's main features:
 
  * one semantically rich representation for all transient and persistent data: the [PIN](./terminology.md#pin)
@@ -10,7 +10,7 @@ is a list of AffinityNG's main features:
  * [communication PINs](./terminology.md#communication-pin) to read from and write to the real world (i.e. sensors,
    actuators, web services, other instances of AffinityNG, etc.) - <span class='pathsql_new'>NEW</span>
  * [timer PINs](./terminology.md#timer) to trigger events on a time basis - <span class='pathsql_new'>NEW</span>
- * declarative, configurable and queryable definitions (as [PINs](./terminology.md#pin)) of all [active components](./terminology.md#active-components-of-the-data-model) - <span class='pathsql_new'>NEW</span>
+ * declarative, configurable and queryable definitions (as [PINs](./terminology.md#pin)) of all [active components](./terminology.md#data-model:-active-components) - <span class='pathsql_new'>NEW</span>
  * loadable external [services](./terminology.md#service) - <span class='pathsql_new'>NEW</span>
  * small, embeddable, cross-platform C++ kernel (with no dependency on any virtual machine)
  * ACID transactions

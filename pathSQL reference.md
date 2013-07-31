@@ -1,6 +1,6 @@
 The pathSQL Language
 ====================
-pathSQL is the name of a dialect of SQL defined for Affinity. The [Affinity data model](./terminology.md#essential-concepts-data-model) is very different
+pathSQL is the name of a dialect of SQL defined for Affinity. The [Affinity data model](./terminology.md#essentials-data-model) is very different
 from the relational model, but pathSQL is designed to remain as close to SQL as possible. 
 This page presents a thorough survey of the language. It covers the
 elements of the [syntax](#pathsql-syntax), the [data types](#data-types) and the [operators](#functions-and-operators).

@@ -1,4 +1,4 @@
-#Affinity Javascript Interface for node.js
+#Affinity Javascript Interface
 The [affinity-client.js](./sources/affinity-client_js.html) module defines a simple interface
 between node.js and Affinity (via HTTP and the [server](./terminology.md#server)).
 The interface is divided in three parts: [connection creation](#connection-creation),

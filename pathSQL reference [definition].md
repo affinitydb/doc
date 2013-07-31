@@ -23,14 +23,19 @@ Where the query_statement is a [SELECT QUERY](./pathSQL reference [manipulation]
   - SOFT_DELETE: Create an index not only for normal pins, but also for those pins marked as deleted (but not purged).  
   - *Note:* These OPTIONS cannot be specified via the INSERT equivalent form, presently.  
 
-The afy:onEnter, afy:onUpdate and afy:onLeave properties allow to attach actions to classes (similar to "callbacks",
-"event handlers", and "triggers" in RDBMSs).  The implementation of those actions is expressed in pathSQL.
-Whenever a PIN starts to conform with the class predicate, afy:onEnter of that class will be invoked, with @self pointing to that PIN
-(and @class pointing to the class).  A PIN that is UPDATE-d while it is already classified will produce afy:onUpdate,
-unless this UPDATE actually removes this PIN from the class, in which case afy:onLeave will be called.
+The `afy:onEnter`, `afy:onUpdate` and `afy:onLeave` properties allow to attach actions to classes (similar to "callbacks",
+"event handlers", and "triggers" in RDBMSs).  The implementation of those actions is expressed in pathSQL,
+either as a single statement (e.g. `SET afy:onEnter=${INSERT originator=@self}`) or as a collection of statements
+(e.g. {`${UPDATE @auto SET fheight=(SELECT AVG(height) FROM @self.friends)}`, `${UPDATE @self SET bigfriends=true WHERE @auto.fheight>=6ft}`}).
+Whenever a PIN starts to conform with the class predicate, `afy:onEnter` of that class will be invoked, with `@self` pointing to that PIN
+(and `@ctx` pointing to the class; the kernel also provides a special transient PIN accessible via `@auto`,
+allowing to store local variables for more intricate inner processing). A PIN that is `UPDATE`-d while it is already classified
+will produce `afy:onUpdate`, unless this `UPDATE` actually removes this PIN from the class, in which case `afy:onLeave` will be called.
 All those actions are optional. The query statements that constitute them (qs1, qs2, qs3 etc.) can be any combinations of
-UPDATE and INSERT statements. [TODO: more on exact execution model, sequence etc.]  
+`UPDATE` and `INSERT` statements. Event processing can be reentrant.
 
+<!-- TODO: revisit when final model of sync-transact-async is there -->
+<!-- TODO: more on exact execution model, sequence etc. -->
 <!-- TODO: something about ${PERSIST} (or upcoming equivalent) -->
 
 Examples: [class.sql](./sources/pathsql/class.html).   
@@ -108,6 +113,8 @@ A condition is defined by a PIN with `afy:objectID` and `afy:condition`, e.g.
 An action is defined by a PIN with `afy:objectID` and `afy:action`, e.g.  
 
       INSERT afy:objectID=.action, afy:action={${INSERT x=@ctx.xL}, {UPDATE @self SET t=CURRENT_TIMESTAMP}}  
+
+Please refer to this [example](./pathSQL basics [control].md#rules) for more information.
 
 <!-- TODO: explain in more detail, give examples -->
 
@@ -279,6 +286,16 @@ Future services:
   - srv:JSON (parsing)  
   - srv:RDF  
   - etc.  
+
+The `.srv:affinity` service typically accepts 2 types of inputs: `.srv:pathSQL`, and `.srv:protobuf` (n.b. a protobuf
+payload will often be a plain set of PINs, but it could also contain pathSQL statements [although that aspect of the implementation
+is incomplete at the moment]; in that sense `.srv:protobuf` could be considered more general than `.srv:pathSQL`).
+In cases where a response is not expected from the `.srv:affinity` service,
+a truncated stack should be used: `{.srv:sockets, .srv:protobuf, .srv:affinity}` would suffice for an insert (or message passing),
+whereas `{.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:XML, .srv:sockets}` would be typical for a query.
+
+Listeners that don't contain a server in their service stack can define a terminal `afy:action` to
+process the resulting PINs at the tail of the stack.
 
 Note that most services are incomplete in the alpha release. Also, service-specific configuration is
 not yet systematically documented. To properly assess the state and functionality of each service, we advise that
