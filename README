@@ -15,5 +15,7 @@ Finally, a html rendering is provided in the server sub-project.
 It can be read directly in a browser, or via the online console,
 where code snippets can be run in context.
 This option should provide the best reading experience.
-Please visit http://affinitydb.org.
+It can also be accessed online, at http://affinityng.org/doc/intro.html.
+
+Please visit http://affinityng.org.
 
