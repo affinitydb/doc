@@ -48,7 +48,7 @@ def convertMdToHtml():
             lInsertedHeader = [ \
                 "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n", \
                 "<head>\n", \
-                "  <meta name='viewport' content='width=device-width' />\n", \
+                "  <meta name='viewport' content='width=device-width, initial-scale=1.0' />\n", \
                 "  <script src='js/jquery.js' type='text/javascript'></script>\n", \
                 "  <script src='js/snippets_to_console.js' type='text/javascript'></script>\n", \
                 "  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />\n", \
