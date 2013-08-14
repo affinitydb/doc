@@ -29,8 +29,8 @@ either as a single statement (e.g. `SET afy:onEnter=${INSERT originator=@self}`)
 (e.g. {`${UPDATE @auto SET fheight=(SELECT AVG(height) FROM @self.friends)}`, `${UPDATE @self SET bigfriends=true WHERE @auto.fheight>=6ft}`}).
 Whenever a PIN starts to conform with the class predicate, `afy:onEnter` of that class will be invoked, with `@self` pointing to that PIN
 (and `@ctx` pointing to the class; the kernel also provides a special transient PIN accessible via `@auto`,
-allowing to store local variables for more intricate inner processing). A PIN that is `UPDATE`-d while it is already classified
-will produce `afy:onUpdate`, unless this `UPDATE` actually removes this PIN from the class, in which case `afy:onLeave` will be called.
+allowing to store local variables [aka "_auto_-matic" variables] for more intricate inner processing). A PIN that is `UPDATE`-d while it is already
+classified will produce `afy:onUpdate`, unless this `UPDATE` actually removes this PIN from the class, in which case `afy:onLeave` will be called.
 All those actions are optional. The query statements that constitute them (qs1, qs2, qs3 etc.) can be any combinations of
 `UPDATE` and `INSERT` statements. Event processing can be reentrant.
 
