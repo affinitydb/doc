@@ -94,13 +94,13 @@ a [property](#property). The values of a collection can be heterogeneous
 (they can have different types). Internally, each element of a collection is uniquely 
 identified by an immutable [Element ID (eid)](#element-id-eid). This design enables consistent interactions
 in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version.
-Small collections (VT_ARRAY) can be represented as arrays internally, and allow random access, 
-whereas very large collections (VT_COLLECTION) must be traversed with an iterator
+Small collections can be represented as arrays internally, and allow random access, 
+whereas very large collections must be traversed with an iterator
 (with the option of seeking to any known [eid](#element-id-eid)). 
 A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like
 plain values (additional control is provided). Collections also play a key role
 in other aspects of the data model, such as [ACLs](#acl).
-Collections are represented by either VT_COLLECTION or VT_ARRAY in [affinity.h](./sources/affinity_h.html).
+Collections are represented by VT_COLLECTION in [affinity.h](./sources/affinity_h.html).
 
 ###Structure
 A structure is a set of labeled [values](#value), aka a set of [properties](#property).
@@ -170,6 +170,8 @@ Actions usually modify some state, either locally in the database, or externally
 via [communication PINs](#communication-pin). Actions can cause new [conditions](#condition)
 to evaluate to true, and thus trigger a chain of actions.
 
+<!-- TODO: Event -->
+
 ###Rule
 A rule is a simple construct that binds a conjunction of [conditions](#condition) to a list of [actions](#action).
 Internally, a rule functions very much like a [non-indexed class (aka simple event handler)](#class).
@@ -198,18 +200,11 @@ transitions. CEP is not readily available in the alpha release of AffinityNG.
 Timers invoke [actions](#action) at regular time intervals, in their own thread.
 The [reference](./pathSQL reference [definition].md#create-timer) describes in detail how to declare timers.
 
-###Service
-A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity
-and providing additional building blocks for [communication PINs](#communication-pin).
-Those building blocks conform with the `Afy::IService` interface defined in
-[affinity.h](./sources/affinity_h.html).
-Affinity comes with a few built-in services; external services can be loaded
-via a [loader](#loader) statement.
-
 ###Communication PIN
 Communication PINs are special PINs with dual personality.
 Their "RAW" form (i.e. their plain and simple set of [properties](#property)
-and [values](#value)), defines the configuration of the communication.
+and [values](#value)), defines the configuration of the communication,
+including a stack of [services](#service).
 In pathSQL, once a communication PIN is inserted, its configuration can be examined or
 modified by adding the `RAW` keyword to `SELECT` or `UPDATE`.
 The second personality, seen via non-decorated `SELECT` or `UPDATE`, is the active
@@ -411,8 +406,15 @@ read-only transaction would.
 
 ###Loader
 A loader is a declaration for an external [service](#service) dependency,
-in the form of a persistent [PIN](#pin). It binds a URI to the service and loads it on demand. 
-The pathSQL statement is [CREATE LOADER](./pathSQL reference [definition].md#create-loader).
+in the form of a persistent [PIN](#pin), containing essentially 2 properties:
+a user-defined URI to name the loader (this URI is stored in `afy:objectID`), and
+a relative or absolute path to the loadable library (stored in `afy:load`).
+Note that the loader's name is rarely used.  The name by which a service is referred
+to insert it into a [communication PIN's](#communication-pin)
+service stack is defined statically (programmatically), by the service itself
+(e.g. the XML service is referred to by .srv:XML, aka "http://affinityng.org/service/XML").
+Once stored, a loader PIN tells the kernel to reload the library whenever it
+starts up.  The pathSQL statement is [CREATE LOADER](./pathSQL reference [definition].md#create-loader).
 
 #Interfaces
 The [Affinity kernel library](#kernel) is written in C++, and provides a [C++ interface](#c-kernel-interface)
@@ -481,3 +483,12 @@ results in json format, or [protocol-buffer](#protocol-buffer) format. It can al
 convenience. For more information, visit this [link](./server.md).
 In the near future, this process will be drastically simplified by substituting its custom implementation
 with generic [services](#service).
+
+###Service
+A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity
+and providing additional building blocks for [communication PINs](#communication-pin).
+Those building blocks conform with the `Afy::IService` interface defined in
+[affinity.h](./sources/affinity_h.html).
+Affinity comes with a few built-in services (e.g. Bluetooth Low Energy, NFC, and Zigbee communications,
+XML and regex parsing, mDNS browsing, a HTTP client and server, etc.). Typically, external services are loaded
+via a [loader](#loader) statement.

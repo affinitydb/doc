@@ -7,7 +7,7 @@ set up in one line of code a fully-configured communication channel, a parametri
 an event handler, a finite-state machine or a customizable rule.
 
 ##Flexible Communication Channels
-By representing any communication channel with a PIN, and by accessing channels
+By representing any communication channel with a [PIN](./terminology.md#pin), and by accessing channels
 via one simple uniform syntax (`SELECT` to read and `UPDATE` to write), AffinityNG's
 interface to the physical world becomes as simple as reading and writing
 memory locations or registers. Whether it's reading from or writing to a sensor, an actuator,

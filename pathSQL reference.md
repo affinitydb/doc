@@ -73,8 +73,8 @@ pathSQL supports 2 styles of comments:
 2. C-style: This syntax enables a comment to extend over multiple lines (the beginning and closing sequences need not be on the same line). The comment begins with /* and extends to the matching occurrence of */. These blocks can be nested, as specified in the SQL standard (but unlike C): one can comment out larger blocks of code that might contain existing block comments. For example:
 
         /* multiline comment
-        * with nesting: /* nested block comment */
-        */  
+         * with nesting: /* nested block comment */
+         */  
 
 #### Special Characters
 Some non-alphanumeric characters have special meaning, without being [operators](#operators).
@@ -108,11 +108,11 @@ In order to support more complex graph queries, Affinity provides regular expres
 
 Format			Description
 ---------		-----------
-{value}			Navigate along this segment for a number of "value" times (e.g. prop1{3} means "prop1.prop1.prop1").
-{min, max}		Navigate along this segment, starting at the "min"-th instance and up to the "max"-th instance.
-{*} 			Same as {0, infinity}.
-{?}				Same as {0, 1}.
-{+}				Same as {1, infinity}.
+{value}	    Navigate along this segment for a number of "value" times (e.g. prop1{3} means "prop1.prop1.prop1").
+{min, max}  Navigate along this segment, starting at the "min"-th instance and up to the "max"-th instance.
+{*}         Same as {0, infinity}.
+{?}         Same as {0, 1}.
+{+}         Same as {1, infinity}.
 
 A predicate (i.e. WHERE clause in SQL) can be attached to each segment of a path expression. E.g. `pin1.emp_ref[name='Jack' AND EXISTS(age)]`. The at sign (@) can be used here to denote the PIN ID which is being processed.  
 
@@ -153,7 +153,8 @@ Format:
 
 The colon (:) followed by digits is used to represent a positional parameter in the body of a statement or class definition. E.g.
 
-  <code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code>
+  <code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str1');</code>
+  <code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (24, 'str2'), (25, 'str3'), (26, 'str4');</code>
   <code class='pathsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code>  
 
 Here, :0 designates the first parameter defining class `hasPropI`'s index. This parameter could be specified at query time as follows:
@@ -162,7 +163,7 @@ Here, :0 designates the first parameter defining class `hasPropI`'s index. This 
 
 Or like this, provided we used `IN` in the class definition:
 
-  <code class='pathsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code>  
+  <code class='pathsql_snippet'>SELECT * FROM hasPropI(@[20, 25]);</code>  
 
 #### REFID
 [PIN reference](./terminology.md#pin-reference)  
@@ -208,11 +209,8 @@ To include a single-quote character within a string constant, write two adjacent
 Affinity supports the UTF-8 encoding exclusively. All string data should be converted to UTF-8 before being passed to Affinity.  
 
 ### BSTR(Binary String)
-pathSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f),
+pathSQL supports hexadecimal values, written X'val' (with explicit quotes and uppercase leading X), where val contains hexadecimal digits (0..9, A..F, a..f),
 and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).  
-
-### URL
-Format: U'url_addr'  
 
 ### Numeric Types
 The numeric types in Affinity are closer to C/C++ numeric types.  
@@ -291,44 +289,29 @@ An EXPR can be stored as a [value](./terminology.md#value), but it is not evalua
 (the value of that property will always be the EXPR itself, never its evaluation).
 However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.
 
-<pre>
-  afycommand>INSERT prop1=3;
-  PIN@0000000000050001(1):(<prop1|VT_INT>:3)
-  1 PINs INSERTED.
-  
-  afycommand> UPDATE @50001 ADD prop2=prop1-1, prop3=$(prop1-1);  
-  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
+  <code class='pathsql_snippet'>
+    INSERT afy:objectID='expr_sample', prop1=3;<br>
+    UPDATE #expr_sample ADD prop2=prop1-1, prop3=$(prop1-1);
+  </code>  
 
-  afycommand> SELECT * FROM {@50001} WHERE prop3=prop2; 
-  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-  
-  afycommand> UPDATE @50001 SET prop1=2;  
-  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-  
-  afycommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
-  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-</pre>
+  <code class='pathsql_snippet'>
+    SELECT &#42; FROM #expr_sample WHERE prop3=prop2;
+  </code>  
+
+  <code class='pathsql_snippet'>
+    UPDATE #expr_sample SET prop1=2;<br>
+    SELECT &#42; FROM #expr_sample WHERE prop3<>prop2;
+  </code>  
 
 In the example just above, `prop2` is stored directly with the result of the evaluation (at UPDATE execution time), while `prop3` is stored as type EXPR, 
 which is only evaluated when queried.  
 
 It's also possible to invoke such a EXPR property with parameters (up to 254). E.g.
 
-<pre>
-  afycommand>
-  INSERT prop1=3, prop2=$(prop1-:0);
-  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
-  1 PINs INSERTED.
-  
-  afycommand>
-  SELECT * WHERE prop2(1) = 2;
-  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
-  1 PINs SELECTED.
-</pre>
+  <code class='pathsql_snippet'>
+    UPDATE #expr_sample SET prop4=$(prop1-:0);<br>
+    SELECT &#42; WHERE prop4(1)=1;
+  </code>
 
 Note that Affinity can support missing or extraneous parameters.
   
@@ -341,7 +324,24 @@ Format:  \${statement}
 
 QUERY is similar to EXPR, but for a whole statement.
 
-### ARRAY/CNAVIGATOR ([Collection](./terminology.md#collection)) 
+### ARRAY
+Format: 
+1-dimension array (vector): [elem1, ..., elemN]   
+2-dimensions array (matrix): [[elem1, ..., elemN], ..., [elem1, ..., elemN]]
+
+where all *elem* of an array should be numbers with identical data type (i.e. either INT*, FLOAT, or DOUBLE).
+
+This type is similar to the array concept in C/C++ language.  It is stored in a contiguous address space,
+for fast processing.  Additional notes:
+- There is no automatic conversion/coercion, even between otherwise compatible data types.
+- All data of one array are stored on one page, hence the maximal size of any one array is the store's [page size](./terminology.md#page).
+
+Some [array-specific operators](#array-operators) were introduced, for mathematics computing
+([linear algebra](./pathSQL basics [data].md#linear-algebra)).
+
+Sample: [array.sql](./sources/pathsql/array.html).
+
+### CNAVIGATOR ([Collection](./terminology.md#collection)) 
 Format:   
 
 1. (elem1,...,elemN) -- SQL standard style. *Note*: (0) is a int (the parentheses in this case are not interpreted as defining a set)  
@@ -352,10 +352,10 @@ Please refer to the [definition of 'collection'](./terminology.md#collection).
   <code class='pathsql_snippet'>INSERT (prop2,prop3) VALUES(123 ,{123, 'test', 120, 534});</code>
   <code class='pathsql_snippet'>SELECT * WHERE prop3[3] = 534;</code>  
   
-Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY).
-Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections
+Internally, smaller collections are stored with a representation similar to an array in one page.
+Larger collections are stored in multiple pages with the B-tree, enabling enormous collections
 with fast retrieval of known eids. The transition between those two states is transparent, and applications
-should not assume that a collection will be stored as an ARRAY.  
+should not assume in which internal format a collection will be stored.  
 
 The transition between a scalar value and a collection is also designed to be relatively transparent
 (with a core query syntax that applies to both cases indifferently).
@@ -365,8 +365,18 @@ For more information about collections, see [comparisons involving collections](
 
 *Note*: although Affinity doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.  
 
+### [Map] (./terminology.md#map)) 
+Format:  {element_key1 -> element_value1, element_key2 -> element_value2, ...}
+Where the element_key* and element_value* can be any data type.
+
+  <code class='pathsql_snippet'>INSERT my_map=<br>
+    &nbsp;{'string' -> X'DEF5', 'http://test/' -> 128,<br>
+    &nbsp;3.40282f -> 3.40282, true -> TIMESTAMP '2010-12-31 23:59:59',
+    &nbsp;'nested' -> {'k1' -> 1, 'k2' -> 2}};
+  </code>  
+
 ### Range
-Format: [number1, number2]   
+Format: @[number1, number2]   
 it can be used with keywork IN. The meaning is the same as BETWEEN number1 AND number2.  
 *Note*: * is used here to denote the infinity number.
 
@@ -507,7 +517,6 @@ NOT            logical not: NOT TRUE is FALSE; NOT FALSE is TRUE.
 OR             logical or:  return TRUE if one of the operands is TRUE; otherwise return FALSE. 
 AND            logical and: return TRUE if both of the operands are TRUE; otherwise return FALSE. 
 
-
 ### Comparison Functions and Operators  
 
 Functions and Operators Description   
@@ -555,6 +564,31 @@ Operator     Description                                           Example      
 >>           bitwise shift right                                   -123 >> 63     -1 
 >>>          bitwise unsigned shift right                          -123 >>> 63    1  
 
+### Bitwise Operations on Extendable Bit Arrays
+
+Function                     Description
+--------                     -----------
+TESTBIT(property, bitIndex)  return true if the bit specified by bitIndex is set in the value of the specified property
+SETBIT(property, bitIndex)   return the value of property after setting the bit specified by bitIndex; works on integer types as well as VT_BSTR
+RESETBIT(property, bitIndex) return the value of property after resetting the bit specified by bitIndex; works on integer types as well as VT_BSTR
+
+In binary strings (VT_BSTR), the bitIndex refers to a string of bits where byte 0 is the leftmost byte in the string,
+and bit 0 of each byte has absolute value 1.  In other words, the bitIndex progresses along this:  
+
+        {bitIndex: 0, value: X'010000'},  
+        {bitIndex: 1, value: X'020000'},  
+        ...,  
+        {bitIndex:10, value: X'000400'},  
+        {bitIndex:11, value: X'000800'},  
+        etc.  
+
+Examples:
+
+  <code class='pathsql_snippet'>INSERT afy:objectID='testbits1', x=X'FFFFFFFF', y=0;</code>
+  <code class='pathsql_snippet'>UPDATE #testbits1 SET x=RESETBIT(x, 0), y=SETBIT(y, 7);</code>
+  <code class='pathsql_snippet'>SELECT * FROM #testbits1 WHERE TESTBIT(x, 3);</code>
+  <code class='pathsql_snippet'>SELECT TESTBIT(y, 3) FROM #testbits1;</code>
+  <code class='pathsql_snippet'>INSERT SELECT SETBIT(X'0000000000000000', afy:value) AS bytestring FROM @[0, 40]; SELECT * WHERE EXISTS(bytestring);</code>  
 
 ### Mathematical Functions (scalar)
 
@@ -581,9 +615,23 @@ VAR_POP(expression)               Returns the biased variance (/n) of a set of n
 VAR_SAMP(expression)              Returns the sample variance (/n-1) of a set of numbers. The formula used to calculate the sample variance is: VAR_SAMP=(SUM(X**2)-((SUM(X)**2)/(COUNT(*))))/(COUNT(*)-1)
 STDDEV_POP(expression)            Returns the biased standard deviation (/n) of a set of numbers. The formula used to calculate the biased standard deviation is: STDDEV_POP = SQRT(VAR_POP)
 STDDEV_SAMP(expression)           Returns the sample standard deviation (/n-1) of a set of numbers. The formula used to calculate the sample standard deviation is: STDDEV_SAMP = SQRT(VAR_SAMP)
+ARGMIN(expression)                Returns the 0-based index of the element with the minimal value in the set.
+ARGMAX(expression)                Returns the 0-based index of the element with the maximal value in the set.
 
 The 'expression' can be a list of values or a collection. If a collection is specified, the function will include all its elements in the calculation.
 These functions can also support [DISTINCT/ALL qualifier](#distinctall-qualifier) to indicate whether or not duplicate values should be included in the expression, e.g. AVG(DISTINCT expression).
+
+### Array operators 
+Function                          Description
+----------------                  ------------------
+TRANSPOSE(array)                  Returns the transpose of a matrix, which flips the rows and columns.
+Norm(array)                       Returns the norm of a vector, which is informally a measure of the length of the vector.
+Trace(array)                      Returns the trace of a square matrix, which is the sum of diagonal elements in the matrix.
+Det(array)                        Returns the determinant of a square matrix.
+Inv(array)                        Returns the inverse of a square matrix.
+Rank(array)                       Returns the rank of a matrix, which is the number of linearly independent row or column vectors.
+
+You can refer to Linear Algebra for more details about these operators.
 
 ### String Operators
 
@@ -622,7 +670,7 @@ The possible units are: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND and FRACTIONAL.
 
 Expreesion                    Description
 ----------                    -----------
-CAST(expr AS TypeName)	      SQL compatible format: cast 'expr' to specific type name which is described at the [data types](#data-types).
+CAST(expr AS TypeName)        SQL compatible format: cast 'expr' to specific type name which is described at the [data types](#data-types).
 CAST(expr, TypeNumber)        Internal format: the second param is type number which is defined at enum ValueType in file "kernel\include\affinity.h"
 CAST(expr AS UnitName)        Cast 'expr' to specific[units](./terminology.md#unit-of-measurement), and convert the type to[double](#double)-precision floating point numbers
 CAST(expr AS UnitName.f)      Cast 'expr' to specific[units](./terminology.md#unit-of-measurement), and convert the type to[float](#float)-precision floating point numbers
@@ -785,6 +833,7 @@ List of option names for OPEN and CREATE (case insensitive):
   - SHUTDOWNASYNCTIMEOUT=number  
   - PASSWORD='string'  
   - LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided)  
+  - SERVICEDIRECTORY='directory'
 
 Additional option names for CREATE:  
 

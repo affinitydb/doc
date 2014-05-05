@@ -32,6 +32,9 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
    participate in an effort to reduce per-session state to an absolute minimum.
  * `SELECT @ FROM ...`: This form no longer selects a PIN's ID, but rather has the same effect as `SELECT * FROM ...`;
    to select the PIN's ID, one must now do `SELECT afy:pinID FROM ...`.
+ * all ranges (`VT_RANGE`), used for example in class family declarations, or other conditions,
+   are now expressed in pathSQL as `@[x, y]` (as opposed to the previous syntax: `[x, y]`, which is
+   now reserved for literals of the new `VT_ARRAY`).
  * `afy:ClassOfClasses`: This special class was renamed to `afy:Classes`.
  * `afy:classID`: This special property (aka `PROP_SPEC_CLASSID`) was replaced by the more general
    `afy:objectID` (`PROP_SPEC_OBJID`).
@@ -105,6 +108,8 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
  * Loadable [services](./terminology.md#service) allow to augment AffinityNG with customized software components
    (for processing and messaging), that can participate in a communication PIN's service stack.
  * Built-in services use the `srv` URI prefix, defined as `http://affinityng.org/service/`.
+ * There is now native pathSQL support for [linear algebra](./pathSQL basics [data].md#linear-algebra) primitives (computations involving vectors & matrices).
+ * It is now possible to use bitwise operations on [extendable bit arrays](./pathSQL reference.md#bitwise-operations-on-extendable-bit-arrays).
  * [Named PINs](./pathSQL basics [data].md#named-pins), allowing to access PINs efficiently via their globally unique name
    (`afy:objectID` property), instead of by PID or query conditions. This removes a burden on applications,
    of defining a basic access path for a lot of their utility PINs. Presently, the global name index is only

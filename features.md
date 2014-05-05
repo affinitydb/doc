@@ -12,11 +12,14 @@ is a list of AffinityNG's main features:
  * [timer PINs](./terminology.md#timer) to trigger events on a time basis - <span class='pathsql_new'>NEW</span>
  * declarative, configurable and queryable definitions (as [PINs](./terminology.md#pin)) of all [active components](./terminology.md#data-model:-active-components) - <span class='pathsql_new'>NEW</span>
  * loadable external [services](./terminology.md#service) - <span class='pathsql_new'>NEW</span>
+ * a <span class='pathsql_new'>NEW</span> data type for matrices, and native pathSQL support for linear algebra
  * small, embeddable, cross-platform C++ kernel (with no dependency on any virtual machine)
  * ACID transactions
  * logging & recovery
  * [pathSQL](./terminology.md#pathsql) query language
  * graph queries seemlessly integrated into SQL
+
+<!-- TODO: when we approach the next official release, enumerate the published services -->
 
 ##More Details
 

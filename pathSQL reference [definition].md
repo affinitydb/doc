@@ -57,7 +57,7 @@ NULL can be passed as a parameter to a class family only when the index for this
 Single-property indexex cannot support NULL parameters.
 For performance reasons, it is recommended not to create a class family with only one parameter passed to the where clause, such as: `WHERE :0 is NULL`.
 
-**Limitation 2**: There's a sytactic restriction on the order of parameters in class predicates. For example, Affinity cannot create an index for `:0 = value`,
+**Limitation 2**: There's a syntactic restriction on the order of parameters in class predicates. For example, Affinity cannot create an index for `:0 = value`,
 but `value = :0` is fine.
 
 *Note*: Affinity can ignore superfluous parameters, i.e. the user can pass more parameters than used in the predicate.
@@ -91,6 +91,20 @@ The available options are:
 Example:  
 
         CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
+
+#### CREATE EVENT
+Synopsis:
+
+  - CREATE EVENT event_name AS query_statement
+
+Equivalent to:
+
+  - CREATE CLASS event_name OPTIONS(VIEW) AS query_statement
+
+To explicit and push further its transition from a DBMS to a platform, AffinityNG
+now uses a distinct name for the concept of an "event".  While classes do recognize and
+produce events, they are no longer the only source of events.  Upcoming event handlers and FSMs
+will soon provide the whole context for this evolution.
 
 #### RULE
 [Rules](./terminology.md#rule) form a higher-level programming layer, intended to help summarize and present a system's
@@ -155,7 +169,7 @@ Synopsis:
 
 Equivalent to:  
 
-  - INSERT afy:objectID=.srv:webapp, afy:load='platform_independent_path';  
+  - INSERT afy:objectID=myservice, afy:load='platform_independent_path';  
 
 This statement allows to extend the set of available services, with additional external libraries.
 The platform_independent_path points to a .dll / .so / .dylib module that publishes components that conform
@@ -181,20 +195,58 @@ the socket of this listener).
 <!-- TODO: review in detail, make sure nothing is obsolete etc. -->
 <!-- TODO: document in detail the configuration parameters of each service -->
 
-Communication with external world (reading data from sensors, sending commands to actuators,
+Introduction & Concept
+----------------------
+
+Communication with the external world (e.g. reading data from sensors, sending commands to actuators,
 sending and receiving network requests, exchanging information with other instances of Affinity, etc.)
-is done by reading or writing to special communication PINs.  
+is done by reading or writing to special communication PINs, using `SELECT` and `UPDATE`.  
 
-A PIN is a "special communication PIN" (aka CPIN) if it contains property `PROP_SPEC_SERVICE` (`afy:service`) or `PROP_SPEC_LISTEN` (`afy:listen`).
+Please refer to the 'pathSQL basics [control]' page for some concrete examples,
+especially from those two sections:
+[External Services & Communications](./pathSQL basics [control].md#external-services-communications) and
+[Sensors & Actuators](./pathSQL basics [control].md#sensors-actuators).
 
-When a CPIN is encountered in a SELECT statement stream, Affinity reads information from the source described by the CPIN.
-When an UPDATE is applied to CPIN, the Affinity kernel performs a write operation.
+How Does Communication Work?
+----------------------------
 
-Writing to a CPIN inserted with OPTIONS(TRANSIENT) will result in a write operation to the CPIN destination before the CPIN is discarded.
-The transient UPDATE operation applies modifications specified in UPDATE to an in-memory copy of the CPIN (the persisted CPIN is not modified)
+To be a Communication PIN (aka CPIN), a PIN must contain either property `PROP_SPEC_SERVICE` (`afy:service`) or
+`PROP_SPEC_LISTEN` (`afy:listen`).
+
+When a CPIN is encountered in a `SELECT` statement, Affinity reads information from the chain of
+[services](./terminology.md#service) described by the CPIN.  If an `afy:request` property is attached to
+the CPIN (expected to contain a pathSQL statement), this CPIN may describe a complete request-response
+scenario (as opposed to a simpler read-only stack).  In that case the kernel will wait for
+an external response before completing the local `SELECT` statement.
+
+When the CPIN is found in an `UPDATE` statement, Affinity performs a write operation, e.g.
+sending the contents of `afy:content` through the service chain, for example to POST
+a HTTP request to a web server.
+
+How to access the meta-data of the CPIN itself?
+-----------------------------------------------
+
+To UPDATE or SELECT the properties of the CPIN itself (which configure the communication via this CPIN),
+one must use the keyword RAW:
+
+    SELECT RAW prop1 FROM cpin1;
+		-- Prepare for READ from external executor by setting afy:request in cpin1
+    UPDATE RAW cpin1 SET afy:request=${INSERT external_property=1};
+
+Note that services may be re-configurable dynamically, by updating their configuration properties.
+
+<!-- TODO: review this... confusing...
+
+Note that writing to a CPIN inserted with OPTIONS(TRANSIENT) will result in a write operation to the CPIN destination
+before the CPIN is discarded.  The transient UPDATE operation applies modifications specified in UPDATE to an
+in-memory copy of the CPIN (the persisted CPIN is not modified)
 and then uses the resulting CPIN for communication (see below).
+-->
 
-The value of afy:service or `afy:listen` property can be:
+How to configure the communication stack?
+-----------------------------------------
+
+The value of the `afy:service` or `afy:listen` property can be:
 
   - a VT_URIID: a service with this URIID is invoked; other properties of CPIN serve as parameters (e.g. `afy:service=.srv:XML`)
 
@@ -211,7 +263,7 @@ Services in a stack can be of 3 types: endpoints, servers and transformations. E
 Servers reverse the flow of communication (they expect a request as their input, and they produce a response as their output).
 Transformations transform data to the desired format, e.g. performing parsing (pathSQL, JSON, XML, protobuf, etc.) or rendering.
 
-There 4 types of stacks.
+As demonstrated on the [example page](./pathSQL basics [control].md#external-services-communications), there 4 types of stacks.
 
   1. Read stack:
 
@@ -229,6 +281,19 @@ There 4 types of stacks.
 
       <listener endpoint> -> <transform1> -> ... -> <transformN> -> kernel -> <transformN+1> -> ... -> <transformM> -> <write endpoint, usually associated with the originating listener endpoint>
 
+**Note 1**: 
+Listeners that don't contain a server in their service stack can define a terminal `afy:action` to
+process the resulting PINs at the tail of the stack.
+
+**Note 2**:
+The result of CPIN communication in `SELECT` is a PIN or a stream of PINs returned by the services used in the communication stack.
+If the last service in stack returns `VT_REF` (reference to a newly created uncommitted PIN) - that's what `SELECT` would return
+(or use for further transformation). If it's a `VT_STRUCT` - a PIN with corresponding properties is created 'on-the-fly' and 
+passed to the `SELECT` statement for further processing. In all other cases a PIN with a single property afy:value is returned.
+
+`UPDATE` doesn't return anything. It's used to send data (or commands) to the external recipient.
+
+**Note 3**: 
 Related transformations (e.g. protobuf encoding and decoding) have the same service name and ID and are distinguished
 by the type of stack they're used in and their position. Therefore, the same protobuf service can be invoked for read and for write.
 In the first case it should decode protobuf stream, and in the second, encode structured information into protobuf stream.
@@ -236,13 +301,6 @@ Some services (e.g. RegExp service) can be used only in the read part of stack, 
 
 The kernel determines the type of stack automatically, based on type of the operation, services specified in the stack by CPIN
 and valid uses of specific services (is it endpoint? can it be used for read? for write? for request? can it listen? etc.)
-
-The result of CPIN communication in `SELECT` is a PIN or a stream of PINs returned by the services used in the communication stack.
-If the last service in stack returns `VT_REF` (reference to a newly created uncommitted PIN) - that's what `SELECT` would return
-(or use for further transformation). If it's a `VT_STRUCT` - a PIN with corresponding properties is created 'on-the-fly' and 
-passed to the `SELECT` statement for further processing. In all other cases a PIN with a single property afy:value is returned.
-
-`UPDATE` doesn't return anything. It's used to send data (or commands) to the external recipient.
 
 Services in a stack are called in the order they are specified in the array. There is one exception to this rule: a CPIN
 describing a read stack can be used for a write operation. In this case the sequence of service calls is automatically reversed.
@@ -259,26 +317,32 @@ An example:
 
 Still, in order to prevent CPIN duplication, it's possible to use the first CPIN for a write operation.
 
+Services
+--------
+
 A list of built-in services:
 
   - srv:affinity      - process pathSQL requests; server  
   - srv:regex         - parse input using a regular expression; transform  
   - srv:pathSQL       - parse/render pathSQL; transform  
-  - srv:JSON          - render JSON; transform  
-  - srv:protobuf      - parse/render protobuf; transform  
-  - srv:sockets       - read/write/listen sockets; endpoint  
-  - srv:IO            - read/write using OS i/o; endpoint  
+  - srv:JSON          - render PINS into JSON; transform  
+  - srv:protobuf      - parse/render PINs to protobuf; transform  
+  - srv:sockets       - read/write/listen to sockets; endpoint  
+  - srv:IO            - read/write using operating system file i/o; endpoint  
 
 External services:
 
   - srv:serial        - read/write (RS232); endpoint  
-  - srv:HTTP          - HTTP server; server  
-  - srv:HTTPRequest   - HTTP request; transform  
-  - srv:HTTPResponse  - HTTP response; transform  
-  - srv:REST          - REST interface to the server (for direct JSON/protobuf access to the store); transform  
+  - srv:HTTP          - HTTP server, request or response; server or transform  
   - srv:webapp        - static content server; server  
   - srv:XML           - XML<->PIN parser/renderer; transform  
+  - srv:MODBUS        - MODBUS reader and writer
+	- srv:CoAP					- CoAP request and response parsing/rendering
+  - srv:BLE           - Bluetooth Low-Energy listener, reader and writer
   - srv:NFC           - NFC listener, reader and writer
+	- srv:mDNS					- mDNS lookup of reachable nearby devices
+	- srv:LOCALSENSOR   - for mobile platforms, to read and write their sensors
+	- srv:VDEV					- virtual device, to simulate and document reader/writer/listener interactions
 
 Future services:
 
@@ -287,6 +351,12 @@ Future services:
   - srv:RDF  
   - etc.  
 
+Note that several services are incomplete in the alpha release. Also, service-specific configuration is
+often incomplete (see below). To properly assess the state and functionality of each service, we advise that
+you review the corresponding source code (and comments) at this stage, until more explicit documentation is provided in
+a next update.
+
+##### srv:affinity service
 The `.srv:affinity` service typically accepts 2 types of inputs: `.srv:pathSQL`, and `.srv:protobuf` (n.b. a protobuf
 payload will often be a plain set of PINs, but it could also contain pathSQL statements [although that aspect of the implementation
 is incomplete at the moment]; in that sense `.srv:protobuf` could be considered more general than `.srv:pathSQL`).
@@ -294,10 +364,70 @@ In cases where a response is not expected from the `.srv:affinity` service,
 a truncated stack should be used: `{.srv:sockets, .srv:protobuf, .srv:affinity}` would suffice for an insert (or message passing),
 whereas `{.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:XML, .srv:sockets}` would be typical for a query.
 
-Listeners that don't contain a server in their service stack can define a terminal `afy:action` to
-process the resulting PINs at the tail of the stack.
+##### srv:pathSQL service
+As input service, it is a pathSQL parser, reading input data as pathSQL statement,
+and preparing for execution by the srv:affinity service
+- either the input is a property with VT_STRING format
+- or else Read the property afy:request in @ctx pin as statement
 
-Note that most services are incomplete in the alpha release. Also, service-specific configuration is
-not yet systematically documented. To properly assess the state and functionality of each service, we advise that
-you review the corresponding source code at this stage, until more explicit documentation is provided in
-a next update.
+As output service, it is a pathSQL renderer, which converts the executable query structure
+to a statement in string format.
+<!-- TODO: examples -->
+
+##### srv:JSON service
+Transformation service, used to convert between PINs (or values) and JSON format strings.
+Note that the parsing direction is not yet implemented.
+
+##### srv:protobuf service
+Transformation service, used to convert between PINs (or values) and Google protocol-buffer binary format.
+
+##### srv:encryption service
+This service can be used to encrypt output data or decrypt the input data using AES algorithm.
+
+##### srv:regex service
+input format: string
+built-in property:
+    afy:pattern
+    afy:prototype
+<!-- TODO: examples -->
+
+##### srv:IO service
+Output: write the data provided by `afy:content` (either literal or via query) to the file specified by `afy:address`.
+Input: read data from the file, and compose each line in the file as a pin.
+
+The permissions CREATE_PERM, WRITE_PERM, READ_PERM can be assigned with format as:
+
+    afy:address(READ_PERM, WRITE_PERM)='path_to_file.txt'
+
+`afy:position` can be used for moving the file cursor:
+
+		- afy:position(SEEK_CUR)=number, move the current cursor forward for number which is greater than 0; move the current cursor backward for the number which is less than 0;
+		- afy:position(SEEK_END)=-200 , e.g.  set to the end of the file as:  afy:position(SEEK_END)=0u
+		- SEEK_SET by default, e.g. set the cursor to the beginning of the file as:   afy:position=0u
+       
+This service can be used for logging/tracing, as a complementary [debugging](#debugging) technique.
+
+##### srv:serial service
+
+##### srv:sockets service
+afy:address format can be:
+- string format as:  'ip:socket'
+- number format as:  socket
+
+<!-- TODO: lots more work to do here -->
+
+Debugging
+---------
+
+The kernel provides tracing methods to help follow the execution flow through
+communication PINs as well as the [actions of classes](#create-class), timers etc.:
+
+  - SET TRACE [ALL] [QUERIES | ACTIONS | TIMERS | COMMUNICATIONS | FSMS] [ON|OFF]
+
+With the 'ALL' keyword, this statement affects all subsequent statements, whereas
+otherwise it operates like SET PREFIX, on the current statements only.
+
+Examples:
+
+  - SET TRACE ALL ACTIONS
+  - SET TRACE ALL COMMUNICATIONS

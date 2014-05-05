@@ -49,8 +49,8 @@ PINs may contain sub-structures, e.g.
 Different [data types](./pathSQL reference.md#data-types) have different input formats, e.g.
 
   <code class='pathsql_snippet'>INSERT<br>
-      prop_string='string', prop_url=U'http://test/',<br>
-      prop_binary_string=X'DEF5',<br>
+      prop_string='string',<br>
+      prop_binary_string=X'3A0F5D47031241F197400CB2A6592966',<br>
       prop_int=128, prop_float=3.40282f, prop_double=3.40282, prop_bool=true,<br>
       prop_datatime=TIMESTAMP '2010-12-31 23:59:59', prop_internal=INTERVAL '-12:00:00',<br>
       prop_lambda=$(:0 > 50),<br>
@@ -63,7 +63,7 @@ Collections may contain heterogeneous data, e.g.
 
   <code class='pathsql_snippet'>
       INSERT prop_collection=<br>
-      &nbsp;{'string', X'DEF5', U'http://test/', 128, 3.40282f,<br>
+      &nbsp;{'string', X'DEF5', 128, 3.40282f,<br>
       &nbsp;3.40282, true, TIMESTAMP '2010-12-31 23:59:59', INTERVAL '-12:00:00'};
   </code>  
 
@@ -71,11 +71,11 @@ Collections may contain heterogeneous data, e.g.
 Sub-structures and associative arrays may also have heterogeneous data, e.g.
 
   <code class='pathsql_snippet'>INSERT prop_structure=<br>
-      &nbsp;{p1='string', p2=X'DEF5', p3=U'http://test/', p4=128, p5=3.40282f,<br>
+      &nbsp;{p1='string', p2=X'DEF5', p4=128, p5=3.40282f,<br>
       &nbsp;p6=3.40282, p7=true, p8=TIMESTAMP '2010-12-31 23:59:59', p9=INTERVAL '-12:00:00'};
   </code>
   <code class='pathsql_snippet'>INSERT prop_map=<br>
-      &nbsp;{'string' -> X'DEF5', U'http://test/' -> 128,<br>
+      &nbsp;{'string' -> X'DEF5', 'http://test/' -> 128,<br>
       &nbsp;3.40282f -> 3.40282, true -> TIMESTAMP '2010-12-31 23:59:59'};
   </code>  
 
@@ -116,7 +116,7 @@ Whole graphs with cycles may be inserted in one statement, using references and 
       &nbsp;WHERE EXISTS(control:"rt/time/signal");<br>
       CREATE CLASS control:"rt/physical/samples" AS SELECT &#42;<br>
       &nbsp;WHERE EXISTS(control:"rt/time/step") AND EXISTS(control:"rt/sensor");<br>
-      CREATE TIMER control:"rt/source/timer" INTERVAl '00:00:20'<br>
+      CREATE TIMER control:"rt/source/timer" INTERVAL '00:00:20'<br>
       &nbsp;AS UPDATE control:"rt/signalable"<br>
       &nbsp;SET control:"rt/time/signal"=EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>
       &nbsp;&nbsp;control:"rt/time"=CURRENT_TIMESTAMP;<br>
@@ -144,18 +144,17 @@ Whole graphs with cycles may be inserted in one statement, using references and 
       &nbsp;&nbsp;&nbsp;meta:description='Condition: turned off a 572ef13c sensor',<br>
       &nbsp;&nbsp;&nbsp;afy:objectID=.control:"template/condition/572ef13c/off",<br>
       &nbsp;&nbsp;&nbsp;afy:predicate=&#36;{SELECT &#42; WHERE (@ IS A control:"rt/physical/samples" AND<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;control:"rt/sensor/model"=@:1.afy:objectID AND control:"rt/value" < 0.5)}),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;control:"rt/sensor/model"=.simul:"template/sensor/on.off.572ef13c" AND control:"rt/value" < 0.5)}),<br>
       &nbsp;&nbsp;(INSERT <br>
       &nbsp;&nbsp;&nbsp;meta:description='Condition: turned on a 572ef13c sensor',<br>
       &nbsp;&nbsp;&nbsp;afy:objectID=.control:"template/condition/572ef13c/on",<br>
       &nbsp;&nbsp;&nbsp;afy:predicate=&#36;{SELECT &#42; WHERE (@ IS A control:"rt/physical/samples" AND<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;control:"rt/sensor/model"=@:1.afy:objectID AND control:"rt/value" >= 0.5)}),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;control:"rt/sensor/model"=.simul:"template/sensor/on.off.572ef13c" AND control:"rt/value" >= 0.5)}),<br>
       &nbsp;&nbsp;(INSERT <br>
       &nbsp;&nbsp;&nbsp;meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',<br>
       &nbsp;&nbsp;&nbsp;afy:objectID=.control:"template/condition/572ef13c/off.confirmed",<br>
       &nbsp;&nbsp;&nbsp;afy:predicate=&#36;{SELECT &#42; WHERE (@ IS A world:appliances AND NOT EXISTS(control:"rt/emergency/time") AND<br>
       &nbsp;&nbsp;&nbsp;&nbsp;(control:"rt/warning/time"[:LAST] - control:"rt/warning/time"[:FIRST] >= INTERVAL '00:00:05'))})},<br>
-      &nbsp;simul:"template/sensor/generator"=(SELECT afy:pinID FROM afy:Classes WHERE afy:objectID=.simul:"value/gen/sinus"),<br>
       &nbsp;simul:"template/gen/type"='boolean', simul:"template/gen/jitter"=0,<br>
       &nbsp;simul:"template/gen/min"=0, simul:"template/gen/max"=100,<br>
       &nbsp;simul:"template/gen/spread"=1.5,<br>
@@ -208,7 +207,7 @@ Generators combined with `INSERT SELECT` for general-purpose "list comprehension
       INSERT SELECT<br>
       &nbsp;afy:value AS ex:index,<br>
       &nbsp;CURRENT_TIMESTAMP as ex:at<br>
-      &nbsp;FROM [1,20];
+      &nbsp;FROM @[1,20];
   </code>
 
 A few more simple examples:
@@ -225,10 +224,44 @@ A few more simple examples:
 
   <code class='pathsql_snippet'>INSERT "http://acme.org/properties/length"=123,<br>
       "http://acme.org/properties/width"=456,<br>
-      "http://acme.org/properties/name"='wonderful instrument';</code>  
+      "http://acme.org/properties/name"='wonderful instrument';
+  </code>  
 
   <code class='pathsql_snippet'>SET PREFIX acmep: 'http://acme.org/properties/';<br>
-      INSERT acmep:"length"=123.1, acmep:width=456.1, acmep:name='great instrument';</code>  
+      INSERT acmep:"length"=123.1, acmep:width=456.1, acmep:name='great instrument';
+  </code>  
+
+Linear Algebra
+--------------
+With the support of Array operators, <span class='pathsql_new'>NEW in AffinityNG</span>,
+a lot of calculations related to linear algebra can be implemented easily in PathSQL.
+
+  <code class='pathsql_snippet'>
+    INSERT afy:objectID='matrix1',<br>
+    &nbsp;&nbsp;a=[[1.0,2.0,3.0],[2.0,1.0,4.0],[1.0,2.0,1.0]],<br>
+    &nbsp;&nbsp;b=[3.0,5.0,2.0],<br>
+    &nbsp;&nbsp;c=[[2.0,1.0,1.0],[3.0,2.0,1.0],[1.0,7.0,5.0]];<br>
+    SELECT TRANSPOSE(a) FROM #matrix1;<br>
+    SELECT INV(a) FROM #matrix1;<br>
+    SELECT DET(a) FROM #matrix1;<br>
+    SELECT TRACE(a) FROM #matrix1;<br>
+    SELECT a+c FROM #matrix1;<br>
+    SELECT a-c FROM #matrix1;<br>
+    SELECT a*c FROM #matrix1;
+  </code>
+
+The linear algebra calculations in AffinityNG follow strict rules.
+For example, a MxN matrix can only be added to or subtracted from another MxN matrix;
+the inverse operation of a singular matrix will produce an error;
+A MxN matrix should be multiplied with a NxK matrix
+(i.e. the number of columns in the first must be equal to the number of rows in the second).
+
+Also, a solution to a system of linear equations can be evaluated easily.
+Suppose AX=B, where A is a matrix, and X and B are vectors, then X=B/A.
+
+  <code class='pathsql_snippet'>
+    SELECT b/a FROM #matrix1;
+  </code>
 
 How to classify data 
 --------------------
@@ -300,7 +333,7 @@ How to use [references](./terminology.md#pin-reference)
 Relational databases use foreign keys to establish relationships between tables.  Affinity offers a powerful
 alternative with [references](./terminology.md#pin-reference) (similar to object-oriented databases):
 
-  <code class='pathsql_snippet'>UPDATE &#42; ADD friends=(SELECT afy:pinID WHERE name='Fred') WHERE name='Jurgen';</code>  
+  <code class='pathsql_snippet'>UPDATE &#42; ADD friends=(SELECT * WHERE name='Fred') WHERE name='Jurgen';</code>  
   
   <code class='pathsql_snippet'>UPDATE &#42; ADD friends=(SELECT friends[:FIRST] WHERE name='Jurgen') WHERE name='Sonny';</code>
 
@@ -361,7 +394,7 @@ the class family behaves like a CLASS. For example:
 
   <code class='pathsql_snippet'>SELECT &#42; FROM clsfml(27, 'Fred');</code>  
 
-  <code class='pathsql_snippet'>SELECT &#42; FROM clsfml([50, 10], ['A', 'H']);</code>  
+  <code class='pathsql_snippet'>SELECT &#42; FROM clsfml(@[50, 10], @['A', 'H']);</code>  
 
   <code class='pathsql_snippet'>SELECT &#42; FROM clsfml;</code>  
 
@@ -384,7 +417,7 @@ integral name as provided. Presently, the name index is only looked up for #name
     INSERT afy:objectID='example2', myvalue='Hello2';<br>
     SELECT &#42; FROM #abc:example1;<br>
     SELECT &#42; FROM #example2;<br>
-    UPDATE #abc:example1 SET yetanothervalue='Yes indeed!';<br>
+    UPDATE #abc:example1 SET yetanothervalue='Yes indeed!';
   </code>
 
 <!-- TODO: add this when works... UPDATE #"http://example/example1" SET someothervalue='World!'; -->

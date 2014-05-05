@@ -105,7 +105,7 @@ Examples: [delete.sql](./sources/pathsql/delete.html).
 
 Synopsis: 
 
-  - SELECT [ * | {property_name [AS new_name] } [, ...] ]  
+  - SELECT [ FIRST ] [ * | {property_name [AS new_name] } [, ...] ]  
     [ FROM from_item [, ...] ]  
     [ WHERE conditions ]  
     [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]  
@@ -130,6 +130,10 @@ and *join_type* can be one of:
   - RIGHT [ OUTER ] JOIN
   - FULL [ OUTER ] JOIN
   - CROSS JOIN
+
+SELECT FIRST allows to extract only the first result of a set, respecting its ordering.  This is equivalent
+to a LIMIT 1 OFFSET 0 specification, in other DBMSs. It is especially useful when processing sets in an
+afy:action, for example.  
 
 #### Alias name in FROM clause
 A substitute name for the FROM item containing the alias. An alias is used for brevity or to eliminate ambiguity for self-joins (where the same table is scanned multiple times). 
