@@ -52,6 +52,29 @@ This can be especially important when classification is taken into consideration
 Careful selection of prefixes (with clear, distinct and meaningful semantics) yields
 better long-term interoperability with other applications.
 
+Prefixes are defined by inserting `SET PREFIX` pseudo-statements before actual
+pathSQL statements, separated by semicolons.
+Any number of `SET PREFIX` pseudo-statements can precede a pathSQL statement,
+and are considered to be a part of the statement.
+The operational scope of `SET PREFIX` is the statement (or set of statements)
+it is attached to.  Example:
+
+  <code class='pathsql_snippet'>
+    SET PREFIX p1: 'http://example/doc/my/first/prefix';<br>
+    SET PREFIX p2: 'http://example/doc/my/second/prefix';<br>
+    INSERT afy:objectID=.p1:test, p1:x=10, p2:name='Jack';
+  </code>  
+
+  <code class='pathsql_snippet'>
+    SET PREFIX p1: 'http://example/doc/my/first/prefix';<br>
+    SELECT * from #p1:test;
+  </code>  
+
+  <code class='pathsql_snippet'>
+    /\* This will fail, since p1 and p2 are long forgotten. \*/<br>
+    SELECT * from #p1:test;
+  </code>  
+
 #### Constants
 pathSQL understands most common [value](./terminology.md#value) types.  Some standard constants are
 associated with these value types, such as TRUE and FALSE.

@@ -7,7 +7,7 @@ along with ordinary properties.
 #### CREATE CLASS
 Synopsis:  
 
-  - CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement
+  - CREATE CLASS class_name AS query_statement  
     [SET afy:onEnter={\${qs1}, \${qs2} [, ...]}, afy:onUpdate={\${qs3}, \${qs4} [, ...]}, afy:onLeave={\${qs5}, \${qs6} [, ...]}, property=value [, ...]]  
 
 Equivalent to:  
@@ -15,13 +15,7 @@ Equivalent to:
   - INSERT afy:objectID=.class_name, afy:predicate=\${query_statement},
     afy:onEnter={\${qs1}, \${qs2} [, ...]}, afy:onUpdate={\${qs3}, \${qs4} [, ...]}, afy:onLeave={\${qs5}, \${qs6} [, ...]}, property=value [, ...]  
 
-Where the query_statement is a [SELECT QUERY](./pathSQL reference [manipulation].md#query). Here's a description of the OPTIONS:  
-
-  - DEFAULT: This is the default mode (all [PIDs](./terminology.md#pin-id-pid) will be indexed by this class).  
-  - VIEW: Like view in relational db, it is just a query definition for usability.  
-  - CLUSTERED: Using clustered index to maintain all [PIDs](./terminology.md#pin-id-pid), for increased performance. Not yet implemented.  
-  - SOFT_DELETE: Create an index not only for normal pins, but also for those pins marked as deleted (but not purged).  
-  - *Note:* These OPTIONS cannot be specified via the INSERT equivalent form, presently.  
+Where the query_statement is a [SELECT QUERY](./pathSQL reference [manipulation].md#query).
 
 The `afy:onEnter`, `afy:onUpdate` and `afy:onLeave` properties allow to attach actions to classes (similar to "callbacks",
 "event handlers", and "triggers" in RDBMSs).  The implementation of those actions is expressed in pathSQL,
@@ -95,16 +89,37 @@ Example:
 #### CREATE EVENT
 Synopsis:
 
-  - CREATE EVENT event_name AS query_statement
+  - CREATE EVENT event_name AS query_statement  
+    [SET afy:onEnter={\${qs1}, \${qs2} [, ...]}, afy:onUpdate={\${qs3}, \${qs4} [, ...]}, afy:onLeave={\${qs5}, \${qs6} [, ...]}, property=value [, ...]]  
 
-Equivalent to:
+This operates in a way similar to a class, but without any index.
+There is no strictly equivalent `INSERT` syntax for `CREATE EVENT`.  
 
-  - CREATE CLASS event_name OPTIONS(VIEW) AS query_statement
-
-To explicit and push further its transition from a DBMS to a platform, AffinityNG
+To communicate more explicitly its transition from a DBMS to a full runtime platform, AffinityNG
 now uses a distinct name for the concept of an "event".  While classes do recognize and
 produce events, they are no longer the only source of events.  Upcoming event handlers and FSMs
-will soon provide the whole context for this evolution.
+will soon provide the whole context for this evolution.  
+
+Example:
+
+  <code class='pathsql_snippet'>
+    SET PREFIX example: 'http://example/event';<br>
+    <br>
+    CREATE EVENT example:raindrops AS SELECT * WHERE EXISTS(example:dropsize) SET<br>
+    &nbsp;afy:onEnter=${UPDATE @self SET example:dropped_at=CURRENT_TIMESTAMP};
+  </code>  
+
+  <code class='pathsql_snippet'>
+    SET PREFIX example: 'http://example/event';<br>
+    <br>
+    INSERT example:dropsize=1.2mm;<br>
+    INSERT example:dropsize=1.1mm;<br>
+  </code>
+
+  <code class='pathsql_snippet'>
+    SET PREFIX example: 'http://example/event';<br>
+    SELECT &#42; FROM example:raindrops;
+  </code>  
 
 #### RULE
 [Rules](./terminology.md#rule) form a higher-level programming layer, intended to help summarize and present a system's
@@ -254,7 +269,7 @@ The value of the `afy:service` or `afy:listen` property can be:
 
   - a VT_REFID: the referred PIN must be a CPIN, properties of which are used for the operation
 
-  - a VT_ARRAY: contains more than one element with the above types; defines a communication stack (e.g. `afy:service={.srv:XML, srv:IO}`)
+  - a VT_COLLECTION: contains more than one element with the above types; defines a communication stack (e.g. `afy:service={.srv:XML, srv:IO}`)
 
 A communication stack is a linear sequence of services which are called sequentially to perform i/o
 and transformations of the data, where output of one service is passed as the input to the next one in the stack.
