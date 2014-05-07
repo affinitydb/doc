@@ -1,5 +1,5 @@
 #Introduction
-Welcome to AffinityNG, the "next generation" edition of Affinity (alpha release)!  
+Welcome to AffinityNG, the "next generation" edition of Affinity (alpha2 release)!  
 
 AffinityNG is licensed as open-source software under the Apache License, Version 2.0.  
 

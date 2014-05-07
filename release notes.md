@@ -85,6 +85,8 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
 ##Additions
 <!-- TODO: make sure all these things are linked to the sections that fully document them -->
 
+ * New in alpha2, some external services have been published in github, and are summarily
+   demonstrated in the [documentation](./pathSQL basics [control].md#external-services-communications).
  * Event-handlers (written in pathSQL) can be attached to [classes](./terminology.md#class).  These handlers execute operations
    in response to events concerning the class they're attached to.  For example, when a PIN becomes a member of a class,
    the statements contained by an `afy:onEnter` property  will be executed.  The handlers, through the statements
@@ -161,9 +163,9 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
  * XCode projects were added for OSX, as a convenient alternative for cmake projects.
 
 ##Limitations
-The following limitations are part of the alpha release of AffinityNG.
+The following limitations are part of the alpha2 release of AffinityNG.
 
- * Most of the [services](./terminology.md#service) are incomplete and not yet fully documented.
+ * Most of the [services](./terminology.md#service) are incomplete or not yet fully documented.
  * The security & privacy models for communications are not yet available.
  * [FSMs](./terminology.md#fsm), [communication](./terminology.md#communication-pin), and the synergy
    between them are still young and may expose bugs. Your contribution in reporting issues (via github)
@@ -173,7 +175,7 @@ The following limitations are part of the alpha release of AffinityNG.
    limitations related to [structures](./terminology.md#structure) and [maps](./terminology.md#map), etc.
  * AffinityNG is moving toward a transient-first approach (as opposed to its ancestor AffinityDB,
    which favored the more traditional database approach with persistent-first objects); this evolution
-   may not be completely accomplished in the alpha release.
+   may not be completely accomplished in the alpha2 release.
  * JSON parsing is not yet supported.
  * Dump&load and replication not fully implemented.
  * There are limitations with projections in JOIN.

@@ -388,8 +388,8 @@ For more information about collections, see [comparisons involving collections](
 
 *Note*: although Affinity doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.  
 
-### [Map] (./terminology.md#map)) 
-Format:  {element_key1 -> element_value1, element_key2 -> element_value2, ...}
+### [Map](./terminology.md#map)
+Format:  {element_key1 -> element_value1, element_key2 -> element_value2, ...}  
 Where the element_key* and element_value* can be any data type.
 
   <code class='pathsql_snippet'>INSERT my_map=<br>

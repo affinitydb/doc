@@ -1,5 +1,6 @@
 #C++ Kernel Interface
-<!-- TODO: many little things to review here... -->
+<!-- TODO: talk a bit more about services, and direct to other sources of info... -->
+<!-- TODO: when time permits, review and complete, in more depth... -->
 Please read the brief [introduction](./terminology.md#c-kernel-interface). The
 bulk of the interface is defined in [affinity.h](./sources/affinity_h.html).
 
@@ -26,7 +27,7 @@ to implement additional query languages for Affinity.
 
 Without documenting each and every function (or parameter) of the C++ interface, this page 
 presents enough information to use it successfully. The following interfaces and structures are covered:
-[IAffinity](#iaffinity), [ISession](#isession), [IPIN](#ipin), [Value](#value), [IExprTree](#iexprtree),
+[IAffinity](#iaffinity), [ISession](#isession), [IPIN](#ipin), [Value](#value), [IExprNode](#iexprnode),
 [IStmt](#istmt), [ICursor](#icursor), [INav](#inav), [IMap](#imap), [IStream](#istream),
 [IBatch](#ibatch), [IService](#iservice).
 Please refer to the C++ tests and source code for a complement of information.
@@ -165,7 +166,7 @@ is to declare a new class (a new version).
 Here's an example building a multi-segment class index:
 
 <pre>
-  IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
+  IExprNode * lExpr1 = NULL, * lExpr2 = NULL;
   Value lV[2];
   lV[0].setVarRef(0, mProps[0]);
   lV[1].setParam(0);
@@ -264,13 +265,13 @@ Most of the fields have the same meaning as in the input case. However, `op` and
 are unused in this case. Also, `length` can be irrelevant when large objects are returned ([INav](#inav)
 or [IStream](#istream)). This is done to delay expensive length computations until requested. 
 
-#IExprTree
-`IExprTree` represents a node of an expression tree. Every instance is created with
+#IExprNode
+`IExprNode` represents a node of an expression tree. Every instance is created with
 `ISession::expr` (or `ISession::createExprTree`). The `op`
 parameter determines the logical relation between the `operands` (which are instances of
 [Value](#value)).
 
-Via `VT_EXPRTREE`, a [Value](#value) can hold an `IExprTree`, and thus `ISession::expr`
+Via `VT_EXPRTREE`, a [Value](#value) can hold an `IExprNode`, and thus `ISession::expr`
 can be used not only to build leaf nodes but also complete trees (in combination with logical
 operators such as `OP_AND, OP_OR etc.`). Here's an example:
 
@@ -280,21 +281,21 @@ operators such as `OP_AND, OP_OR etc.`). Here's an example:
   Value lV[2];  
   lV[0].setVarRef(0, mFilePathPropID);  
   lV[1].setParam(0);  
-  IExprTree *lET1 = mSession->expr(OP_EQ, 2, lV);  
+  IExprNode *lET1 = mSession->expr(OP_EQ, 2, lV);  
   lV[0].setVarRef(0, mPIFSAttrPropID);  
-  IExprTree *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
+  IExprNode *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
   lV[0].set(lET1);  
   lV[1].set(lET2);  
-  CmvautoPtr<IExprTree> lET(mSession->expr(OP_LAND, 2, lV));  
+  CmvautoPtr<IExprNode> lET(mSession->expr(OP_LAND, 2, lV));  
   TVERIFYRC(lQ->addCondition(lVar,lET));  
 </pre>
 
 Usually, the root node of an expression is passed to `IStmt::addCondition`. Internally,
 Affinity compiles the expression into a representation optimized for execution (`IExpr`).
-The methods of `IExprTree` are rarely used.
+The methods of `IExprNode` are rarely used.
 
 _Note: When freeing an expression tree composed of multiple sub-trees, `destroy` should only be
-called on the topmost `IExprTree` object. In the example pasted here, notice how only `lET` is
+called on the topmost `IExprNode` object. In the example pasted here, notice how only `lET` is
 destroyed explicitly (not `lET1` nor `lET2`)._
 
 #IStmt
@@ -332,7 +333,7 @@ To do a join:
   Value lV[2];
   lV[0].setVarRef(lVars[0], propid1);
   lV[1].setVarRef(lVars[1], propid2);
-  IExprTree * lExprJ = mSession->expr(OP_EQ, 2, lV);
+  IExprNode * lExprJ = mSession->expr(OP_EQ, 2, lV);
   lQ->join(lVars[0], lVars[1], lExprJ, QRY_SEMIJOIN);
 </pre>
 

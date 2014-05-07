@@ -80,7 +80,7 @@ Complex Event Processing (CEP)
 ------------------------------
 
 Built on top of basic events and [FSMs](#finite-state-machines-fsms), CEP enriches the set of events available for
-the expression of rules and higher-order FSMs. CEP is not available yet in the alpha release of AffinityNG.
+the expression of rules and higher-order FSMs. CEP is not available yet in the alpha2 release of AffinityNG.
 
 Rules
 -----
@@ -149,21 +149,34 @@ Timers constitute entry points of pure-pathSQL programs (analogous to the thread
     INSERT control:"rt/time/signal"=0, control:"sensor/name"='sensor B',<br>
     &nbsp;control:"sensor/model"=.simulation:"sensor/on.off.572ef13c", simulation:"offset/value"=1000;<br>
     /\* Trigger all signalable entities. \*/<br>
-    CREATE TIMER control:"rt/source/timer" INTERVAL '00:00:01' AS UPDATE control:"rt/signalable" SET<br>
+    CREATE TIMER control:"rt/source/timer" INTERVAL '00:00:05' AS UPDATE control:"rt/signalable" SET<br>
     &nbsp;control:"rt/time/signal"=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:"rt/time"=CURRENT_TIMESTAMP;
   </code>
 
 External Services & Communications
 ----------------------------------
 
-[Communication PINs](./pathSQL reference [definition].md#communication-pins), aka CPINs, are primarily defined by
-their "service stack", i.e. a permutation of [services](./terminology.md#service) with their configurations,
-stored as properties of the CPIN. Services can play a role of source or sink (e.g. sockets, file IO, MODBUS, BLE, serial, zigbee etc.),
-of request-response server (e.g. webapp, affinity) or of transformation (e.g. HTTP request/response, XML, JSON, protobuf etc.).
-Higher-level communication patterns can be built on top of the four basic types of service stacks described below.  
+[Communication PINs](./pathSQL reference [definition].md#communication-pins), aka "CPINs", are primarily defined by
+their "service stack".  The CPIN contains its service stack via either one of these properties: `afy:service` or `afy:listen`.
+The former case represents passive CPINs (i.e. CPINs that will only do something when explicitly SELECT-ed or UPDATE-ed),
+whereas listeners can be considered active or autonomous, in the sense that no SELECT or UPDATE on them is required
+for them to produce changes.  A service stack is a collection of [services](./terminology.md#service),
+complemented by additional configuration properties stored on the same CPIN.
+Services in the stack can play different roles:
 
-Individual services and their configurations will be described in detail [here](./pathSQL reference [definition].md#services).  
-&nbsp;
+  * source or sink (e.g. sockets, file IO, MODBUS, BLE, serial, zigbee etc.)
+  * request-response server (e.g. webapp, affinity)
+  * transformation (e.g. XML, JSON, protobuf, HTTP request/response etc.)
+
+Four basic types of service stacks, demonstrated below, emerge from these building blocks.
+With these and the database kernel, a multitude of communication patterns can be implemented.
+
+<span style='color:#444;'>
+*Note:* Individual services and their configurations will be described in detail [here](./pathSQL reference [definition].md#services).  
+*Note:* In the text that follows, comments in the code fragments complement the narrative.
+</span>  
+
+&nbsp;  
 
 <!-- TODO: more examples, especially with VDEV and emergent GUI (i.e. a 'real' interaction with device and program); either cover all existing services here as a mini-ref, or add a real ref for services... need to cover things like mDNS, HTTP, NFC etc. at least to a usable state; need to document what's not working or unfinished also -->
 <!-- TODO: more complex/varied stacks (refs/structs, more config, more services, server without response etc.) -->
@@ -322,6 +335,12 @@ In this section, we'll be using the VDEV virtual device service, a service that 
 typical interactions with sensors and actuators, to illustrate some of the possibilities
 and idioms.  Note: a similar scenario could be developed with real sensors, using something like
 BLE instead of VDEV; the main changes would be in terms of configuration of those CPINs.
+
+<span style='color:#444;'>
+*Note:* In the text that follows, comments in the code fragments complement the narrative.
+</span>  
+
+&nbsp;  
 
 <!-- TODO: could develop a number of representative stories here, e.g. typical PID stuff, robotics, motion, etc. -->
 <!-- TODO: somewhere later in the flow, show a comparison with say BLE/MODBUS, to highlight similarities and differences with VDEV;
@@ -579,12 +598,9 @@ Here are their definitions:
     SET PREFIX alrm: 'http://example/alarm-system';<br>
     SELECT &#42; FROM afy:Classes WHERE BEGINS(afy:objectID, 'http://example/alarm-system/');<br>
     SELECT &#42; FROM afy:Enumerations WHERE BEGINS(afy:objectID, 'http://example/alarm-system/');
-  </code>
+  </code>  
 
-<!--
-Synergy
--------
-
+<!-- Synergy
 The very open nature of [PINs](./terminology.md#pin), combined with the way all active components
 are configured, allows to merge together mutliple functionalities into a single PIN naturally,
 with automatic handling in the kernel of implied aspects. 

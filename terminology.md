@@ -3,7 +3,8 @@
 [C++ interface](#c-kernel-interface), [CEP](#cep), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [communication PIN](#communication-pin), [condition](#condition),
 [data model](#essentials-data-model),
-[element ID (eid)](#element-id-eid), [encryption](#encryption), [enumeration](#enumeration), [family](#family),
+[element ID (eid)](#element-id-eid), [encryption](#encryption), [enumeration](#enumeration),
+[event](#event), [family](#family),
 [FSM](#fsm), [identity](#identity), [index](#index), [kernel](#kernel),
 [loader](#loader), [map](#map), [namespace](#namespace), [notification](#notification),
 [page](#page), [parameter](#parameter), [pathSQL](#pathsql), [PIN](#pin),
@@ -17,9 +18,9 @@
 #Essentials (Data Model)
 The key components of Affinity's data model can be presented on two layers:  
 
-  1. a base layer (plain "passive" data items): [PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)),
-     [collection](#collection), [class](#class)  
-  2. an active layer, <span class='pathsql_new'>NEW in AffinityNG</span> (components of this layer are built upon the base layer): [condition](#condition), [action](#action),
+  1. a base layer, mostly constituted of plain "passive" data items: [PIN](#pin), [property](#property), [value](#value) (including [references](#pin-reference)),
+     [collection](#collection), [map](#map), [class](#class)  
+  2. an active layer, <span class='pathsql_new'>NEW in AffinityNG</span> (components of this layer are built upon the base layer): [condition](#condition), [action](#action), [event](#event)
      [rule](#rule), [FSM](#fsm), [CEP](#cep), [timer](#timer), [service](#service), [communication PIN](#communication-pin)  
 
 ##Data Model: Basic Components
@@ -152,9 +153,10 @@ A condition is a predicate, i.e. an expression evaluating to true or false:
 languages in general, and in SQL.  Those that are of particular interest
 in the context of the active layer of pathSQL are:  
 
-  1. the predicates of [classes](#class),
-  2. the conditions that define [rules](#rule), and
-  3. the conditions that define state transitions in [FSMs](#fsm), and
+  1. the predicates that describe [events](event),
+  2. the predicates of [classes](#class),
+  3. the conditions that define [rules](#rule), and
+  4. the conditions of state transitions in [FSMs](#fsm), which
      constitute building blocks for the regular expressions used in [CEP](#cep)  
 
 In pathSQL most conditions are expressed in a declarative or functional style
@@ -170,7 +172,14 @@ Actions usually modify some state, either locally in the database, or externally
 via [communication PINs](#communication-pin). Actions can cause new [conditions](#condition)
 to evaluate to true, and thus trigger a chain of actions.
 
-<!-- TODO: Event -->
+###Event
+An event is the occurrence in time of a [condition](#condition), bound to specific data items or context.
+An [action](#action) can be directly attached to an event, or indirectly via a [rule](#rule), a [FSM](#fsm) etc.
+As soon as a type of event is described to AffinityNG (via [CREATE EVENT](./pathSQL reference [definition].md#create-event),
+[CREATE CLASS](./pathSQL reference [definition].md#create-class) etc.),
+every future occurrence of that event will be recognized by AffinityNG, and any [action](#action) directly
+or indirectly attached to the event will be triggered.  From the perspective of older versions
+of Affinity, an event is analogous to a class without an index.
 
 ###Rule
 A rule is a simple construct that binds a conjunction of [conditions](#condition) to a list of [actions](#action).
@@ -192,7 +201,7 @@ makes it trivial to represent FSMs internally (and in pathSQL).
 Complex Event Processing (CEP) is the ability to express and detect more complex
 correlations of events (i.e. [conditions](#condition) encountered at discrete points in time).
 In pathSQL, those correlations are described as a regular expression of a [FSM's](#fsm)
-transitions. CEP is not readily available in the alpha release of AffinityNG.
+transitions. CEP is not readily available in the alpha2 release of AffinityNG.
 
 <!-- TODO: review when available -->
 
@@ -252,13 +261,15 @@ an "adult" _class_ (with the predicate "age >= 18"), or an "age_limit" _family_
 ###Enumeration
 An enumeration allows to declare inter-related symbolic values, without polluting the global namespace.
 This can be useful for managing states, options and conditions based on those.
-For a more detailed description, please visit the [reference](./pathSQL reference.md#create-enumeration).
+For a more detailed description, please visit the [reference](./pathSQL reference [definition].md#create-enumeration).
 
 ### Parameter
 In the context of a class [family](#family), a parameter is an unspecified (free) value in the 
 definition of the predicate. It usually implies an [index](#index). Typically, this [value](#value) is provided at
 query time. For example, using pathSQL, one could define: <pre>'CREATE CLASS age_limit AS select * where age >= :0;'</pre>
 and then query with <pre>'SELECT * FROM age_limit(18);'</pre>
+
+<!-- TODO: describe new named parameters -->
 
 ###Uncommitted PIN
 This terminology is deprecated. An uncommitted PIN designates a PIN that is not persisted.
@@ -434,7 +445,7 @@ for which implementations are provided by the kernel, plus a few constants and s
 The IAffinity interface represents a store instance, and allows to create interactive sessions.
 The ISession interface represents a logical connection to a store instance, and provides an entry point for every possible interaction. 
 It understands the [pathSQL](#pathsql) dialect, as well as the [protocol-buffer](#protocol-buffer) streaming interface. 
-At a lower level, query conditions and [class](#class) predicates can be defined using expression trees (IExprTree),
+At a lower level, query conditions and [class](#class) predicates can be defined using expression trees (IExprNode),
 which enable the embedding application to develop any desired query language
 (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation.
 [PINs](#pin) are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot

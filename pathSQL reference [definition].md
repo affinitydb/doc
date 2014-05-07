@@ -218,9 +218,10 @@ sending and receiving network requests, exchanging information with other instan
 is done by reading or writing to special communication PINs, using `SELECT` and `UPDATE`.  
 
 Please refer to the 'pathSQL basics [control]' page for some concrete examples,
-especially from those two sections:
-[External Services & Communications](./pathSQL basics [control].md#external-services-communications) and
-[Sensors & Actuators](./pathSQL basics [control].md#sensors-actuators).
+especially from those two sections:  
+
+  * [External Services & Communications](./pathSQL basics [control].md#external-services-communications) and
+  * [Sensors & Actuators](./pathSQL basics [control].md#sensors-actuators).  
 
 How Does Communication Work?
 ----------------------------
@@ -366,7 +367,7 @@ Future services:
   - srv:RDF  
   - etc.  
 
-Note that several services are incomplete in the alpha release. Also, service-specific configuration is
+Note that several services are incomplete in the alpha2 release. Also, service-specific configuration is
 often incomplete (see below). To properly assess the state and functionality of each service, we advise that
 you review the corresponding source code (and comments) at this stage, until more explicit documentation is provided in
 a next update.
