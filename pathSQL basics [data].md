@@ -172,15 +172,6 @@ Whole graphs with cycles may be inserted in one statement, using references and 
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;control:sensor=@:20)};<br>
   </code>  
 
-Values can also be lambda expressions, e.g.
-
-  <code class='pathsql_snippet'>INSERT<br>
-      &nbsp;trigo_sin=<br>
-      &nbsp;&nbsp;&#36;(:0 - POWER(:0,3)/6 + POWER(:0,5)/120 - POWER(:0,7)/5040 + POWER(:0,9)/362880),<br>
-      &nbsp;trigo_deg2rad=&#36;(3.141592654 &#42; (:0 % 360) / 180);<br>
-      INSERT val_sin30=(SELECT trigo_sin(trigo_deg2rad(30)) WHERE EXISTS(trigo_sin));
-  </code>
-
 <span class='pathsql_new'>NEW</span> 
 Generators combined with `INSERT SELECT` for general-purpose "list comprehensions":
 
@@ -230,6 +221,86 @@ A few more simple examples:
   <code class='pathsql_snippet'>SET PREFIX acmep: 'http://acme.org/properties/';<br>
       INSERT acmep:"length"=123.1, acmep:width=456.1, acmep:name='great instrument';
   </code>  
+
+How to use lambda expressions
+-----------------------------
+
+Values can also be lambda expressions, e.g.
+
+  <code class='pathsql_snippet'>
+      /\* Calculate the sinus function, using its Taylor series expansion. \*/<br>
+      INSERT<br>
+      &nbsp;trigo_sin=<br>
+      &nbsp;&nbsp;&#36;(:0 - POWER(:0,3)/6 + POWER(:0,5)/120 - POWER(:0,7)/5040 + POWER(:0,9)/362880),<br>
+      &nbsp;trigo_deg2rad=&#36;(3.141592654 &#42; (:0 % 360) / 180);<br>
+      INSERT val_sin30=(SELECT trigo_sin(trigo_deg2rad(30)) WHERE EXISTS(trigo_sin));
+  </code>  
+
+It's also possible to `SELECT` from within a lambda expression:
+
+  <code class='pathsql_snippet'>
+      /\* Calculate something with a chain of function calls. \*/<br>
+      SET PREFIX lmd: 'http://docsample/example/lambda';<br>
+      CREATE CLASS lmd:things AS SELECT &#42; WHERE EXISTS(lmd:x);<br>
+      INSERT afy:objectID=.lmd:evaluator2, lmd:f=&#36;(:0 + (SELECT FIRST lmd:x FROM lmd:things));<br>
+      INSERT afy:objectID=.lmd:evaluator1, lmd:f=&#36;(SELECT FIRST 10 + lmd:f(:0) FROM #lmd:evaluator2);<br>
+      INSERT lmd:x=33;
+  </code>
+
+  <code class='pathsql_snippet'>
+      SET PREFIX lmd: 'http://docsample/example/lambda';<br>
+      SELECT lmd:f(40) from #lmd:evaluator1;<br>
+      SELECT lmd:f(40) from #lmd:evaluator2;
+  </code>  
+
+
+Find out more about the [VT_EXPR](./pathSQL reference.md#expr-expression-definition) data type, on the
+reference page.
+
+How to use extendable bit arrays
+--------------------------------
+
+[Extendable bit arrays](./pathSQL reference.md#bitwise-operations-on-extendable-bit-arrays),
+combined with their bitwise operators, provide a powerful and compact supplement of functionality
+for operations on sets, as well as many other use cases:
+
+  <code class='pathsql_snippet'>
+      SET PREFIX ba: 'http://docsample/example/bitarrays';<br>
+      <br>
+      /\* Maintain a bit index of people in the ba:people class. \*/<br>
+      CREATE CLASS ba:people AS SELECT * WHERE EXISTS(ba:id) SET<br>
+      &nbsp;ba:"bit/index"=X'0000000000000000',<br>
+      &nbsp;afy:onEnter=<br>
+      &nbsp;&nbsp;&#36;{UPDATE @ctx SET ba:"bit/index"=SETBIT(ba:"bit/index", @self.ba:id)};<br>
+      <br>
+      /\* Have a derived class specifically for young adults. \*/<br>
+      /\* Note: actions of the base class are not inherited. \*/<br>
+      CREATE CLASS ba:"young/adults" AS SELECT * FROM ba:people WHERE ba:age>20 AND ba:age<30 SET<br>
+      &nbsp;ba:"bit/index"=X'0000000000000000',<br>
+      &nbsp;afy:onEnter=<br>
+      &nbsp;&nbsp;&#36;{UPDATE @ctx SET ba:"bit/index"=SETBIT(ba:"bit/index", @self.ba:id)};<br>
+      <br>
+      /\* Insert a bunch of people. \*/<br>
+      INSERT (ba:id, ba:name, ba:age) VALUES<br>
+      &nbsp;(12, 'Alice', 34), (23, 'Fred', 25), (35, 'Jack', 56), (17, 'Eileen', 22),<br>
+      &nbsp;(19, 'Jonathan', 45), (27, 'Peter', 12);
+  </code>  
+
+  <code class='pathsql_snippet'>
+      SET PREFIX ba: 'http://docsample/example/bitarrays';<br>
+      <br>
+      /\* Show the bit arrays representing people and young adults. \*/<br>
+      SELECT ba:"bit/index" FROM afy:Classes WHERE afy:objectID=.ba:"people";<br>
+      SELECT ba:"bit/index" FROM afy:Classes WHERE afy:objectID=.ba:"young/adults";<br>
+      <br>
+      /\* Obtain a bit array representing all people that are not young adults. \*/<br>
+      /\* WARNING: while bit arrays are extendable, '~' applied on them does not produce infinite 1s... \*/<br>
+      SELECT a.ba:"bit/index" & ~b.ba:"bit/index"<br>
+      &nbsp;FROM afy:Classes AS a JOIN afy:Classes AS b<br>
+      &nbsp;WHERE a.afy:objectID=.ba:people AND b.afy:objectID=.ba:"young/adults";
+  </code>
+
+<!-- TODO: review with SETBITS / CAST(collection -> bits) becomes available... -->
 
 Linear Algebra
 --------------

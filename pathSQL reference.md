@@ -129,9 +129,9 @@ Path expressions support several navigation mechanisms, applicable to each segme
 
 In order to support more complex graph queries, Affinity provides regular expressions for each segment (or property) of the path. There are several options:
 
-Format			Description
----------		-----------
-{value}	    Navigate along this segment for a number of "value" times (e.g. prop1{3} means "prop1.prop1.prop1").
+Format      Description
+---------   -----------
+{value}     Navigate along this segment for a number of "value" times (e.g. prop1{3} means "prop1.prop1.prop1").
 {min, max}  Navigate along this segment, starting at the "min"-th instance and up to the "max"-th instance.
 {*}         Same as {0, infinity}.
 {?}         Same as {0, 1}.
@@ -307,7 +307,7 @@ In the future, year-month-day will be supported as well.
 ### EXPR (expression definition)
 Format:  $(expression)  
 
-EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine.
+EXPR is the compiled form of an EXPRTREE, which is first and foremost used internally by the database engine.
 An EXPR can be stored as a [value](./terminology.md#value), but it is not evaluated automatically at INSERT/UPDATE execution time 
 (the value of that property will always be the EXPR itself, never its evaluation).
 However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.
@@ -337,6 +337,8 @@ It's also possible to invoke such a EXPR property with parameters (up to 254). E
   </code>
 
 Note that Affinity can support missing or extraneous parameters.
+
+You can find more examples [here](./pathSQL basics [data].md#how-to-use-lambda-expressions).
   
 ### EXPRTREE
 This is an internal, transient type used primarily in C++, to build expression trees before they are compiled by Affinity into
