@@ -131,7 +131,7 @@ tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate
  * A new [`VT_MAP`](./terminology.md#map) data type allows to store dictionaries (associative arrays) as properties of a PIN
    (keys are not limited to symbolic values, can be of any data type, and can be much more numerous than
    the number of properties on a PIN)
- * `SELECT MEMBERSHIP(@) FROM ...` returns all the class memberships of selected PINs in one go.
+ * `SELECT DATAEVENTS(@) FROM ...` returns all the class memberships of selected PINs in one go.
    It can be considered as a complement of the `IS A` condition (already available in AffinityDB).
  * It is now possible to perform constraint checks at insertion, with the form
    `INSERT INTO myclass myproperty1='a', myproperty2='b', ...`.  This will only insert the

@@ -2,7 +2,7 @@
 [ACL](#acl), [action](#action), [BLOB](#blob),
 [C++ interface](#c-kernel-interface), [CEP](#cep), [class](#class), [client-side library](#client-side-libraries),
 [coercion](#coercion), [collection](#collection), [communication PIN](#communication-pin), [condition](#condition),
-[data model](#essentials-data-model),
+[CPIN](#cpin), [data model](#essentials-data-model),
 [element ID (eid)](#element-id-eid), [encryption](#encryption), [enumeration](#enumeration),
 [event](#event), [family](#family),
 [FSM](#fsm), [identity](#identity), [index](#index), [kernel](#kernel),
@@ -210,7 +210,7 @@ Timers invoke [actions](#action) at regular time intervals, in their own thread.
 The [reference](./pathSQL reference [definition].md#create-timer) describes in detail how to declare timers.
 
 ###Communication PIN
-Communication PINs are special PINs with dual personality.
+Communication PINs (aka "CPINs") are special PINs with dual personality.
 Their "RAW" form (i.e. their plain and simple set of [properties](#property)
 and [values](#value)), defines the configuration of the communication,
 including a stack of [services](#service).
@@ -220,6 +220,9 @@ The second personality, seen via non-decorated `SELECT` or `UPDATE`, is the acti
 communication channel itself.  In that context, `SELECT` acts as a read, and
 `UPDATE` acts as a write.  The [reference](./pathSQL reference [definition].md#communication-pins)
 describes communication PINs in more detail.
+
+###CPIN
+Abbreviation for [Communication PIN](#communication-pin).
 
 #Related Concepts
 
@@ -385,7 +388,10 @@ to translate values to the required type (e.g. strings to integers and vice vers
 
 ###Notification
 Notifications are similar to triggers, and allow to track changes
-on specific [PINs](#pin) or [classes](#class). The notification functionality
+on specific [PINs](#pin) or [classes](#class). The difference between them is: 
+Trigger used to invoke some actions (written in pathSQL) running on the kernel, 
+while notification is introduced for invoking actions (written in client programming language) 
+running on the client. The notification functionality
 is exposed in a low-level way in the kernel ([startup.h](./sources/startup_h.html)),
 and is also available via the [comet](http://en.wikipedia.org/wiki/Comet_%28programming%29)
 pattern in the [server](#server). In the future a highly scalable (asynchronous) messaging infrastructure

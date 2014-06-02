@@ -107,11 +107,11 @@ Whole graphs with cycles may be inserted in one statement, using references and 
       &nbsp;(INSERT photo_name='Egypt.jpg')};
   </code>
 
-  <code class='pathsql_snippet'>&nbsp;SET PREFIX simul: 'http://example/simul';<br>
-      SET PREFIX control: 'http://example/control';<br>
-      SET PREFIX world: 'http://example/world';<br>
-      SET PREFIX meta: 'http://example/meta';<br>
-      SET PREFIX inst: 'http://example/inst';<br>
+  <code class='pathsql_snippet'>&nbsp;SET PREFIX simul: 'http://example/d/simul';<br>
+      SET PREFIX control: 'http://example/d/control';<br>
+      SET PREFIX world: 'http://example/d/world';<br>
+      SET PREFIX meta: 'http://example/d/meta';<br>
+      SET PREFIX inst: 'http://example/d/inst';<br>
       CREATE CLASS control:"rt/signalable" AS SELECT &#42;<br>
       &nbsp;WHERE EXISTS(control:"rt/time/signal");<br>
       CREATE CLASS control:"rt/physical/samples" AS SELECT &#42;<br>
@@ -224,7 +224,6 @@ A few more simple examples:
 
 How to use lambda expressions
 -----------------------------
-
 Values can also be lambda expressions, e.g.
 
   <code class='pathsql_snippet'>
@@ -253,13 +252,11 @@ It's also possible to `SELECT` from within a lambda expression:
       SELECT lmd:f(40) from #lmd:evaluator2;
   </code>  
 
-
 Find out more about the [VT_EXPR](./pathSQL reference.md#expr-expression-definition) data type, on the
 reference page.
 
 How to use extendable bit arrays
 --------------------------------
-
 [Extendable bit arrays](./pathSQL reference.md#bitwise-operations-on-extendable-bit-arrays),
 combined with their bitwise operators, provide a powerful and compact supplement of functionality
 for operations on sets, as well as many other use cases:
@@ -333,6 +330,122 @@ Suppose AX=B, where A is a matrix, and X and B are vectors, then X=B/A.
   <code class='pathsql_snippet'>
     SELECT b/a FROM #matrix1;
   </code>
+
+###Use Case: Implementing A Kalman Filter
+With native linear algebra, AffinityNG can integrate sophisticated signal processing solutions
+(expected in high-end processing & control platforms), such as for instance the
+[Kalman filter](http://en.wikipedia.org/wiki/Kalman_filter).
+
+Let's take the example of tracking a falling object by radar
+(such as described in the book [Fundamentals of Kalman Filtering A Practical Approach, 3rd Edition](http://arc.aiaa.org/doi/book/10.2514/4.867200), chapter 4),
+for illustration.
+
+Suppose an object is initially at 400000 ft above a radar and has an initial velocity of 6000 ft/s toward the radar,
+which is located on the surface of the Earth. Let's assume that the radar measures the distance from
+the radar to the target (i.e. the altitude of the target), within a 10000-ft standard deviation measurement accuracy.
+The radar takes measurements 5 times per second. We would like to build a filter with pathSQL to estimate the altitude,
+velocity and acceleration of the object, without any other a priori information (e.g. not knowing the
+initial speed of the object).
+
+Some constants, internal matrices, and the estimated values are stored in the
+`#KFFallingObject` context PIN. For instance, `KF_I` is an identity matrix, `KF_P` is a covariance matrix,
+`KF_K` is the Kalman gain, and `KF_XH` is the estimated altitude:
+
+  <code class='pathsql_snippet'>
+    INSERT KF\_Q=[[5e-012,1e-010,2e-009],[1e-010,3e-009,5e-008],[2e-009,5e-008,1e-006]],<br>
+    &nbsp;&nbsp;KF\_PHI=[[1.000,0.100,5e-003],[0e+000,1.000,0.100],[0e+000,0e+000,1.000]],<br>
+    &nbsp;&nbsp;KF\_H=[1.000,0e+000,0e+000],KF\_K=[[0e+000],[0e+000],[0e+000]],<br>
+    &nbsp;&nbsp;KF\_M=[[0e+000,0e+000,0e+000],[0e+000,0e+000,0e+000],[0e+000,0e+000,0e+000]],<br>
+    &nbsp;&nbsp;KF\_P=[[99999999999999.000,0e+000,0e+000],[0e+000,99999999999999.000,0e+000],[0e+000,0e+000,99999999999999.000]],<br>
+    &nbsp;&nbsp;KF\_R=[1000000.000],KF_I=[[1.000,0e+000,0e+000],[0e+000,1.000,0e+000],[0e+000,0e+000,1.000]],<br>
+    &nbsp;&nbsp;KF\_A0=400000.0,KF\_A1=-6000.0,KF\_A2=-16.1,KF\_TS=0.2,KF\_XH=0.0,KF\_XDH=0.0,KF\_XDDH=0.0,<br>
+    &nbsp;&nbsp;afy:objectID='KFFallingObject';
+  </code>  
+
+First, let's install a class to augment each time sample with the theoretically-estimated
+position of the object, and the simulated radar reading (these calculations are not part of the
+Kalman filter per se):
+
+  <code class='pathsql_snippet'>
+    CREATE CLASS KF\_SIMULATION AS SELECT * WHERE EXISTS(T) AND EXISTS(GAUSS) SET<br>
+    &nbsp;afy:onEnter = {<br>
+    &nbsp;&nbsp;/\* Evaluate X, the theoretical position, calculated with a-priori knowledge of original speed. \*/<br>
+    &nbsp;&nbsp;&#36;{UPDATE @self SET X = #KFFallingObject.KF\_A0 + #KFFallingObject.KF\_A1 \* @self.T +<br>
+    &nbsp;&nbsp;&nbsp;#KFFallingObject.KF\_A2 \* @self.T \* @self.T},<br>
+    &nbsp;&nbsp;/\* Evaluate XS, the simulated noisy radar reading. \*/<br>
+    &nbsp;&nbsp;&#36;{UPDATE @self SET XS = @self.X + @self.GAUSS}};<br>
+  </code>  
+
+Next, install the Kalman filter calculation itself:
+
+  <code class='pathsql_snippet'>
+    CREATE CLASS KF\_CALCULATION AS SELECT * WHERE T IN :0 AND EXISTS(XS) SET<br>
+    &nbsp;afy:onEnter = {<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_M = KF\_PHI \* KF\_P \* TRANSPOSE(KF\_PHI) + KF\_Q},<br>
+    &nbsp;&nbsp;&#36;{UPDATE @auto SET MHT = #KFFallingObject.KF\_M \* TRANSPOSE(#KFFallingObject.KF\_H)},<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_K = @auto.MHT \* INV(KF\_H \* @auto.MHT \* [1.0] + KF\_R)},<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_P = (KF\_I - KF\_K \* KF\_H) \* KF\_M},<br>
+    &nbsp;&nbsp;&#36;{UPDATE @auto SET RES = @self.XS - #KFFallingObject.KF\_XH - #KFFallingObject.KF\_TS \* #KFFallingObject.KF\_XDH -<br>
+    &nbsp;&nbsp;&nbsp;0.5 \* #KFFallingObject.KF\_TS \* #KFFallingObject.KF\_TS \* #KFFallingObject.KF\_XDDH},<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_XH = KF\_XH + KF\_XDH \* KF\_TS + 0.5 \* KF\_TS \* KF\_TS \* KF\_XDDH + KF\_K[0,0] \* @auto.RES},<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_XDH = KF\_XDH + KF\_XDDH \* KF\_TS + KF\_K[1,0] \* @auto.RES},<br>
+    &nbsp;&nbsp;&#36;{UPDATE #KFFallingObject SET KF\_XDDH = KF\_XDDH + KF\_K[2,0] \* @auto.RES},<br>
+    &nbsp;&nbsp;&#36;{UPDATE @self SET XH=(SELECT FIRST KF\_XH FROM #KFFallingObject),<br>
+    &nbsp;&nbsp;&nbsp;XDH=(SELECT FIRST KF\_XDH FROM #KFFallingObject),<br>
+    &nbsp;&nbsp;&nbsp;XDDH=(SELECT FIRST KF\_XDDH FROM #KFFallingObject)}};
+  </code>  
+
+With these preparations, we are ready to start the simulation.
+We will insert 5 samples per second during 50 seconds (i.e. `T` in {0.0s, 0.2s, 0.4s, ..., 50.0s}),
+with `GAUSS` in {random noise following Gaussian distribution with mean=0.0 and stddev=10000.0}.
+For each sample, our `KF_SIMULATION` (defined just above) simulates a typical radar reading `XS`, by first calculating the
+theoretic position `X`, and then adding the specified noise `GAUSS`. 
+Then our `KF_CALCULATION` calculates the Kalman-filtered position `XH`,
+as well as the filtered speed `XDH` and acceleration `XDDH`.
+
+  <code class='pathsql_snippet' pathsql_send_at_completion='event_inserted_kf_samples' loaders='CREATE LOADER _vdev AS &#39;VDEV&#39;;' dependencies='INSERT afy:objectID=&#39;KF_randomGaussian&#39;, afy:service={.srv:VDEV}, VDEV:"special/function"=VDEVSPECIALFUNC#randomGaussian, VDEV:"evaluation/parameters"=(INSERT VDEV:stddev=10000.0, VDEV:mean=0.0);'>
+    INSERT SELECT CAST(afy:value AS DOUBLE)/5.0 AS T, (SELECT FIRST afy:content FROM #KF\_randomGaussian) AS GAUSS FROM @[0,250];
+  </code>  
+
+Let's visualize the results:
+
+  <code class='pathsql_snippet'>
+    SELECT * FROM KF\_CALCULATION;
+  </code>  
+
+  <code class='pathsql_fcurves' pathsql_listen_to='event_inserted_kf_samples'>
+    (function() { return {
+      title:"Kalman Filter (1)",
+      subtitle:"Position Over Time",
+      aspect:1,
+      x:{name:"Time (s)", decimals:0},
+      y:{name:"Altitude (ft)", decimals:0},
+      series:
+      [
+        {name:"theoretical", color:"#2087c6", query:"SELECT T AS x, X AS y FROM KF_CALCULATION"},
+        {name:"measured", color:"#8720c6", query:"SELECT T AS x, XS AS y FROM KF_CALCULATION"},
+        {name:"filtered", color:"#ff8c00", lwidth:2.0, query:"SELECT T AS x, XH AS y FROM KF_CALCULATION"},
+      ]
+    };})();
+  </code>  
+
+  <code class='pathsql_fcurves' pathsql_listen_to='event_inserted_kf_samples'>
+    (function() { return {
+      title:"Kalman Filter (2)",
+      subtitle:"Speed Over Time",
+      aspect:1,
+      x:{name:"Time (s)", decimals:0},
+      y:{name:"Speed (ft/s)", decimals:0},
+      series:
+      [
+        {name:"theoretical", color:"#2087c6", query:"SELECT a.T AS x, (b.KF\_A1 \+ b.KF\_A2 \* a.T) AS y FROM KF_CALCULATION AS a JOIN #KFFallingObject AS b"},
+        {name:"filtered", color:"#ff8c00", lwidth:2.0, query:"SELECT T AS x, XDH AS y FROM KF_CALCULATION"},
+      ]
+    };})();
+  </code>  
+
+<!-- TODO: for correctness (e.g. if user inserts the samples several times), we should use ORDER BY T in the graph queries... but it doesn't work at the moment (bug #472/?)... in the meantime I used a family for KF_CALCULATION -->
+<!-- TODO: should use units also -->
 
 How to classify data 
 --------------------
@@ -429,28 +542,32 @@ How to use [collections](./terminology.md#collection)
 ### 1. Add elements to a [collection](./terminology.md#collection)
 #### 1.1 Insert a PIN with a collection property:
 
-  <code class='pathsql_snippet'>INSERT (prop1, prop2) VALUES ({1, 'inserted', '3'}, 2);</code>  
+  <code class='pathsql_snippet'>
+    INSERT (afy:objectID, prop1, prop2) VALUES ('docsample\_collection', {1, 'inserted', '3'}, 2);
+  </code>  
 
 #### 1.2 Update a property in a collection
 Using "UPDATE ... SET ...", we can replace a property with a whole collection directly:  
 
-  <code class='pathsql_inert'>UPDATE @50001 SET prop3={3, 'update set'};</code>  
+  <code class='pathsql_snippet'>UPDATE #docsample\_collection SET prop3={3, 'update set'};</code>  
 
 Using "UPDATE ... ADD ...", we can convert a property from a scalar value to a collection:
 
-  <code class='pathsql_inert'>UPDATE @50001 ADD prop2='update add';</code>  
+  <code class='pathsql_snippet'>UPDATE #docsample\_collection ADD prop2='update add';</code>  
 
 ### 2. Delete an element from a collection
 
-  <code class='pathsql_inert'>UPDATE @50001 DELETE prop1[2];</code>  
+  <code class='pathsql_snippet'>UPDATE #docsample\_collection DELETE prop1[1];</code>  
 
 ### 3. Query on collections
 Here are a few examples of queries that can be run against the PIN created in section 1.1:
 
->1. SELECT &#42; WHERE 1 IN prop1;   
->2. SELECT &#42; WHERE {1,2} IN prop1;  
->3. SELECT &#42; WHERE 1 = prop1;  -- equivalent to example 1.
->4. SELECT &#42; WHERE {1,2} = prop1;  -- equivalent to example 2.
+  <code class='pathsql_snippet'>
+    SELECT &#42; WHERE 1 IN prop1;<br>
+    SELECT &#42; WHERE {1,'3'} IN prop1;<br>
+    SELECT &#42; WHERE 1 = prop1; /\* equivalent to example 1 \*/<br>
+    SELECT &#42; WHERE {1,'3'} = prop1; /\* equivalent to example 2 \*/
+  </code>  
 
 How to index properties
 -----------------------

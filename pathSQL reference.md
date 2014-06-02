@@ -591,11 +591,12 @@ Operator     Description                                           Example      
 
 ### Bitwise Operations on Extendable Bit Arrays
 
-Function                     Description
---------                     -----------
-TESTBIT(property, bitIndex)  return true if the bit specified by bitIndex is set in the value of the specified property
-SETBIT(property, bitIndex)   return the value of property after setting the bit specified by bitIndex; works on integer types as well as VT_BSTR
-RESETBIT(property, bitIndex) return the value of property after resetting the bit specified by bitIndex; works on integer types as well as VT_BSTR
+Function                                Description
+--------                                -----------
+TESTBIT(property, bitIndex)             return true if the bit specified by bitIndex is set in the value of the specified property
+SETBIT(property, bitIndex)              return the value of property after setting the bit specified by bitIndex; works on integer types as well as VT_BSTR
+RESETBIT(property, bitIndex)            return the value of property after resetting the bit specified by bitIndex; works on integer types as well as VT_BSTR
+BITFIELD(property, bitIndex, length)    return the part of property which begins from the bit specified by bitIndex with the length in bits.
 
 In binary strings (VT_BSTR), the bitIndex refers to a string of bits where byte 0 is the leftmost byte in the string,
 and bit 0 of each byte has absolute value 1.  In other words, the bitIndex progresses along this:  
@@ -650,11 +651,11 @@ These functions can also support [DISTINCT/ALL qualifier](#distinctall-qualifier
 Function                          Description
 ----------------                  ------------------
 TRANSPOSE(array)                  Returns the transpose of a matrix, which flips the rows and columns.
-Norm(array)                       Returns the norm of a vector, which is informally a measure of the length of the vector.
-Trace(array)                      Returns the trace of a square matrix, which is the sum of diagonal elements in the matrix.
-Det(array)                        Returns the determinant of a square matrix.
-Inv(array)                        Returns the inverse of a square matrix.
-Rank(array)                       Returns the rank of a matrix, which is the number of linearly independent row or column vectors.
+NORM(array)                       Returns the norm of a vector, which is informally a measure of the length of the vector.
+TRACE(array)                      Returns the trace of a square matrix, which is the sum of diagonal elements in the matrix.
+DET(array)                        Returns the determinant of a square matrix.
+INV(array)                        Returns the inverse of a square matrix.
+RANK(array)                       Returns the rank of a matrix, which is the number of linearly independent row or column vectors.
 
 You can refer to Linear Algebra for more details about these operators.
 

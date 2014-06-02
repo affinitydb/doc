@@ -50,7 +50,7 @@ def convertMdToHtml():
                 "<head>\n", \
                 "  <meta name='viewport' content='width=device-width, initial-scale=1.0' />\n", \
                 "  <script src='js/jquery.js' type='text/javascript'></script>\n", \
-                "  <script src='js/snippets_to_console.js' type='text/javascript'></script>\n", \
+                "  <script src='js/afysnippets.js' type='text/javascript'></script>\n", \
                 "  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />\n", \
                 "  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />\n", \
                 "  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>\n", \

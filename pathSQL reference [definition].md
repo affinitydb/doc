@@ -17,8 +17,50 @@ Equivalent to:
 
 Where the query_statement is a [SELECT QUERY](./pathSQL reference [manipulation].md#query).
 
-The `afy:onEnter`, `afy:onUpdate` and `afy:onLeave` properties allow to attach actions to classes (similar to "callbacks",
-"event handlers", and "triggers" in RDBMSs).  The implementation of those actions is expressed in pathSQL,
+Classes combine the functionality of [events](#create-event) with that of a data index, which allows to address
+efficiently all instances of data complying with a class's predicate.  In the following example,
+we ignore the event handling aspect.  We only care about labeling our concept of 'songs',
+and building a corresponding index:
+
+  <code class='pathsql_snippet'>
+    SET PREFIX ex: 'http://doc/example/create-class';<br>
+    <br>
+    /\* Create our class. \*/<br>
+    CREATE CLASS ex:songs AS SELECT &#42; WHERE EXISTS(ex:"song/title");<br>
+    <br>
+    /\* Create some data complying with our new class's predicate. \*/<br>
+    INSERT ex:"song/title"='Across the Universe', ex:"creation/year"=1968;<br>
+    INSERT ex:"song/title"='Ain''t She Sweet', ex:"creation/year"=1961;<br>
+    INSERT ex:"song/title"='All My Loving', ex:"creation/year"=1963;<br>
+    INSERT ex:"song/title"='All Things Must Pass', ex:"creation/year"=1969;<br>
+    INSERT ex:"song/title"='All You Need Is Love', ex:"creation/year"=1967;<br>
+    INSERT ex:"song/title"='Ballad of a Thin Man', ex:"creation/year"=1965;<br>
+    INSERT ex:"song/title"='Don''t Think Twice, It''s All Right', ex:"creation/year"=1963;<br>
+    INSERT ex:"song/title"='Born in Time', ex:"creation/year"=1990;
+  </code>  
+
+These queries will use the data index (as opposed to scanning the whole database):
+
+  <code class='pathsql_snippet'>
+    SET PREFIX ex: 'http://doc/example/create-class';<br>
+    SELECT ex:"song/title" FROM ex:songs WHERE ex:"creation/year" IN @[1960, 1965];
+  </code>  
+
+  <code class='pathsql_snippet'>
+    SET PREFIX ex: 'http://doc/example/create-class';<br>
+    SELECT &#42; FROM ex:songs;
+  </code>  
+
+Note that it is possible to retrieve the parameters of a class (such as its `afy:predicate`),
+as opposed to the contents of its index, with this query:
+
+  <code class='pathsql_snippet'>
+    SET PREFIX ex: 'http://doc/example/create-class';<br>
+    SELECT &#42; FROM #ex:songs;
+  </code>  
+
+The `afy:onEnter`, `afy:onUpdate` and `afy:onLeave` properties allow to attach event handlers to classes
+(aka "actions", "callbacks", or "triggers" in RDBMSs).  The implementation of those actions is expressed in pathSQL,
 either as a single statement (e.g. `SET afy:onEnter=${INSERT originator=@self}`) or as a collection of statements
 (e.g. {`${UPDATE @auto SET fheight=(SELECT AVG(height) FROM @self.friends)}`, `${UPDATE @self SET bigfriends=true WHERE @auto.fheight>=6ft}`}).
 Whenever a PIN starts to conform with the class predicate, `afy:onEnter` of that class will be invoked, with `@self` pointing to that PIN
@@ -35,9 +77,12 @@ All those actions are optional. The query statements that constitute them (qs1, 
 Examples: [class.sql](./sources/pathsql/class.html).   
 
 The "IS A" operator can be used to check whether or not a pin belongs to a class. For example, those two statements are equivalent:  
- 
-        SELECT * WHERE afy:pinID IS A class1;  
-        SELECT * FROM class1;  
+
+  <code class='pathsql_snippet'>
+    SET PREFIX ex: 'http://doc/example/create-class';<br>
+    SELECT * WHERE afy:pinID IS A ex:songs;<br>
+    SELECT * FROM ex:songs;
+  </code>
 
 #### Creating a [class family](./terminology.md#family)  
 
@@ -96,8 +141,8 @@ This operates in a way similar to a class, but without any index.
 There is no strictly equivalent `INSERT` syntax for `CREATE EVENT`.  
 
 To communicate more explicitly its transition from a DBMS to a full runtime platform, AffinityNG
-now uses a distinct name for the concept of an "event".  While classes do recognize and
-produce events, they are no longer the only source of events.  Upcoming event handlers and FSMs
+now uses a distinct name for the concept of a "data event".  While classes do recognize and
+produce data events, they are no longer the only source of events.  Upcoming event handlers and FSMs
 will soon provide the whole context for this evolution.  
 
 Example:
@@ -206,7 +251,18 @@ a VT_STRUCT describing a communication channel.  Each service (or communication 
 but for brevity it's also possible to do simple configurations via the master PIN (e.g. here, the afy:address configures
 the socket of this listener).
 
-#### Communication PINs
+#### CREATE COMMUNICATION PIPELINE
+Synopsis:  
+
+  - CREATE COMMUNICATION PIPELINE [name] AS {.srv:IO, .srv:XML} [SET property=expression [, ...]]  
+
+Equivalent to:  
+
+  - INSERT [afy:objectID='name', ] afy:service={.srv:IO, .srv:XML}[, property=expression, ...]  
+
+This statement creates a [communication pin (read on just below)](#communication-pins) with the specified configuration.
+
+#### COMMUNICATION PINs
 <!-- TODO: review in detail, make sure nothing is obsolete etc. -->
 <!-- TODO: document in detail the configuration parameters of each service -->
 
